@@ -1,0 +1,15 @@
+---
+apiVersion: {{ include "rbacversion" . }}
+kind: ClusterRole
+metadata:
+  name: garden.sapcloud.io:psp:kube-system:calico-kube-controllers
+rules:
+  - apiGroups:
+      - policy
+      - extensions
+    resourceNames:
+      - gardener.kube-system.calico-kube-controllers
+    resources:
+      - podsecuritypolicies
+    verbs:
+      - use

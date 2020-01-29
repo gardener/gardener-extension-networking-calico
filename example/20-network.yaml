@@ -1,0 +1,56 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shoot--foo--bar
+  labels:
+    shoot.gardener.cloud/provider: azure
+    networking.shoot.gardener.cloud/provider: calico
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: Cluster
+metadata:
+  name: shoot--foo--bar
+spec:
+  cloudProfile:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: CloudProfile
+  seed:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: Seed
+  shoot:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: Shoot
+    metadata:
+      generation: 1
+      name: shoot--foo--bar
+    spec:
+      dns:
+        domain: foo.bar.example.com
+      kubernetes:
+        version: 1.15.1
+    status:
+      lastOperation:
+        state: Succeeded
+      observedGeneration: 1
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: Network
+metadata:
+  name: calico-network
+  namespace: shoot--foo--bar
+spec:
+  type: calico
+  podCIDR: 10.244.0.0/16
+  serviceCIDR:  10.96.0.0/24
+  providerConfig:
+    apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
+    kind: NetworkConfig
+    backend: bird
+    ipam:
+      type: host-local
+      cidr: usePodCIDR
+#   ipAutodetectionMethod: interface=eth0
+#   ipip: CrossSubnet
+#   typha:
+#     enabled: true

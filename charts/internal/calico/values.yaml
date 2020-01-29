@@ -1,0 +1,25 @@
+global:
+  podCIDR: ""
+config:
+  veth_mtu: 1440
+  backend: bird
+  ipam:
+    type: "host-local"
+    # subnet: "usePodCidr"
+  typha:
+    enabled: true
+  ipv4:
+    pool: ipip # or vxlan
+    mode: "Always"
+    autoDetectionMethod: "first-found"
+  felix:
+    ipinip:
+      enabled: "true"
+images:
+  calico-node: "image-repository:image-tag"
+  calico-cni: "image-repository:image-tag"
+  calico-typha: "image-repository:image-tag"
+  calico-kube-controllers: "image-repository:image-tag"
+  calico-podtodaemon-flex: "image-repository:image-tag"
+  typha-cpva: "image-repository:image-tag"
+  typha-cpa: "image-repository:image-tag"

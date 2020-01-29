@@ -1,0 +1,59 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calico-config
+  namespace: kube-system
+data:
+  # To enable Typha, set this to "calico-typha" *and* set a non-zero value for Typha replicas
+  # below.  We recommend using Typha if you have more than 50 nodes. Above 100 nodes it is
+  # essential.
+{{- if .Values.config.typha.enabled }}
+  typha_service_name: "calico-typha"
+{{- else }}
+  typha_service_name: "none"
+{{- end }}
+  # Configure the Calico backend to use.
+  calico_backend: "{{ .Values.config.backend }}"
+  # Configure the MTU to use
+  veth_mtu: "{{ .Values.config.veth_mtu }}"
+  # The CNI network configuration to install on each node.
+  cni_network_config: |-
+    {
+      "name": "k8s-pod-network",
+      "cniVersion": "0.3.1",
+      "plugins": [
+        {
+          "type": "calico",
+          "log_level": "error",
+          "datastore_type": "kubernetes",
+          "nodename": "__KUBERNETES_NODE_NAME__",
+          "mtu": __CNI_MTU__,
+        {{- if .Values.config.ipam.subnet }}
+          "ipam": {
+            "type": "{{ .Values.config.ipam.type }}",
+            "subnet": "{{ .Values.config.ipam.subnet }}"
+          },
+        {{- else }}
+          "ipam": {
+            "type": "{{ .Values.config.ipam.type }}",
+          },
+        {{- end }}
+          "policy": {
+            "type": "k8s"
+          },
+          "kubernetes": {
+            "kubeconfig": "__KUBECONFIG_FILEPATH__"
+          }
+        },
+        {
+          "type": "portmap",
+          "snat": true,
+          "capabilities": {"portMappings": true}
+        },
+        {
+          "type": "bandwidth",
+          "capabilities": {"bandwidth": true}
+        }
+      ]
+    }

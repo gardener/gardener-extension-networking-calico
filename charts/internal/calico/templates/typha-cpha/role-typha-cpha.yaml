@@ -1,0 +1,15 @@
+{{- if .Values.config.typha.enabled }}
+---
+apiVersion: {{ include "rbacversion" . }}
+kind: Role
+metadata:
+  name: typha-cpha
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get"]
+  - apiGroups: ["apps", "extensions"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "update"]
+{{- end }}

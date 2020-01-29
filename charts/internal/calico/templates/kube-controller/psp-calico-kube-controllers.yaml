@@ -1,0 +1,22 @@
+---
+apiVersion: {{ include "podsecuritypolicyversion" .}}
+kind: PodSecurityPolicy
+metadata:
+  name: gardener.kube-system.calico-kube-controllers
+spec:
+  volumes:
+    - secret
+  hostIPC: false
+  hostNetwork: false
+  hostPID: false
+  privileged: true
+  requiredDropCapabilities:
+    - ALL
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny

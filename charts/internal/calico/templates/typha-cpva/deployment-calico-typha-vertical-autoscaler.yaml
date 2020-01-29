@@ -1,0 +1,54 @@
+{{- if .Values.config.typha.enabled }}
+---
+kind: Deployment
+apiVersion: {{ include "deploymentversion" . }}
+metadata:
+  name: calico-typha-vertical-autoscaler
+  namespace: kube-system
+  labels:
+    origin: gardener
+    k8s-app: calico-typha-autoscaler
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: calico-typha-autoscaler
+  template:
+    metadata:
+      annotations:
+        checksum/configmap-calico-typha-vertical-autoscaler: {{ include (print $.Template.BasePath "/typha-cpva/configmap-typha-vertical-autoscaling.yaml") . | sha256sum }}
+      labels:
+        origin: gardener
+        k8s-app: calico-typha-autoscaler
+    spec:
+      priorityClassName: system-cluster-critical
+      securityContext:
+        runAsUser: 65534
+      containers:
+        - image:  {{ index .Values.images "typha-cpva" }}
+          name: autoscaler
+          command:
+            - /cpvpa
+            - --target=deployment/calico-typha-deploy
+            - --namespace=kube-system
+            - --logtostderr=true
+            - --poll-period-seconds=30
+            - --v=2
+            - --config-file=/etc/config/typha-autoscaler
+          resources:
+            requests:
+              cpu: 10m
+              memory: 50Mi
+            limits:
+              cpu: 10m
+              memory: 50Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config
+      volumes:
+        - name: config
+          configMap:
+            name: calico-typha-vertical-autoscaler
+      serviceAccountName: typha-cpva
+{{- end }}

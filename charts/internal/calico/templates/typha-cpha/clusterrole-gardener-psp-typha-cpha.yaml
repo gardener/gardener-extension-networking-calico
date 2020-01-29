@@ -1,0 +1,17 @@
+{{- if .Values.config.typha.enabled }}
+---
+apiVersion: {{ include "rbacversion" . }}
+kind: ClusterRole
+metadata:
+  name: gardener.cloud:psp:kube-system:typha-cpha
+rules:
+  - apiGroups:
+      - policy
+      - extensions
+    resourceNames:
+      - gardener.kube-system.typha-cpa
+    resources:
+      - podsecuritypolicies
+    verbs:
+      - use
+{{- end }}

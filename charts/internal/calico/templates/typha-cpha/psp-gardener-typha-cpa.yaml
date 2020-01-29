@@ -1,0 +1,24 @@
+{{- if .Values.config.typha.enabled }}
+---
+apiVersion: {{ include "podsecuritypolicyversion" .}}
+kind: PodSecurityPolicy
+metadata:
+  name: gardener.kube-system.typha-cpa
+spec:
+  volumes:
+  - secret
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 65534
+  fsGroup:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 65534
+{{- end }}

@@ -1,0 +1,22 @@
+{{- if .Values.config.typha.enabled }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: calico-typha-vertical-autoscaler
+  namespace: kube-system
+data:
+  typha-autoscaler: |-
+    {
+      "calico-typha": {
+        "requests": {
+          "cpu": {
+            "base": "120m",
+            "step": "80m",
+            "nodesPerStep": 10,
+            "max": "1000m"
+          }
+        }
+      }
+    }
+{{- end }}
