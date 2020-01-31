@@ -6,7 +6,7 @@ COPY . .
 RUN make install-requirements && make VERIFY=true all
 
 ############# gardener-extension-networking-calico
-FROM builder AS gardener-extension-networking-calico
+FROM alpine:3.11.3 AS gardener-extension-networking-calico
 
 COPY charts /charts
 COPY --from=builder /go/bin/gardener-extension-networking-calico /gardener-extension-networking-calico
