@@ -1,3 +1,4 @@
+{{- if .Values.config.kubeControllers.enabled }}
 ---
 # Source: calico/templates/calico-kube-controllers.yaml
 # See https://github.com/projectcalico/kube-controllers
@@ -72,3 +73,4 @@ spec:
             # Health checks are written on a file which is
             # writable only to root
             privileged: true
+{{- end }}

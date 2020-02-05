@@ -1,3 +1,4 @@
+{{- if .Values.config.kubeControllers.enabled }}
 ---
 kind: ClusterRoleBinding
 apiVersion: {{ include "rbacversion" . }}
@@ -11,3 +12,4 @@ subjects:
 - kind: ServiceAccount
   name: calico-kube-controllers
   namespace: kube-system
+{{- end }}
