@@ -1,3 +1,4 @@
+{{- if .Values.config.kubeControllers.enabled }}
 ---
 apiVersion: {{ include "rbacversion" . }}
 kind: RoleBinding
@@ -12,3 +13,4 @@ subjects:
   - kind: ServiceAccount
     name: calico-kube-controllers
     namespace: kube-system
+{{- end }}

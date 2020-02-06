@@ -34,6 +34,7 @@ import (
 
 var (
 	trueVar    = true
+	falseVar   = false
 	mtuVar     = "1430"
 	defaultMtu = "1440"
 )
@@ -156,6 +157,9 @@ var _ = Describe("Chart package test", func() {
 					"typha": map[string]interface{}{
 						"enabled": trueVar,
 					},
+					"kubeControllers": map[string]interface{}{
+						"enabled": trueVar,
+					},
 					"veth_mtu": defaultMtu,
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
@@ -197,6 +201,9 @@ var _ = Describe("Chart package test", func() {
 					},
 					"typha": map[string]interface{}{
 						"enabled": trueVar,
+					},
+					"kubeControllers": map[string]interface{}{
+						"enabled": falseVar,
 					},
 					"veth_mtu": defaultMtu,
 					"felix": map[string]interface{}{
@@ -240,6 +247,9 @@ var _ = Describe("Chart package test", func() {
 					"typha": map[string]interface{}{
 						"enabled": trueVar,
 					},
+					"kubeControllers": map[string]interface{}{
+						"enabled": trueVar,
+					},
 					"veth_mtu": defaultMtu,
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
@@ -277,6 +287,9 @@ var _ = Describe("Chart package test", func() {
 						"subnet": string(*networkConfigAll.IPAM.CIDR),
 					},
 					"typha": map[string]interface{}{
+						"enabled": trueVar,
+					},
+					"kubeControllers": map[string]interface{}{
 						"enabled": trueVar,
 					},
 					"veth_mtu": mtuVar,
@@ -319,6 +332,9 @@ var _ = Describe("Chart package test", func() {
 						"subnet": string(*networkConfigDeprecated.IPAM.CIDR),
 					},
 					"typha": map[string]interface{}{
+						"enabled": trueVar,
+					},
+					"kubeControllers": map[string]interface{}{
 						"enabled": trueVar,
 					},
 					"veth_mtu": defaultMtu,
