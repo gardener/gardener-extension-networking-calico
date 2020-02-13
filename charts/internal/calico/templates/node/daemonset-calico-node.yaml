@@ -10,7 +10,7 @@ metadata:
   labels:
     k8s-app: calico-node
     origin: gardener
-    garden.sapcloud.io/role: system-component
+    gardener.cloud/role: system-component
 spec:
   selector:
     matchLabels:
@@ -24,7 +24,7 @@ spec:
       labels:
         k8s-app: calico-node
         origin: gardener
-        garden.sapcloud.io/role: system-component
+        gardener.cloud/role: system-component
       annotations:
         # This, along with the CriticalAddonsOnly toleration below,
         # marks the pod as a critical add-on, ensuring it gets
