@@ -3,7 +3,7 @@
 apiVersion: {{ include "rbacversion" . }}
 kind: ClusterRole
 metadata:
-  name: garden.sapcloud.io:psp:kube-system:calico-typha
+  name: gardener.cloud:psp:kube-system:calico-typha
 rules:
 - apiGroups:
   - policy

@@ -10,7 +10,7 @@ metadata:
   labels:
     origin: gardener
     k8s-app: calico-kube-controllers
-    garden.sapcloud.io/role: system-component
+    gardener.cloud/role: system-component
   annotations:
     scheduler.alpha.kubernetes.io/critical-pod: ''
 spec:
@@ -29,7 +29,7 @@ spec:
       labels:
         origin: gardener
         k8s-app: calico-kube-controllers
-        garden.sapcloud.io/role: system-component
+        gardener.cloud/role: system-component
     spec:
       nodeSelector:
         beta.kubernetes.io/os: linux

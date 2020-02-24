@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   name: networkpolicies.crd.projectcalico.org
   labels:
-    garden.sapcloud.io/role: system-component
+    gardener.cloud/role: system-component
 spec:
   scope: Namespaced
   group: crd.projectcalico.org
