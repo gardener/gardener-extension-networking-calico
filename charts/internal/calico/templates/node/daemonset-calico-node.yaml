@@ -35,7 +35,7 @@ spec:
     spec:
       priorityClassName: system-node-critical
       nodeSelector:
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
       hostNetwork: true
       tolerations:
         # Make sure calico-node gets scheduled on all nodes.
@@ -92,6 +92,8 @@ spec:
         volumeMounts:
           - name: flexvol-driver-host
             mountPath: /host/driver
+        securityContext:
+          privileged: true
       containers:
         # Runs calico/node container on each Kubernetes node.  This
         # container programs network policy and routes on each
@@ -173,16 +175,19 @@ spec:
             privileged: true
           resources:
             requests:
-              cpu: 100m
+              cpu: 250m
               memory: 100Mi
             limits:
               cpu: 500m
               memory: 700Mi
           livenessProbe:
-            httpGet:
-              path: /liveness
-              port: 9099
-              host: localhost
+            exec:
+              command:
+              - /bin/calico-node
+              - -felix-live
+              {{- if eq .Values.config.backend "bird" }}
+              - -bird-live
+              {{- end }}
             periodSeconds: 10
             initialDelaySeconds: 10
             failureThreshold: 6
