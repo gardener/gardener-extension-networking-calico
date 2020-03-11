@@ -34,7 +34,7 @@ func (m *MockInterface) EXPECT() *MockInterfaceMockRecorder {
 }
 
 // Render mocks base method
-func (m *MockInterface) Render(arg0, arg1, arg2 string, arg3 map[string]interface{}) (*chartrenderer.RenderedChart, error) {
+func (m *MockInterface) Render(arg0, arg1, arg2 string, arg3 interface{}) (*chartrenderer.RenderedChart, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Render", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*chartrenderer.RenderedChart)
@@ -49,7 +49,7 @@ func (mr *MockInterfaceMockRecorder) Render(arg0, arg1, arg2, arg3 interface{}) 
 }
 
 // RenderArchive mocks base method
-func (m *MockInterface) RenderArchive(arg0 []byte, arg1, arg2 string, arg3 map[string]interface{}) (*chartrenderer.RenderedChart, error) {
+func (m *MockInterface) RenderArchive(arg0 []byte, arg1, arg2 string, arg3 interface{}) (*chartrenderer.RenderedChart, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RenderArchive", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*chartrenderer.RenderedChart)
