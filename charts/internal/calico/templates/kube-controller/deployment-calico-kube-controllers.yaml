@@ -32,7 +32,7 @@ spec:
         gardener.cloud/role: system-component
     spec:
       nodeSelector:
-        kubernetes.io/os: linux
+        beta.kubernetes.io/os: linux
       tolerations:
         # Mark the pod as a critical add-on for rescheduling.
         - key: CriticalAddonsOnly
