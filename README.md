@@ -1,5 +1,6 @@
 # [Gardener Extension for Calico Networking](https://gardener.cloud)
 
+[![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener/pipelines/gardener-extension-networking-calico-master/jobs/master-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener/pipelines/gardener-extension-networking-calico-master/jobs/master-head-update-job)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gardener/gardener-extension-networking-calico)](https://goreportcard.com/report/github.com/gardener/gardener-extension-networking-calico)
 
 This controller operates on the [`Network`](https://github.com/gardener/gardener/blob/master/docs/proposals/03-networking-extensibility.md#gardener-network-extension) resource in the `extensions.gardener.cloud/v1alpha1` API group. It manages those objects that are requesting [Calico Networking](https://www.projectcalico.org/) configuration (`.spec.type=calico`):
