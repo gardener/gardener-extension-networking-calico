@@ -8,23 +8,13 @@ require (
 	github.com/gardener/gardener-extensions v1.4.1-0.20200306095919-e316500c1379
 	github.com/gardener/gardener-resource-manager v0.10.0
 	github.com/go-logr/logr v0.1.0
-	github.com/gobuffalo/envy v1.9.0 // indirect
-	github.com/gobuffalo/genny v0.6.0 // indirect
-	github.com/gobuffalo/gogen v0.2.0 // indirect
-	github.com/gobuffalo/mapi v1.2.1 // indirect
-	github.com/gobuffalo/packr v1.30.1 // indirect
-	github.com/gobuffalo/packr/v2 v2.8.0
-	github.com/gobuffalo/syncx v0.1.0 // indirect
+	github.com/gobuffalo/packr/v2 v2.1.0
 	github.com/golang/mock v1.3.1
-	github.com/karrick/godirwalk v1.15.5 // indirect
-	github.com/onsi/ginkgo v1.10.3
-	github.com/onsi/gomega v1.7.1
-	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v0.0.6
+	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/gomega v1.7.0
+	github.com/pkg/errors v0.8.1
+	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4 // indirect
-	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
-	golang.org/x/tools v0.0.0-20200313205530-4303120df7d8 // indirect
 	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
