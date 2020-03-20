@@ -92,6 +92,8 @@ spec:
         volumeMounts:
           - name: flexvol-driver-host
             mountPath: /host/driver
+        securityContext:
+          privileged: true
       containers:
         # Runs calico/node container on each Kubernetes node.  This
         # container programs network policy and routes on each
@@ -179,10 +181,13 @@ spec:
               cpu: 800m
               memory: 700Mi
           livenessProbe:
-            httpGet:
-              path: /liveness
-              port: 9099
-              host: localhost
+            exec:
+              command:
+              - /bin/calico-node
+              - -felix-live
+              {{- if eq .Values.config.backend "bird" }}
+              - -bird-live
+              {{- end }}
             periodSeconds: 10
             initialDelaySeconds: 10
             failureThreshold: 6
