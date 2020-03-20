@@ -6,7 +6,6 @@ metadata:
   name: calico-typha-horizontal-autoscaler
   namespace: kube-system
   labels:
-    origin: gardener
     k8s-app: calico-typha-autoscaler
 spec:
   revisionHistoryLimit: 0
@@ -31,7 +30,7 @@ spec:
         fsGroup: 65534
         runAsUser: 65534
       containers:
-        - image: {{ index .Values.images "typha-cpa" }}
+        - image: {{ index .Values.images "calico-cpa" }}
           name: autoscaler
           command:
             - /cluster-proportional-autoscaler

@@ -23,5 +23,5 @@ images:
   calico-typha: "image-repository:image-tag"
   calico-kube-controllers: "image-repository:image-tag"
   calico-podtodaemon-flex: "image-repository:image-tag"
-  typha-cpva: "image-repository:image-tag"
-  typha-cpa: "image-repository:image-tag"
+  calico-cpva: "image-repository:image-tag"
+  calico-cpa: "image-repository:image-tag"

@@ -1,0 +1,12 @@
+---
+apiVersion: {{ include "rbacversion" . }}
+kind: ClusterRole
+metadata:
+  name: calico-node-cpva
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list"]
+  - apiGroups: ["apps", "extensions"]
+    resources: ["deployments", "daemonsets"]
+    verbs: ["patch"]

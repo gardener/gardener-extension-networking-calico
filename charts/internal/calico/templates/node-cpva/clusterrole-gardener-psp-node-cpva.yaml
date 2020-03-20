@@ -1,0 +1,15 @@
+---
+apiVersion: {{ include "rbacversion" . }}
+kind: ClusterRole
+metadata:
+  name: gardener.cloud:psp:kube-system:calico-node-cpva
+rules:
+  - apiGroups:
+      - policy
+      - extensions
+    resourceNames:
+      - gardener.kube-system.calico-node-cpva
+    resources:
+      - podsecuritypolicies
+    verbs:
+      - use
