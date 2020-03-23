@@ -19,6 +19,9 @@ spec:
       annotations:
         checksum/configmap-calico-typha-vertical-autoscaler: {{ include (print $.Template.BasePath "/typha-cpva/configmap-typha-vertical-autoscaling.yaml") . | sha256sum }}
       labels:
+        networking.gardener.cloud/to-public-networks: allowed
+        networking.gardener.cloud/to-apiserver: allowed
+        networking.gardener.cloud/to-dns: allowed
         origin: gardener
         k8s-app: calico-typha-autoscaler
     spec:

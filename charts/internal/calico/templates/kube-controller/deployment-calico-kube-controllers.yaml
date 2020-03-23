@@ -27,6 +27,9 @@ spec:
       name: calico-kube-controllers
       namespace: kube-system
       labels:
+        networking.gardener.cloud/to-public-networks: allowed
+        networking.gardener.cloud/to-apiserver: allowed
+        networking.gardener.cloud/to-dns: allowed
         origin: gardener
         k8s-app: calico-kube-controllers
         gardener.cloud/role: system-component

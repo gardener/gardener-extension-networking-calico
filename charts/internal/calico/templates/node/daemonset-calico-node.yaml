@@ -22,6 +22,9 @@ spec:
   template:
     metadata:
       labels:
+        networking.gardener.cloud/to-public-networks: allowed
+        networking.gardener.cloud/to-apiserver: allowed
+        networking.gardener.cloud/to-dns: allowed
         k8s-app: calico-node
         origin: gardener
         gardener.cloud/role: system-component
