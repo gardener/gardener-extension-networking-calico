@@ -1,0 +1,20 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: calico-node-vertical-autoscaler
+  namespace: kube-system
+data:
+  node-autoscaler: |-
+    {
+      "calico-node": {
+        "requests": {
+          "cpu": {
+            "base": "120m",
+            "step": "80m",
+            "nodesPerStep": 10,
+            "max": "1000m"
+          }
+        }
+      }
+    }

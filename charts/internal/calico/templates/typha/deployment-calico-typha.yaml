@@ -17,7 +17,6 @@ metadata:
     scheduler.alpha.kubernetes.io/critical-pod: ''
     cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
   labels:
-    origin: gardener
     k8s-app: calico-typha
     gardener.cloud/role: system-component
 spec:

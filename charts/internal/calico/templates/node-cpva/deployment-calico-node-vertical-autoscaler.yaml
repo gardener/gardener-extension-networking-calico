@@ -1,28 +1,26 @@
-{{- if .Values.config.typha.enabled }}
 ---
 kind: Deployment
 apiVersion: {{ include "deploymentversion" . }}
 metadata:
-  name: calico-typha-vertical-autoscaler
+  name: calico-node-vertical-autoscaler
   namespace: kube-system
   labels:
-    k8s-app: calico-typha-autoscaler
+    k8s-app: calico-node-autoscaler
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
-      k8s-app: calico-typha-autoscaler
+      k8s-app: calico-node-autoscaler
   template:
     metadata:
       annotations:
-        checksum/configmap-calico-typha-vertical-autoscaler: {{ include (print $.Template.BasePath "/typha-cpva/configmap-typha-vertical-autoscaling.yaml") . | sha256sum }}
+        checksum/configmap-calico-node-vertical-autoscaler: {{ include (print $.Template.BasePath "/node-cpva/configmap-node-vertical-autoscaling.yaml") . | sha256sum }}
       labels:
+        k8s-app: calico-node-autoscaler
         networking.gardener.cloud/to-public-networks: allowed
         networking.gardener.cloud/to-apiserver: allowed
         networking.gardener.cloud/to-dns: allowed
-        origin: gardener
-        k8s-app: calico-typha-autoscaler
     spec:
       priorityClassName: system-cluster-critical
       securityContext:
@@ -32,12 +30,12 @@ spec:
           name: autoscaler
           command:
             - /cpvpa
-            - --target=deployment/calico-typha-deploy
+            - --target=daemonset/calico-node
             - --namespace=kube-system
             - --logtostderr=true
             - --poll-period-seconds=30
             - --v=2
-            - --config-file=/etc/config/typha-autoscaler
+            - --config-file=/etc/config/node-autoscaler
           resources:
             requests:
               cpu: 10m
@@ -51,6 +49,5 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: calico-typha-vertical-autoscaler
-      serviceAccountName: typha-cpva
-{{- end }}
+            name: calico-node-vertical-autoscaler
+      serviceAccountName: calico-node-cpva

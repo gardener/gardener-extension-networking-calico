@@ -8,7 +8,6 @@ metadata:
   name: calico-kube-controllers
   namespace: kube-system
   labels:
-    origin: gardener
     k8s-app: calico-kube-controllers
     gardener.cloud/role: system-component
   annotations:
