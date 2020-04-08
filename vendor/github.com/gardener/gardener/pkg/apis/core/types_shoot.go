@@ -636,6 +636,8 @@ type Worker struct {
 	Annotations map[string]string
 	// CABundle is a certificate bundle which will be installed onto every machine of this worker pool.
 	CABundle *string
+	// CRI contains configurations of CRI support of every machine in the worker pool
+	CRI *CRI
 	// Kubernetes contains configuration for Kubernetes components related to this worker pool.
 	Kubernetes *WorkerKubernetes
 	// Labels is a map of key/value pairs for labels for all the `Node` objects in this worker pool.
@@ -690,6 +692,7 @@ type ShootMachineImage struct {
 	// ProviderConfig is the shoot's individual configuration passed to an extension resource.
 	ProviderConfig *ProviderConfig
 	// Version is the version of the shoot's image.
+	// If version is not provided, it will be defaulted to the latest version.
 	Version string
 }
 
@@ -699,10 +702,33 @@ type Volume struct {
 	Name *string
 	// Type is the type of the volume.
 	Type *string
-	// Size is the size of the volume.
-	Size string
+	// VolumeSize is the size of the volume.
+	VolumeSize string
 	// Encrypted determines if the volume should be encrypted.
 	Encrypted *bool
+}
+
+// CRI contains information about the Container Runtimes.
+type CRI struct {
+	// The name of the CRI library
+	Name CRIName
+	// ContainerRuntimes is the list of the required container runtimes supported for a worker pool.
+	ContainerRuntimes []ContainerRuntime
+}
+
+// CRIName is a type alias for the CRI name string.
+type CRIName string
+
+const (
+	CRINameContainerD CRIName = "containerd"
+)
+
+// ContainerRuntime contains information about worker's available container runtime
+type ContainerRuntime struct {
+	// Type is the type of the Container Runtime.
+	Type string
+	// ProviderConfig is the configuration passed to the ContainerRuntime resource.
+	ProviderConfig *ProviderConfig
 }
 
 var (

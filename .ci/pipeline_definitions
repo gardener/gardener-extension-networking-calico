@@ -12,7 +12,6 @@ gardener-extension-networking-calico:
             image: 'eu.gcr.io/gardener-project/gardener/extensions/networking-calico'
             dockerfile: 'Dockerfile'
             target: gardener-extension-networking-calico
-    steps: ~
   jobs:
     head-update:
       traits:
