@@ -25,5 +25,5 @@ images:
   tag: 1.7.1
 - name: calico-cpva
   sourceRepository: github.com/kubernetes-incubator/cluster-proportional-vertical-autoscaler
-  repository: eu.gcr.io/k8s-artifacts-prod/cpa/cpvpa-amd64
+  repository: k8s.gcr.io/cpvpa-amd64
   tag: v0.8.2
