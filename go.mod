@@ -1,10 +1,10 @@
 module github.com/gardener/gardener-extension-networking-calico
 
-go 1.13
+go 1.14
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5
-	github.com/gardener/gardener v1.2.1-0.20200408030154-40b97d31d7f7
+	github.com/gardener/gardener v1.3.1-0.20200428160208-ba14bee265a0
 	github.com/gardener/gardener-resource-manager v0.12.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.5.1

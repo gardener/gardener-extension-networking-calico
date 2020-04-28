@@ -142,9 +142,8 @@ github.com/gardener/external-dns-management v0.7.3/go.mod h1:Y3om11E865x4aQ7cmcH
 github.com/gardener/external-dns-management v0.7.7 h1:J0CEkjPqGCvDtHxOCDLAvTa/1I/6GPjjavb6028lMOY=
 github.com/gardener/external-dns-management v0.7.7/go.mod h1:egCe/FPOsUbXA4WV0ne3h7nAD/nLT09hNt/FQQXK+ec=
 github.com/gardener/gardener v1.1.2/go.mod h1:CP9I0tCDVXTLPkJv/jUtXVUh948kSNKEGUg0haLz9gk=
-github.com/gardener/gardener v1.2.0 h1:VMCwCUHQataXSrbe9BlijzgtLWczpUyoTqa81T0dqOs=
-github.com/gardener/gardener v1.2.1-0.20200408030154-40b97d31d7f7 h1:kyfzvj8PW1yiOzOfRn/nTjepkl0YXdzbLyM1ka0UGW4=
-github.com/gardener/gardener v1.2.1-0.20200408030154-40b97d31d7f7/go.mod h1:MReXzBMP2HgohVoRqkOLPzSdmEZzzZ7rTg4i058D5KQ=
+github.com/gardener/gardener v1.3.1-0.20200428160208-ba14bee265a0 h1:vGv2JisfLVJD4pumiB+iRQr99iiD0rF+47lYHvptWgI=
+github.com/gardener/gardener v1.3.1-0.20200428160208-ba14bee265a0/go.mod h1:ivWieth9NdnlgXTE7sUwu/K5dKz2MDoMicc29+D/ewE=
 github.com/gardener/gardener-resource-manager v0.10.0 h1:6OUKoWI3oha42F0oJN8OEo3UR+D3onOCel4Th+zgotU=
 github.com/gardener/gardener-resource-manager v0.10.0/go.mod h1:0pKTHOhvU91eQB0EYr/6Ymd7lXc/5Hi8P8tF/gpV0VQ=
 github.com/gardener/gardener-resource-manager v0.12.0 h1:QGzR+6OiKOIxKrBbYyIKw8Rfor3rPddFGpcCq8ia5cg=
@@ -730,8 +729,8 @@ golang.org/x/tools v0.0.0-20191203134012-c197fd4bf371/go.mod h1:b+2E5dAYhXwXZwtn
 golang.org/x/tools v0.0.0-20191216173652-a0e659d51361/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
 golang.org/x/tools v0.0.0-20191230220329-2aa90c603ae3 h1:2+KluhQfJ1YhW+TB1KrISS2SfiG1pLEoseB0D4VF/bo=
 golang.org/x/tools v0.0.0-20191230220329-2aa90c603ae3/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
-golang.org/x/tools v0.0.0-20200406213809-066fd1390ee0 h1:PaUgOASiqoF4KlotK7/3XKYFGN5Hw5jh/SHqOVpQBcI=
-golang.org/x/tools v0.0.0-20200406213809-066fd1390ee0/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
+golang.org/x/tools v0.0.0-20200422205258-72e4a01eba43 h1:Lcsc5ErIWemp8qAbYffG5vPrqjJ0zk82RTFGifeS1Pc=
+golang.org/x/tools v0.0.0-20200422205258-72e4a01eba43/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 h1:/atklqdjdhuosWIl6AIbOeHJjicWYPqR9bpxqxYG2pA=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
