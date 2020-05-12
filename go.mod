@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5
-	github.com/gardener/gardener v1.3.1-0.20200504190131-a853f479dd7f
+	github.com/gardener/gardener v1.4.1
 	github.com/gardener/gardener-resource-manager v0.12.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.5.1
