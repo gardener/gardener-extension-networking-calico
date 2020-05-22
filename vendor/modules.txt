@@ -53,8 +53,10 @@ github.com/gardener/etcd-druid/api/v1alpha1
 github.com/gardener/external-dns-management/pkg/apis/dns
 github.com/gardener/external-dns-management/pkg/apis/dns/v1alpha1
 github.com/gardener/external-dns-management/pkg/client/dns/clientset/versioned/scheme
-# github.com/gardener/gardener v1.4.1
+# github.com/gardener/gardener v1.4.1-0.20200519155656-a8ccc6cc779a
 ## explicit
+github.com/gardener/gardener/.github
+github.com/gardener/gardener/.github/ISSUE_TEMPLATE
 github.com/gardener/gardener/extensions/hack
 github.com/gardener/gardener/extensions/pkg/controller
 github.com/gardener/gardener/extensions/pkg/controller/cmd
@@ -90,13 +92,26 @@ github.com/gardener/gardener/pkg/client/core/clientset/versioned
 github.com/gardener/gardener/pkg/client/core/clientset/versioned/scheme
 github.com/gardener/gardener/pkg/client/core/clientset/versioned/typed/core/v1alpha1
 github.com/gardener/gardener/pkg/client/core/clientset/versioned/typed/core/v1beta1
+github.com/gardener/gardener/pkg/client/core/informers/externalversions
+github.com/gardener/gardener/pkg/client/core/informers/externalversions/core
+github.com/gardener/gardener/pkg/client/core/informers/externalversions/core/v1alpha1
+github.com/gardener/gardener/pkg/client/core/informers/externalversions/core/v1beta1
+github.com/gardener/gardener/pkg/client/core/informers/externalversions/internalinterfaces
+github.com/gardener/gardener/pkg/client/core/listers/core/v1alpha1
 github.com/gardener/gardener/pkg/client/core/listers/core/v1beta1
 github.com/gardener/gardener/pkg/client/extensions/clientset/versioned/scheme
 github.com/gardener/gardener/pkg/client/kubernetes
+github.com/gardener/gardener/pkg/controllerutils
+github.com/gardener/gardener/pkg/controllerutils/metrics
 github.com/gardener/gardener/pkg/logger
 github.com/gardener/gardener/pkg/mock/gardener/chartrenderer
 github.com/gardener/gardener/pkg/mock/go/context
 github.com/gardener/gardener/pkg/operation/common
+github.com/gardener/gardener/pkg/scheduler
+github.com/gardener/gardener/pkg/scheduler/apis/config
+github.com/gardener/gardener/pkg/scheduler/apis/config/v1alpha1
+github.com/gardener/gardener/pkg/scheduler/controller/common
+github.com/gardener/gardener/pkg/scheduler/controller/shoot
 github.com/gardener/gardener/pkg/utils
 github.com/gardener/gardener/pkg/utils/context
 github.com/gardener/gardener/pkg/utils/errors
@@ -106,6 +121,7 @@ github.com/gardener/gardener/pkg/utils/kubernetes
 github.com/gardener/gardener/pkg/utils/kubernetes/health
 github.com/gardener/gardener/pkg/utils/retry
 github.com/gardener/gardener/pkg/utils/secrets
+github.com/gardener/gardener/pkg/utils/validation/cidr
 github.com/gardener/gardener/pkg/utils/version
 github.com/gardener/gardener/pkg/version
 github.com/gardener/gardener/test/framework

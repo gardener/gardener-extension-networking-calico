@@ -18,6 +18,7 @@ import (
 	"context"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
+	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 
@@ -56,7 +57,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 	)
 
 	if network.Spec.ProviderConfig != nil {
-		networkConfig, err = CalicoNetworkConfigFromNetworkResource(network)
+		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
 		if err != nil {
 			return err
 		}

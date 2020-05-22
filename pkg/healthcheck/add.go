@@ -45,7 +45,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 		calico.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.NetworkResource),
 		func() runtime.Object { return &extensionsv1alpha1.NetworkList{} },
-		func() runtime.Object { return &extensionsv1alpha1.Network{} },
+		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.Network{} },
 		mgr,
 		opts,
 		nil,
