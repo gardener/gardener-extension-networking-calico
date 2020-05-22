@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5
-	github.com/gardener/gardener v1.4.1-0.20200519155656-a8ccc6cc779a
+	github.com/gardener/gardener v1.4.1-0.20200522134108-4f4a1db77d90
 	github.com/gardener/gardener-resource-manager v0.12.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.5.1
@@ -14,7 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.16.8
+	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/code-generator v0.16.8
