@@ -20,10 +20,10 @@ images:
   repository: quay.io/calico/pod2daemon-flexvol
   tag: v3.13.1
 - name: calico-cpa
-  sourceRepository: github.com/kubernetes-incubator/cluster-proportional-autoscaler
+  sourceRepository: github.com/kubernetes-sigs/cluster-proportional-autoscaler
   repository: k8s.gcr.io/cluster-proportional-autoscaler-amd64
   tag: 1.7.1
 - name: calico-cpva
-  sourceRepository: github.com/kubernetes-incubator/cluster-proportional-vertical-autoscaler
+  sourceRepository: github.com/kubernetes-sigs/cluster-proportional-vertical-autoscaler
   repository: k8s.gcr.io/cpvpa-amd64
-  tag: v0.8.2
+  tag: v0.8.3
