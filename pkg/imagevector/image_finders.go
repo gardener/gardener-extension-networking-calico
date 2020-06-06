@@ -19,7 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
-func findImage(name string) string {
+func FindImage(name string) string {
 	image, err := imageVector.FindImage(name)
 	runtime.Must(err)
 	return image.String()
@@ -27,35 +27,35 @@ func findImage(name string) string {
 
 // CalicoCNIImage returns the Calico CNI Image.
 func CalicoCNIImage() string {
-	return findImage(calico.CNIImageName)
+	return FindImage(calico.CNIImageName)
 }
 
 // CalicoNodeImage returns the Calico Node image.
 func CalicoNodeImage() string {
-	return findImage(calico.NodeImageName)
+	return FindImage(calico.NodeImageName)
 }
 
 // CalicoTyphaImage returns the Calico Typha image.
 func CalicoTyphaImage() string {
-	return findImage(calico.TyphaImageName)
+	return FindImage(calico.TyphaImageName)
 }
 
 // CalicoKubeControllersImage returns the Calico Kube-controllers image.
 func CalicoKubeControllersImage() string {
-	return findImage(calico.KubeControllersImageName)
+	return FindImage(calico.KubeControllersImageName)
 }
 
 // CalicoFlexVolumeDriverImage returns the Calico flexvol image.
 func CalicoFlexVolumeDriverImage() string {
-	return findImage(calico.PodToDaemonFlexVolumeDriverImageName)
+	return FindImage(calico.PodToDaemonFlexVolumeDriverImageName)
 }
 
 // ClusterProportionalAutoscalerImage returns the Calico cluster-proportional-autoscaler image.
 func ClusterProportionalAutoscalerImage() string {
-	return findImage(calico.CalicoClusterProportionalAutoscalerImageName)
+	return FindImage(calico.CalicoClusterProportionalAutoscalerImageName)
 }
 
 // ClusterProportionalVerticalAutoscalerImage returns the Calico cluster-proportional-vertical-autoscaler image.
 func ClusterProportionalVerticalAutoscalerImage() string {
-	return findImage(calico.ClusterProportionalVerticalAutoscalerImageName)
+	return FindImage(calico.ClusterProportionalVerticalAutoscalerImageName)
 }

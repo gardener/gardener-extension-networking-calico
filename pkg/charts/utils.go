@@ -17,6 +17,7 @@ package charts
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
@@ -120,15 +121,19 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 	if err != nil {
 		return nil, fmt.Errorf("could not convert calico config: %v", err)
 	}
+	imageOverrides := &calicov1alpha1.Images{}
+	if config != nil && config.Images != nil {
+		imageOverrides = config.Images
+	}
 	calicoChartValues := map[string]interface{}{
 		"images": map[string]interface{}{
-			calico.CNIImageName:                                   imagevector.CalicoCNIImage(),
-			calico.TyphaImageName:                                 imagevector.CalicoTyphaImage(),
-			calico.KubeControllersImageName:                       imagevector.CalicoKubeControllersImage(),
-			calico.NodeImageName:                                  imagevector.CalicoNodeImage(),
-			calico.PodToDaemonFlexVolumeDriverImageName:           imagevector.CalicoFlexVolumeDriverImage(),
-			calico.CalicoClusterProportionalAutoscalerImageName:   imagevector.ClusterProportionalAutoscalerImage(),
-			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(),
+			calico.CNIImageName:                                   getImage(calico.CNIImageName, imageOverrides.CNIImageName),
+			calico.TyphaImageName:                                 getImage(calico.TyphaImageName, imageOverrides.TyphaImageName),
+			calico.KubeControllersImageName:                       getImage(calico.KubeControllersImageName, imageOverrides.KubeControllersImageName),
+			calico.NodeImageName:                                  getImage(calico.NodeImageName, imageOverrides.NodeImageName),
+			calico.PodToDaemonFlexVolumeDriverImageName:           getImage(calico.PodToDaemonFlexVolumeDriverImageName, imageOverrides.PodToDaemonFlexVolumeDriverImageName),
+			calico.CalicoClusterProportionalAutoscalerImageName:   getImage(calico.CalicoClusterProportionalAutoscalerImageName, imageOverrides.CalicoClusterProportionalAutoscalerImageName),
+			calico.ClusterProportionalVerticalAutoscalerImageName: getImage(calico.ClusterProportionalVerticalAutoscalerImageName, imageOverrides.ClusterProportionalVerticalAutoscalerImageName),
 		},
 		"global": map[string]string{
 			"podCIDR": network.Spec.PodCIDR,
@@ -136,6 +141,13 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 		"config": calicoConfig,
 	}
 	return calicoChartValues, nil
+}
+
+func getImage(name string, override *string) string {
+	if override != nil && strings.TrimSpace(*override) != "" {
+		return strings.TrimSpace(*override)
+	}
+	return imagevector.FindImage(name)
 }
 
 func generateChartValues(config *calicov1alpha1.NetworkConfig) (*calicoConfig, error) {

@@ -17,11 +17,12 @@ package charts_test
 import (
 	"fmt"
 
+	mockchartrenderer "github.com/gardener/gardener/pkg/mock/gardener/chartrenderer"
+
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/imagevector"
-	mockchartrenderer "github.com/gardener/gardener/pkg/mock/gardener/chartrenderer"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
@@ -379,6 +380,116 @@ var _ = Describe("Chart package test", func() {
 
 			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil)
 			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+	Describe("#OverrideImages", func() {
+		override := "override"
+		defaults := func(key, value string) map[string]interface{} {
+			def := map[string]interface{}{
+				"images": map[string]interface{}{
+					"calico-cni":              imagevector.CalicoCNIImage(),
+					"calico-typha":            imagevector.CalicoTyphaImage(),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(),
+					"calico-node":             imagevector.CalicoNodeImage(),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(),
+				},
+				"global": map[string]string{
+					"podCIDR": network.Spec.PodCIDR,
+				},
+				"config": map[string]interface{}{
+					"backend": string(*networkConfigBackendNone.Backend),
+					"ipam": map[string]interface{}{
+						"type":   networkConfigBackendNone.IPAM.Type,
+						"subnet": string(*networkConfigBackendNone.IPAM.CIDR),
+					},
+					"typha": map[string]interface{}{
+						"enabled": trueVar,
+					},
+					"kubeControllers": map[string]interface{}{
+						"enabled": falseVar,
+					},
+					"veth_mtu": defaultMtu,
+					"felix": map[string]interface{}{
+						"ipinip": map[string]interface{}{
+							"enabled": false,
+						},
+					},
+					"ipv4": map[string]interface{}{
+						"pool":                string(poolIPIP),
+						"mode":                string(never),
+						"autoDetectionMethod": nil,
+					},
+				},
+			}
+			def["images"].(map[string]interface{})[key] = value
+			return def
+		}
+
+		It("should respect override selected images (cni)", func() {
+			config := *networkConfigBackendNone
+			config.Images = &calicov1alpha1.Images{
+				CNIImageName: &override,
+			}
+			values, err := charts.ComputeCalicoChartValues(network, &config)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(defaults("calico-cni", "override")))
+		})
+		It("should respect override selected images (node)", func() {
+			config := *networkConfigBackendNone
+			config.Images = &calicov1alpha1.Images{
+				NodeImageName: &override,
+			}
+			values, err := charts.ComputeCalicoChartValues(network, &config)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(defaults("calico-node", "override")))
+		})
+		It("should respect override selected images (kube controllers)", func() {
+			config := *networkConfigBackendNone
+			config.Images = &calicov1alpha1.Images{
+				KubeControllersImageName: &override,
+			}
+			values, err := charts.ComputeCalicoChartValues(network, &config)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(defaults("calico-kube-controllers", "override")))
+		})
+		It("should respect override selected images (podtodaemon-flex)", func() {
+			config := *networkConfigBackendNone
+			config.Images = &calicov1alpha1.Images{
+				PodToDaemonFlexVolumeDriverImageName: &override,
+			}
+			values, err := charts.ComputeCalicoChartValues(network, &config)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(defaults("calico-podtodaemon-flex", "override")))
+		})
+		It("should respect override selected images (typha)", func() {
+			config := *networkConfigBackendNone
+			config.Images = &calicov1alpha1.Images{
+				TyphaImageName: &override,
+			}
+			values, err := charts.ComputeCalicoChartValues(network, &config)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(defaults("calico-typha", "override")))
+		})
+		It("should respect override selected images (cpa)", func() {
+			config := *networkConfigBackendNone
+			config.Images = &calicov1alpha1.Images{
+				CalicoClusterProportionalAutoscalerImageName: &override,
+			}
+			values, err := charts.ComputeCalicoChartValues(network, &config)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(defaults("calico-cpa", "override")))
+		})
+		It("should respect override selected images (cpva)", func() {
+			config := *networkConfigBackendNone
+			config.Images = &calicov1alpha1.Images{
+				ClusterProportionalVerticalAutoscalerImageName: &override,
+			}
+			values, err := charts.ComputeCalicoChartValues(network, &config)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(defaults("calico-cpva", "override")))
 		})
 	})
 })

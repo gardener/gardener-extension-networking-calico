@@ -71,6 +71,9 @@ type NetworkConfig struct {
 	IPv4 *IPv4
 	// Typha settings to use for calico-typha component
 	Typha *Typha
+	// Images settings used for shoot local image overrides
+	// +optional
+	Images *Images
 	// VethMTU settings used to configure calico port mtu
 	VethMTU *string
 
@@ -108,4 +111,15 @@ type Typha struct {
 	// thus consider not to disable it for large clusters in terms of node count.
 	// More info can be found here https://docs.projectcalico.org/v3.9/reference/typha/
 	Enabled bool
+}
+
+// Images defines optional image overrides at shoot level
+type Images struct {
+	CNIImageName                                   *string
+	NodeImageName                                  *string
+	KubeControllersImageName                       *string
+	PodToDaemonFlexVolumeDriverImageName           *string
+	TyphaImageName                                 *string
+	CalicoClusterProportionalAutoscalerImageName   *string
+	ClusterProportionalVerticalAutoscalerImageName *string
 }
