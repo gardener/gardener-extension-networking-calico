@@ -22,7 +22,6 @@ import (
 )
 
 // Migrate implements Network.Actuator.
-// TODO: Might need an actual implementation.
 func (a *actuator) Migrate(ctx context.Context, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
-	return nil
+	return a.Delete(ctx, network, cluster)
 }
