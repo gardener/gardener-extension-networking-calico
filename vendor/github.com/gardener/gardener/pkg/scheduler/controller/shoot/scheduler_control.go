@@ -243,8 +243,11 @@ func getCandidates(shoot *gardencorev1beta1.Shoot, seedList []*gardencorev1beta1
 }
 
 func filterCandidates(shoot *gardencorev1beta1.Shoot, seedList []*gardencorev1beta1.Seed) ([]*gardencorev1beta1.Seed, error) {
-	var candidates []*gardencorev1beta1.Seed
-	candidateErrors := make(map[string]error)
+	var (
+		candidates      []*gardencorev1beta1.Seed
+		candidateErrors = make(map[string]error)
+	)
+
 	for _, seed := range seedList {
 		if disjointed, err := networksAreDisjointed(seed, shoot); !disjointed {
 			candidateErrors[seed.Name] = err
@@ -255,11 +258,17 @@ func filterCandidates(shoot *gardencorev1beta1.Shoot, seedList []*gardencorev1be
 			candidateErrors[seed.Name] = fmt.Errorf("seed does not support DNS")
 			continue
 		}
+
+		if !gardencorev1beta1helper.TaintsAreTolerated(seed.Spec.Taints, shoot.Spec.Tolerations) {
+			candidateErrors[seed.Name] = fmt.Errorf("shoot does not tolerate the seed's taints")
+			continue
+		}
+
 		candidates = append(candidates, seed)
 	}
 
 	if candidates == nil {
-		return nil, fmt.Errorf("from %d seed cluster candidate(s), none is possible: %v", len(seedList), errorMapToString(candidateErrors))
+		return nil, fmt.Errorf("0/%d seed cluster candidate(s) are eligible for scheduling: %v", len(seedList), errorMapToString(candidateErrors))
 	}
 	return candidates, nil
 }
