@@ -33,8 +33,10 @@ spec:
         k8s-app: calico-kube-controllers
         gardener.cloud/role: system-component
     spec:
+      {{- if .Values.nodeSelector }}
       nodeSelector:
-        beta.kubernetes.io/os: linux
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
       tolerations:
         # Mark the pod as a critical add-on for rescheduling.
         - key: CriticalAddonsOnly

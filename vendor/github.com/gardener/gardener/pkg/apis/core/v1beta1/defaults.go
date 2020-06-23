@@ -130,6 +130,10 @@ func SetDefaults_Seed(obj *Seed) {
 		}
 		obj.Spec.Settings.ShootDNS = &SeedSettingShootDNS{Enabled: enabled}
 	}
+
+	if obj.Spec.Settings.VerticalPodAutoscaler == nil {
+		obj.Spec.Settings.VerticalPodAutoscaler = &SeedSettingVerticalPodAutoscaler{Enabled: true}
+	}
 }
 
 // SetDefaults_Shoot sets default values for Shoot objects.
@@ -205,14 +209,14 @@ func SetDefaults_Shoot(obj *Shoot) {
 	if obj.Spec.Kubernetes.Kubelet.FailSwapOn == nil {
 		obj.Spec.Kubernetes.Kubelet.FailSwapOn = &trueVar
 	}
+
+	if obj.Spec.Maintenance == nil {
+		obj.Spec.Maintenance = &Maintenance{}
+	}
 }
 
 // SetDefaults_Maintenance sets default values for Maintenance objects.
 func SetDefaults_Maintenance(obj *Maintenance) {
-	if obj == nil {
-		obj = &Maintenance{}
-	}
-
 	if obj.AutoUpdate == nil {
 		obj.AutoUpdate = &MaintenanceAutoUpdate{
 			KubernetesVersion:   true,
@@ -229,6 +233,38 @@ func SetDefaults_Maintenance(obj *Maintenance) {
 	}
 }
 
+// SetDefaults_VerticalPodAutoscaler sets default values for VerticalPodAutoscaler objects.
+func SetDefaults_VerticalPodAutoscaler(obj *VerticalPodAutoscaler) {
+	if obj.EvictAfterOOMThreshold == nil {
+		v := DefaultEvictAfterOOMThreshold
+		obj.EvictAfterOOMThreshold = &v
+	}
+	if obj.EvictionRateBurst == nil {
+		v := DefaultEvictionRateBurst
+		obj.EvictionRateBurst = &v
+	}
+	if obj.EvictionRateLimit == nil {
+		v := DefaultEvictionRateLimit
+		obj.EvictionRateLimit = &v
+	}
+	if obj.EvictionTolerance == nil {
+		v := DefaultEvictionTolerance
+		obj.EvictionTolerance = &v
+	}
+	if obj.RecommendationMarginFraction == nil {
+		v := DefaultRecommendationMarginFraction
+		obj.RecommendationMarginFraction = &v
+	}
+	if obj.UpdaterInterval == nil {
+		v := DefaultUpdaterInterval
+		obj.UpdaterInterval = &v
+	}
+	if obj.RecommenderInterval == nil {
+		v := DefaultRecommenderInterval
+		obj.RecommenderInterval = &v
+	}
+}
+
 // SetDefaults_Worker sets default values for Worker objects.
 func SetDefaults_Worker(obj *Worker) {
 	if obj.MaxSurge == nil {
@@ -236,6 +272,11 @@ func SetDefaults_Worker(obj *Worker) {
 	}
 	if obj.MaxUnavailable == nil {
 		obj.MaxUnavailable = &DefaultWorkerMaxUnavailable
+	}
+	if obj.SystemComponents == nil {
+		obj.SystemComponents = &WorkerSystemComponents{
+			Allow: DefaultWorkerSystemComponentsAllow,
+		}
 	}
 }
 
