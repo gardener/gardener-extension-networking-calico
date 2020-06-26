@@ -23,5 +23,5 @@ import (
 
 // Migrate implements Network.Actuator.
 func (a *actuator) Migrate(ctx context.Context, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
-	return a.Delete(ctx, network, cluster)
+	return nil
 }

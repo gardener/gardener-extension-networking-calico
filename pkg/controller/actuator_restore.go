@@ -23,5 +23,5 @@ import (
 
 // Restore implements Network.Actuator.
 func (a *actuator) Restore(ctx context.Context, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
-	return nil
+	return a.Reconcile(ctx, network, cluster)
 }
