@@ -9,7 +9,7 @@ data:
   filter-kubernetes.conf: |
     [FILTER]
         Name                parser
-        Match               kubernetes.calico-node*calico-node*
+        Match               kubernetes.*calico-node*calico-node*
         Key_Name            log
         Parser              caliconodeParser
         Reserve_Data        True
