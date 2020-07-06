@@ -24,6 +24,10 @@ spec:
         origin: gardener
         k8s-app: calico-typha-autoscaler
     spec:
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
       priorityClassName: system-cluster-critical
       securityContext:
         supplementalGroups: [ 65534 ]

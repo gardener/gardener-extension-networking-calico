@@ -4,8 +4,8 @@ go 1.14
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5
-	github.com/gardener/gardener v1.6.0
-	github.com/gardener/gardener-resource-manager v0.12.0
+	github.com/gardener/gardener v1.7.0
+	github.com/gardener/gardener-resource-manager v0.13.1
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.5.1
 	github.com/golang/mock v1.4.3
@@ -20,7 +20,7 @@ require (
 	k8s.io/code-generator v0.17.6
 	k8s.io/component-base v0.17.6
 	k8s.io/helm v2.16.1+incompatible
-	sigs.k8s.io/controller-runtime v0.5.4
+	sigs.k8s.io/controller-runtime v0.5.5
 )
 
 replace (

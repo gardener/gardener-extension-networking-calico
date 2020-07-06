@@ -47,8 +47,10 @@ spec:
         # if it ever gets evicted.
         scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:
+      {{- if .Values.nodeSelector }}
       nodeSelector:
-        beta.kubernetes.io/os: linux
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
       tolerations:
       # Mark the pod as a critical add-on for rescheduling.
       - key: CriticalAddonsOnly

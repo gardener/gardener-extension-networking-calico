@@ -16,6 +16,8 @@ package controller
 
 import (
 	"context"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
@@ -49,6 +51,20 @@ func calicoSecret(cl client.Client, calicoConfig []byte, namespace string) (*man
 		WithNamespacedName(namespace, CalicoConfigSecretName), withLocalObjectRefs(CalicoConfigSecretName)
 }
 
+func activateSystemComponentsNodeSelector(shoot *gardencorev1beta1.Shoot) bool {
+	var atLeastOneWorkerPoolHasSystemComponents bool
+
+	for _, worker := range shoot.Spec.Provider.Workers {
+		if gardencorev1beta1helper.SystemComponentsAllowed(&worker) {
+			atLeastOneWorkerPoolHasSystemComponents = true
+			break
+		}
+
+	}
+
+	return atLeastOneWorkerPoolHasSystemComponents
+}
+
 // Reconcile implements Network.Actuator.
 func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
 	var (
@@ -69,7 +85,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return errors.Wrapf(err, "could not create chart renderer for shoot '%s'", network.Namespace)
 	}
 
-	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig)
+	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot))
 	if err != nil {
 		return err
 	}

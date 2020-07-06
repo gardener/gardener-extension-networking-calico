@@ -25,3 +25,5 @@ images:
   calico-podtodaemon-flex: "image-repository:image-tag"
   calico-cpva: "image-repository:image-tag"
   calico-cpa: "image-repository:image-tag"
+
+# nodeSelector: {}

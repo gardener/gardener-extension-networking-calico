@@ -17,6 +17,7 @@ package charts
 import (
 	"encoding/json"
 	"fmt"
+	gardenv1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
@@ -111,7 +112,7 @@ func (c *calicoConfig) toMap() (map[string]interface{}, error) {
 }
 
 // ComputeCalicoChartValues computes the values for the calico chart.
-func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig) (map[string]interface{}, error) {
+func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(config)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
@@ -135,6 +136,13 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 		},
 		"config": calicoConfig,
 	}
+
+	if workerSystemComponentsActivated {
+		calicoChartValues["nodeSelector"] = map[string]string{
+			gardenv1beta1constants.LabelWorkerPoolSystemComponents: "True",
+		}
+	}
+
 	return calicoChartValues, nil
 }
 
