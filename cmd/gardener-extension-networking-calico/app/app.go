@@ -89,6 +89,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			reconcileOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			calicoCtrlOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.Controller)
 			configFileOpts.Completed().ApplyHealthCheckConfig(&healthcheck.AddOptions.HealthCheckConfig)
 			healthCheckCtrlOpts.Completed().Apply(&healthcheck.AddOptions.Controller)
 
