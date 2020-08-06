@@ -395,7 +395,7 @@ var _ = Describe("Chart package test", func() {
 					},
 				},
 				"nodeSelector": map[string]string{
-					"worker.gardener.cloud/system-components": "True",
+					"worker.gardener.cloud/system-components": "true",
 				},
 			}))
 		})
