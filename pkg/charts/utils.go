@@ -17,6 +17,7 @@ package charts
 import (
 	"encoding/json"
 	"fmt"
+
 	gardenv1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
@@ -139,7 +140,7 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 
 	if workerSystemComponentsActivated {
 		calicoChartValues["nodeSelector"] = map[string]string{
-			gardenv1beta1constants.LabelWorkerPoolSystemComponents: "True",
+			gardenv1beta1constants.LabelWorkerPoolSystemComponents: "true",
 		}
 	}
 
