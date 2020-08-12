@@ -115,6 +115,7 @@ github.com/gardener/gardener/pkg/scheduler/apis/config/v1alpha1
 github.com/gardener/gardener/pkg/scheduler/controller/common
 github.com/gardener/gardener/pkg/scheduler/controller/shoot
 github.com/gardener/gardener/pkg/utils
+github.com/gardener/gardener/pkg/utils/chart
 github.com/gardener/gardener/pkg/utils/context
 github.com/gardener/gardener/pkg/utils/errors
 github.com/gardener/gardener/pkg/utils/flow

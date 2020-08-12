@@ -3,6 +3,10 @@ global:
 config:
   veth_mtu: 1440
   backend: bird
+  monitoring:
+    enabled: true
+    felixMetricsPort: 9091
+    typhaMetricsPort: 9093
   ipam:
     type: "host-local"
     # subnet: "usePodCidr"

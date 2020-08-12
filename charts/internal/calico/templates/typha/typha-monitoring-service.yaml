@@ -1,0 +1,13 @@
+{{- if .Values.config.monitoring.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: calico-typha-monitoring
+  namespace: kube-system
+spec:
+  ports:
+    - port: {{ .Values.config.monitoring.typhaMetricsPort }}
+      targetPort: {{ .Values.config.monitoring.typhaMetricsPort }}
+  selector:
+    k8s-app: calico-typha
+{{- end}}

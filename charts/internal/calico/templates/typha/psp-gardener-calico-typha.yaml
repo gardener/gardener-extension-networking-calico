@@ -13,6 +13,10 @@ spec:
     max: 5473
   - min: 9098
     max: 9098
+  {{- if .Values.config.monitoring.enabled }}
+  - min: 9093
+    max: 9093
+  {{- end }}
   runAsUser:
     rule: MustRunAsNonRoot
   seLinux:

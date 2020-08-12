@@ -18,6 +18,8 @@ import (
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/network"
+	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
+	"github.com/pkg/errors"
 
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,6 +47,9 @@ type actuator struct {
 	client  client.Client
 	scheme  *runtime.Scheme
 	decoder runtime.Decoder
+
+	gardenerClientset gardenerkubernetes.Interface
+	chartApplier      gardenerkubernetes.ChartApplier
 }
 
 const LogID = "network-calico-actuator"
@@ -70,5 +75,13 @@ func (a *actuator) InjectClient(client client.Client) error {
 
 func (a *actuator) InjectConfig(config *rest.Config) error {
 	a.restConfig = config
+
+	var err error
+	a.gardenerClientset, err = gardenerkubernetes.NewWithConfig(gardenerkubernetes.WithRESTConfig(config))
+	if err != nil {
+		return errors.Wrap(err, "could not create Gardener client")
+	}
+
+	a.chartApplier = a.gardenerClientset.ChartApplier()
 	return nil
 }

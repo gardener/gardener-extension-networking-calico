@@ -161,6 +161,11 @@ var _ = Describe("Chart package test", func() {
 						"enabled": trueVar,
 					},
 					"veth_mtu": defaultMtu,
+					"monitoring": map[string]interface{}{
+						"enabled":          true,
+						"typhaMetricsPort": "9093",
+						"felixMetricsPort": "9091",
+					},
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
 							"enabled": true,
@@ -206,6 +211,11 @@ var _ = Describe("Chart package test", func() {
 						"enabled": falseVar,
 					},
 					"veth_mtu": defaultMtu,
+					"monitoring": map[string]interface{}{
+						"enabled":          true,
+						"typhaMetricsPort": "9093",
+						"felixMetricsPort": "9091",
+					},
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
 							"enabled": false,
@@ -251,6 +261,11 @@ var _ = Describe("Chart package test", func() {
 						"enabled": trueVar,
 					},
 					"veth_mtu": defaultMtu,
+					"monitoring": map[string]interface{}{
+						"enabled":          true,
+						"typhaMetricsPort": "9093",
+						"felixMetricsPort": "9091",
+					},
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
 							"enabled": true,
@@ -293,6 +308,11 @@ var _ = Describe("Chart package test", func() {
 						"enabled": trueVar,
 					},
 					"veth_mtu": mtuVar,
+					"monitoring": map[string]interface{}{
+						"enabled":          true,
+						"typhaMetricsPort": "9093",
+						"felixMetricsPort": "9091",
+					},
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
 							"enabled": true,
@@ -338,6 +358,11 @@ var _ = Describe("Chart package test", func() {
 						"enabled": trueVar,
 					},
 					"veth_mtu": defaultMtu,
+					"monitoring": map[string]interface{}{
+						"enabled":          true,
+						"typhaMetricsPort": "9093",
+						"felixMetricsPort": "9091",
+					},
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
 							"enabled": true,
@@ -383,6 +408,11 @@ var _ = Describe("Chart package test", func() {
 						"enabled": trueVar,
 					},
 					"veth_mtu": defaultMtu,
+					"monitoring": map[string]interface{}{
+						"enabled":          true,
+						"typhaMetricsPort": "9093",
+						"felixMetricsPort": "9091",
+					},
 					"felix": map[string]interface{}{
 						"ipinip": map[string]interface{}{
 							"enabled": true,
@@ -418,7 +448,7 @@ var _ = Describe("Chart package test", func() {
 			}
 		)
 		It("Render Calico charts correctly", func() {
-			mockChartRenderer.EXPECT().Render(calico.ChartPath, calico.ReleaseName, metav1.NamespaceSystem, gomock.Any()).Return(&chartrenderer.RenderedChart{
+			mockChartRenderer.EXPECT().Render(calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, gomock.Any()).Return(&chartrenderer.RenderedChart{
 				ChartName: "test",
 				Manifests: []manifest.Manifest{
 					mkManifest(charts.CalicoConfigKey),

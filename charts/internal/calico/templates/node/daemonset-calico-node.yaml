@@ -101,10 +101,22 @@ spec:
         # host.
         - name: calico-node
           image: {{ index .Values.images "calico-node" }}
+          ports:
+            {{- if .Values.config.monitoring.enabled }}
+          - containerPort: {{  .Values.config.monitoring.felixMetricsPort }}
+            name: metrics
+            protocol: TCP
+            {{- end}}
           env:
             {{- if eq .Values.config.ipam.type "host-local"}}
             - name: USE_POD_CIDR
               value: "true"
+            {{- end }}
+            {{- if .Values.config.monitoring.enabled }}
+            - name: FELIX_PROMETHEUSMETRICSENABLED
+              value: "{{ .Values.config.monitoring.enabled }}"
+            - name: FELIX_PROMETHEUSMETRICSPORT
+              value: "{{ .Values.config.monitoring.felixMetricsPort }}"
             {{- end }}
             # Use Kubernetes API as the backing datastore.
             - name: DATASTORE_TYPE

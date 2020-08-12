@@ -16,18 +16,22 @@ package controller
 
 import (
 	"context"
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
+
+	"github.com/pkg/errors"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-
 	"github.com/gardener/gardener-resource-manager/pkg/manager"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/operation/common"
-	"github.com/pkg/errors"
+	"github.com/gardener/gardener/pkg/utils/chart"
+
+	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -63,6 +67,25 @@ func activateSystemComponentsNodeSelector(shoot *gardencorev1beta1.Shoot) bool {
 	}
 
 	return atLeastOneWorkerPoolHasSystemComponents
+}
+
+func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
+	calicoControlPlaneMonitoringChart := &chart.Chart{
+		Name: calico.MonitoringName,
+		Path: calico.CalicoMonitoringChartPath,
+		Objects: []*chart.Object{
+			{
+				Type: &corev1.ConfigMap{},
+				Name: calico.MonitoringName,
+			},
+		},
+	}
+
+	if deleteChart {
+		return client.IgnoreNotFound(calicoControlPlaneMonitoringChart.Delete(ctx, seedClient, network.Namespace))
+	}
+
+	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", map[string]interface{}{})
 }
 
 // Reconcile implements Network.Actuator.
@@ -101,6 +124,10 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		WithSecretRefs(secretRefs).
 		WithInjectedLabels(map[string]string{common.ShootNoCleanup: "true"}).
 		Reconcile(ctx); err != nil {
+		return err
+	}
+
+	if err := applyMonitoringConfig(ctx, a.client, a.chartApplier, network, false); err != nil {
 		return err
 	}
 
