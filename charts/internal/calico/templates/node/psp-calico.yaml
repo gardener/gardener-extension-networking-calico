@@ -9,6 +9,11 @@ spec:
   - hostPath
   - secret
   hostNetwork: true
+  {{- if .Values.config.monitoring.enabled }}
+  hostPorts:
+    - min: 9091
+      max: 9091
+  {{- end }}
   allowedHostPaths:
   - pathPrefix: /lib/modules
   - pathPrefix: /var/run/calico

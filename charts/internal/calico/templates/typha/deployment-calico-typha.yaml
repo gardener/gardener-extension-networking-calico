@@ -70,11 +70,22 @@ spec:
         - containerPort: 5473
           name: calico-typha
           protocol: TCP
+        {{- if .Values.config.monitoring.enabled }}
+        - containerPort: {{ .Values.config.monitoring.typhaMetricsPort }}
+          name: metrics
+          protocol: TCP
+        {{-  end }}
         env:
           {{- if eq .Values.config.ipam.type "host-local"}}
           - name: USE_POD_CIDR
             value: "true"
           {{- end }}
+          {{- if .Values.config.monitoring.enabled }}
+          - name: TYPHA_PROMETHEUSMETRICSENABLED
+            value: "{{ .Values.config.monitoring.enabled }}"
+          - name: TYPHA_PROMETHEUSMETRICSPORT
+            value: "{{ .Values.config.monitoring.typhaMetricsPort }}"
+          {{-  end }}
           # Enable "info" logging by default.  Can be set to "debug" to increase verbosity.
           - name: TYPHA_LOGSEVERITYSCREEN
             value: "error"

@@ -31,9 +31,10 @@ func RenderCalicoChart(renderer chartrenderer.Interface, network *extensionsv1al
 	if err != nil {
 		return nil, err
 	}
-	release, err := renderer.Render(calico.ChartPath, calico.ReleaseName, metav1.NamespaceSystem, values)
+	release, err := renderer.Render(calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, values)
 	if err != nil {
 		return nil, err
 	}
+
 	return release.Manifest(), nil
 }

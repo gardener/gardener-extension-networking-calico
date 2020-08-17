@@ -41,6 +41,7 @@ type calicoConfig struct {
 	Typha           typha                  `json:"typha"`
 	KubeControllers kubeControllers        `json:"kubeControllers"`
 	VethMTU         string                 `json:"veth_mtu"`
+	Monitoring      monitoring             `json:"monitoring"`
 }
 
 type felix struct {
@@ -64,6 +65,14 @@ type ipam struct {
 
 type kubeControllers struct {
 	Enabled bool `json:"enabled"`
+}
+
+type monitoring struct {
+	Enabled bool `json:"enabled"`
+	// TyphaPort is the port used to expose typha metrics
+	TyphaMetricsPort string `json:"typhaMetricsPort"`
+	// FelixPort is the port used to exposed felix metrics
+	FelixMetricsPort string `json:"felixMetricsPort"`
 }
 
 type typha struct {
@@ -93,6 +102,11 @@ var defaultCalicoConfig = calicoConfig{
 		Enabled: true,
 	},
 	VethMTU: defaultMTU,
+	Monitoring: monitoring{
+		Enabled:          true,
+		FelixMetricsPort: "9091",
+		TyphaMetricsPort: "9093",
+	},
 }
 
 func newCalicoConfig() calicoConfig {
