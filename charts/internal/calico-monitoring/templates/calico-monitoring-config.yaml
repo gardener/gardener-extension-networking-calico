@@ -8,7 +8,6 @@ metadata:
 data:
   scrape_config: |
     - job_name: 'felix-metrics'
-      scrape_interval: 5s
       scheme: https
       tls_config:
         # This is needed because the kubelets' certificates are not are generated
@@ -30,7 +29,6 @@ data:
         target_label: __metrics_path__
         replacement: /api/v1/namespaces/kube-system/pods/${1}:9091/proxy/metrics
     - job_name: 'typha-metrics'
-      scrape_interval: 5s
       scheme: https
       tls_config:
         # This is needed because the kubelets' certificates are not are generated
