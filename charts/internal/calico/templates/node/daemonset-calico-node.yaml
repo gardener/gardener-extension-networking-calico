@@ -36,7 +36,11 @@ spec:
     spec:
       priorityClassName: system-node-critical
       nodeSelector:
+        {{- if semverCompare "<= 1.14-0" .Capabilities.KubeVersion.GitVersion }}
         beta.kubernetes.io/os: linux
+        {{- else }}
+        kubernetes.io/os: linux
+        {{- end  }}
       hostNetwork: true
       tolerations:
         # Make sure calico-node gets scheduled on all nodes.
