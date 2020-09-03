@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate ../../vendor/github.com/gardener/gardener/extensions/hack/generate-controller-registration.sh networking-calico . ../../VERSION ../../example/controller-registration.yaml Network:calico
+//go:generate ../../vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh networking-calico . ../../VERSION ../../example/controller-registration.yaml Network:calico
 
 // Package chart enables go:generate support for generating the correct controller registration.
 package chart
