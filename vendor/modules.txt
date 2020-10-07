@@ -43,7 +43,7 @@ github.com/gardener/etcd-druid/api/v1alpha1
 # github.com/gardener/external-dns-management v0.7.18
 github.com/gardener/external-dns-management/pkg/apis/dns
 github.com/gardener/external-dns-management/pkg/apis/dns/v1alpha1
-# github.com/gardener/gardener v1.11.1
+# github.com/gardener/gardener v1.11.1-0.20201005142709-985629a24572
 ## explicit
 github.com/gardener/gardener/.github
 github.com/gardener/gardener/.github/ISSUE_TEMPLATE
@@ -92,6 +92,7 @@ github.com/gardener/gardener/pkg/client/core/listers/core/v1alpha1
 github.com/gardener/gardener/pkg/client/core/listers/core/v1beta1
 github.com/gardener/gardener/pkg/client/extensions/clientset/versioned/scheme
 github.com/gardener/gardener/pkg/client/kubernetes
+github.com/gardener/gardener/pkg/client/kubernetes/utils
 github.com/gardener/gardener/pkg/controllerutils
 github.com/gardener/gardener/pkg/controllerutils/metrics
 github.com/gardener/gardener/pkg/extensions
@@ -220,10 +221,10 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/golang/snappy v0.0.1
-github.com/golang/snappy
-# github.com/google/go-cmp v0.4.1
+# github.com/golang/snappy v0.0.2
 ## explicit
+github.com/golang/snappy
+# github.com/google/go-cmp v0.4.0
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -289,7 +290,8 @@ github.com/mitchellh/reflectwalk
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
-# github.com/nwaples/rardecode v1.0.0
+# github.com/nwaples/rardecode v1.1.0
+## explicit
 github.com/nwaples/rardecode
 # github.com/nxadm/tail v1.4.4
 github.com/nxadm/tail
@@ -341,7 +343,8 @@ github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
 # github.com/pelletier/go-toml v1.6.0
 github.com/pelletier/go-toml
-# github.com/pierrec/lz4 v2.3.0+incompatible
+# github.com/pierrec/lz4 v2.5.2+incompatible
+## explicit
 github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
 # github.com/pkg/errors v0.9.1
@@ -390,7 +393,8 @@ github.com/spf13/viper
 github.com/subosito/gotenv
 # github.com/texttheater/golang-levenshtein v0.0.0-20191208221605-eb6844b05fc6
 github.com/texttheater/golang-levenshtein/levenshtein
-# github.com/ulikunitz/xz v0.5.6
+# github.com/ulikunitz/xz v0.5.8
+## explicit
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/hash
 github.com/ulikunitz/xz/internal/xlog
