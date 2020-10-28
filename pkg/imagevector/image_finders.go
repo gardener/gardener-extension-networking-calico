@@ -16,46 +16,47 @@ package imagevector
 
 import (
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
+	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
-func findImage(name string) string {
-	image, err := imageVector.FindImage(name)
+func findImage(name, kubernetesVersion string) string {
+	image, err := imageVector.FindImage(name, imagevector.RuntimeVersion(kubernetesVersion), imagevector.TargetVersion(kubernetesVersion))
 	runtime.Must(err)
 	return image.String()
 }
 
 // CalicoCNIImage returns the Calico CNI Image.
-func CalicoCNIImage() string {
-	return findImage(calico.CNIImageName)
+func CalicoCNIImage(kubernetesVersion string) string {
+	return findImage(calico.CNIImageName, kubernetesVersion)
 }
 
 // CalicoNodeImage returns the Calico Node image.
-func CalicoNodeImage() string {
-	return findImage(calico.NodeImageName)
+func CalicoNodeImage(kubernetesVersion string) string {
+	return findImage(calico.NodeImageName, kubernetesVersion)
 }
 
 // CalicoTyphaImage returns the Calico Typha image.
-func CalicoTyphaImage() string {
-	return findImage(calico.TyphaImageName)
+func CalicoTyphaImage(kubernetesVersion string) string {
+	return findImage(calico.TyphaImageName, kubernetesVersion)
 }
 
 // CalicoKubeControllersImage returns the Calico Kube-controllers image.
-func CalicoKubeControllersImage() string {
-	return findImage(calico.KubeControllersImageName)
+func CalicoKubeControllersImage(kubernetesVersion string) string {
+	return findImage(calico.KubeControllersImageName, kubernetesVersion)
 }
 
 // CalicoFlexVolumeDriverImage returns the Calico flexvol image.
-func CalicoFlexVolumeDriverImage() string {
-	return findImage(calico.PodToDaemonFlexVolumeDriverImageName)
+func CalicoFlexVolumeDriverImage(kubernetesVersion string) string {
+	return findImage(calico.PodToDaemonFlexVolumeDriverImageName, kubernetesVersion)
 }
 
 // ClusterProportionalAutoscalerImage returns the Calico cluster-proportional-autoscaler image.
-func ClusterProportionalAutoscalerImage() string {
-	return findImage(calico.CalicoClusterProportionalAutoscalerImageName)
+func ClusterProportionalAutoscalerImage(kubernetesVersion string) string {
+	return findImage(calico.CalicoClusterProportionalAutoscalerImageName, kubernetesVersion)
 }
 
 // ClusterProportionalVerticalAutoscalerImage returns the Calico cluster-proportional-vertical-autoscaler image.
-func ClusterProportionalVerticalAutoscalerImage() string {
-	return findImage(calico.ClusterProportionalVerticalAutoscalerImageName)
+func ClusterProportionalVerticalAutoscalerImage(kubernetesVersion string) string {
+	return findImage(calico.ClusterProportionalVerticalAutoscalerImageName, kubernetesVersion)
 }

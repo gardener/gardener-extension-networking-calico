@@ -108,7 +108,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return errors.Wrapf(err, "could not create chart renderer for shoot '%s'", network.Namespace)
 	}
 
-	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot))
+	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot), cluster.Shoot.Spec.Kubernetes.Version)
 	if err != nil {
 		return err
 	}
