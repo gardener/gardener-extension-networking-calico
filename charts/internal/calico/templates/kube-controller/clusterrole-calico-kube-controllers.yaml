@@ -36,6 +36,18 @@ rules:
       - create
       - update
       - delete
+{{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
+  # kube-controllers manages hostendpoints.
+  - apiGroups: ["crd.projectcalico.org"]
+    resources:
+      - hostendpoints
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+{{- end }}
   # Needs access to update clusterinformations.
   - apiGroups: ["crd.projectcalico.org"]
     resources:
@@ -44,4 +56,19 @@ rules:
       - get
       - create
       - update
+{{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
+  # KubeControllersConfiguration is where it gets its config
+  - apiGroups: ["crd.projectcalico.org"]
+    resources:
+      - kubecontrollersconfigurations
+    verbs:
+      # read its own config
+      - get
+      # create a default if none exists
+      - create
+      # update status
+      - update
+      # watch for changes
+      - watch
+{{- end }}
 {{- end }}

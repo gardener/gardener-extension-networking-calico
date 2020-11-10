@@ -127,7 +127,7 @@ func (c *calicoConfig) toMap() (map[string]interface{}, error) {
 }
 
 // ComputeCalicoChartValues computes the values for the calico chart.
-func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool) (map[string]interface{}, error) {
+func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(config)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
@@ -138,13 +138,13 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 	}
 	calicoChartValues := map[string]interface{}{
 		"images": map[string]interface{}{
-			calico.CNIImageName:                                   imagevector.CalicoCNIImage(),
-			calico.TyphaImageName:                                 imagevector.CalicoTyphaImage(),
-			calico.KubeControllersImageName:                       imagevector.CalicoKubeControllersImage(),
-			calico.NodeImageName:                                  imagevector.CalicoNodeImage(),
-			calico.PodToDaemonFlexVolumeDriverImageName:           imagevector.CalicoFlexVolumeDriverImage(),
-			calico.CalicoClusterProportionalAutoscalerImageName:   imagevector.ClusterProportionalAutoscalerImage(),
-			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(),
+			calico.CNIImageName:                                   imagevector.CalicoCNIImage(kubernetesVersion),
+			calico.TyphaImageName:                                 imagevector.CalicoTyphaImage(kubernetesVersion),
+			calico.KubeControllersImageName:                       imagevector.CalicoKubeControllersImage(kubernetesVersion),
+			calico.NodeImageName:                                  imagevector.CalicoNodeImage(kubernetesVersion),
+			calico.PodToDaemonFlexVolumeDriverImageName:           imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+			calico.CalicoClusterProportionalAutoscalerImageName:   imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 		},
 		"global": map[string]string{
 			"podCIDR": network.Spec.PodCIDR,

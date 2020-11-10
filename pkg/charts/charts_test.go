@@ -41,6 +41,7 @@ var (
 
 var _ = Describe("Chart package test", func() {
 	var (
+		kubernetesVersion                               = "1.18.0"
 		podCIDR                                         = calicov1alpha1.CIDR("12.0.0.0/8")
 		crossSubnet                                     = calicov1alpha1.CrossSubnet
 		always                                          = calicov1alpha1.Always
@@ -133,17 +134,17 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeCalicoChartValues", func() {
 		It("empty network config should properly render calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, false, kubernetesVersion)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
-					"calico-cni":              imagevector.CalicoCNIImage(),
-					"calico-typha":            imagevector.CalicoTyphaImage(),
-					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(),
-					"calico-node":             imagevector.CalicoNodeImage(),
-					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(),
-					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(),
-					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(),
+					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
+					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
+					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 				},
 				"global": map[string]string{
 					"podCIDR": network.Spec.PodCIDR,
@@ -183,17 +184,17 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeCalicoChartValues", func() {
 		It("should disable felix ip in ip and set pool mode to never when setting backend to none", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, false, kubernetesVersion)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
-					"calico-cni":              imagevector.CalicoCNIImage(),
-					"calico-typha":            imagevector.CalicoTyphaImage(),
-					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(),
-					"calico-node":             imagevector.CalicoNodeImage(),
-					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(),
-					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(),
-					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(),
+					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
+					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
+					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 				},
 				"global": map[string]string{
 					"podCIDR": network.Spec.PodCIDR,
@@ -233,17 +234,17 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeAllCalicoChartValues", func() {
 		It("should correctly compute all of the calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false, kubernetesVersion)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
-					"calico-cni":              imagevector.CalicoCNIImage(),
-					"calico-typha":            imagevector.CalicoTyphaImage(),
-					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(),
-					"calico-node":             imagevector.CalicoNodeImage(),
-					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(),
-					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(),
-					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(),
+					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
+					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
+					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 				},
 				"global": map[string]string{
 					"podCIDR": network.Spec.PodCIDR,
@@ -280,17 +281,17 @@ var _ = Describe("Chart package test", func() {
 			}))
 		})
 		It("should correctly compute all of the calico chart values with mtu", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, false, kubernetesVersion)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
-					"calico-cni":              imagevector.CalicoCNIImage(),
-					"calico-typha":            imagevector.CalicoTyphaImage(),
-					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(),
-					"calico-node":             imagevector.CalicoNodeImage(),
-					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(),
-					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(),
-					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(),
+					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
+					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
+					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 				},
 				"global": map[string]string{
 					"podCIDR": network.Spec.PodCIDR,
@@ -330,17 +331,17 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeAllCalicoChartValues", func() {
 		It("should respect deprecated fields in order to keep backwards compatibility", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, false, kubernetesVersion)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
-					"calico-cni":              imagevector.CalicoCNIImage(),
-					"calico-typha":            imagevector.CalicoTyphaImage(),
-					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(),
-					"calico-node":             imagevector.CalicoNodeImage(),
-					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(),
-					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(),
-					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(),
+					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
+					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
+					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 				},
 				"global": map[string]string{
 					"podCIDR": network.Spec.PodCIDR,
@@ -380,17 +381,17 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ActivatesSystemComponentNodeSelector", func() {
 		It("should set a nodeSelector when desired", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, true)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, true, kubernetesVersion)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
-					"calico-cni":              imagevector.CalicoCNIImage(),
-					"calico-typha":            imagevector.CalicoTyphaImage(),
-					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(),
-					"calico-node":             imagevector.CalicoNodeImage(),
-					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(),
-					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(),
-					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(),
+					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
+					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
+					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 				},
 				"global": map[string]string{
 					"podCIDR": network.Spec.PodCIDR,
@@ -433,7 +434,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeInvalidCalicoChartValues", func() {
 		It("should error on invalid config value", func() {
-			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, false)
+			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, false, kubernetesVersion)
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 	})
@@ -455,7 +456,7 @@ var _ = Describe("Chart package test", func() {
 				},
 			}, nil)
 
-			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, false)
+			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, false, kubernetesVersion)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

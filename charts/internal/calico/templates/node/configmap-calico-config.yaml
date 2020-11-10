@@ -15,7 +15,11 @@ data:
 {{- end }}
   # Configure the Calico backend to use.
   calico_backend: "{{ .Values.config.backend }}"
-  # Configure the MTU to use
+  # Configure the MTU to use for workload interfaces and tunnels.
+  # - If Wireguard is enabled, set to your network MTU - 60
+  # - Otherwise, if VXLAN or BPF mode is enabled, set to your network MTU - 50
+  # - Otherwise, if IPIP is enabled, set to your network MTU - 20
+  # - Otherwise, if not using any encapsulation, set to your network MTU.
   veth_mtu: "{{ .Values.config.veth_mtu }}"
   # The CNI network configuration to install on each node.
   cni_network_config: |-
@@ -26,13 +30,20 @@ data:
         {
           "type": "calico",
           "log_level": "error",
+        {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion }}
+          "log_file_path": "/var/log/calico/cni/cni.log",
+        {{- end }}
           "datastore_type": "kubernetes",
           "nodename": "__KUBERNETES_NODE_NAME__",
           "mtu": __CNI_MTU__,
         {{- if .Values.config.ipam.subnet }}
           "ipam": {
+        {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion }}
+            "type": "calico-ipam"
+        {{- else }}
             "type": "{{ .Values.config.ipam.type }}",
             "subnet": "{{ .Values.config.ipam.subnet }}"
+        {{- end }}
           },
         {{- else }}
           "ipam": {
