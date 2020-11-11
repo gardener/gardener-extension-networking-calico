@@ -24,6 +24,9 @@ spec:
   - pathPrefix: /var/run/nodeagent
   - pathPrefix: /usr/libexec
   - pathPrefix: /var/lib/kubelet/volumeplugins/nodeagent~uds
+  {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
+  - pathPrefix: /sys/fs/
+  {{- end }}
   runAsUser:
     rule: RunAsAny
   seLinux:
