@@ -18,10 +18,9 @@ If multiple identifiers make sense you can also state the commands multiple time
 "/kind" identifiers:     api-change|bug|cleanup|discussion|enhancement|epic|impediment|poc|post-mortem|question|regression|task|technical-debt|test
 "/priority" identifiers: normal|critical|blocker
 -->
-/area TODO
+/area networking
 /kind enhancement
 /priority normal
-/area networking
 
 **What would you like to be added**:
 
