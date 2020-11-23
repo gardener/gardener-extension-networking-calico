@@ -29,6 +29,8 @@ spec:
 {{ toYaml .Values.nodeSelector | indent 8 }}
       {{- end }}
       priorityClassName: system-cluster-critical
+      # Make sure to not use the coredns for DNS resolution.
+      dnsPolicy: Default
       securityContext:
         supplementalGroups: [ 65534 ]
         fsGroup: 65534

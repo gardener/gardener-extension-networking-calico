@@ -50,6 +50,8 @@ spec:
         operator: Exists
       serviceAccountName: calico-kube-controllers
       priorityClassName: system-cluster-critical
+      # Make sure to not use the coredns for DNS resolution.
+      dnsPolicy: Default
       hostIPC: false
       hostNetwork: false
       hostPID: false

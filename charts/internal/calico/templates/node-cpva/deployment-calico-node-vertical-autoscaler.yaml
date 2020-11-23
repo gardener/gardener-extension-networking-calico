@@ -29,6 +29,8 @@ spec:
       priorityClassName: system-cluster-critical
       securityContext:
         runAsUser: 65534
+      # Make sure to not use the coredns for DNS resolution.
+      dnsPolicy: Default
       containers:
         - image:  {{ index .Values.images "calico-cpva" }}
           name: autoscaler
