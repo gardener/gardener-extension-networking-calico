@@ -5,9 +5,7 @@ metadata:
   name: calico-config
   namespace: kube-system
 data:
-  # To enable Typha, set this to "calico-typha" *and* set a non-zero value for Typha replicas
-  # below.  We recommend using Typha if you have more than 50 nodes. Above 100 nodes it is
-  # essential.
+  # You must set a non-zero value for Typha replicas below.
 {{- if .Values.config.typha.enabled }}
   typha_service_name: "calico-typha"
 {{- else }}
@@ -15,13 +13,15 @@ data:
 {{- end }}
   # Configure the Calico backend to use.
   calico_backend: "{{ .Values.config.backend }}"
+
   # Configure the MTU to use for workload interfaces and tunnels.
-  # - If Wireguard is enabled, set to your network MTU - 60
-  # - Otherwise, if VXLAN or BPF mode is enabled, set to your network MTU - 50
-  # - Otherwise, if IPIP is enabled, set to your network MTU - 20
-  # - Otherwise, if not using any encapsulation, set to your network MTU.
+  # By default, MTU is auto-detected, and explicitly setting this field should not be required.
+  # You can override auto-detection by providing a non-zero value.
   veth_mtu: "{{ .Values.config.veth_mtu }}"
-  # The CNI network configuration to install on each node.
+
+  # The CNI network configuration to install on each node. The special
+  # values in this config will be automatically populated.
+
   cni_network_config: |-
     {
       "name": "k8s-pod-network",
@@ -38,12 +38,8 @@ data:
           "mtu": __CNI_MTU__,
         {{- if .Values.config.ipam.subnet }}
           "ipam": {
-        {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion }}
-            "type": "calico-ipam"
-        {{- else }}
             "type": "{{ .Values.config.ipam.type }}",
             "subnet": "{{ .Values.config.ipam.subnet }}"
-        {{- end }}
           },
         {{- else }}
           "ipam": {

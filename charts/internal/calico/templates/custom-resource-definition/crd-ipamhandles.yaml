@@ -22,7 +22,6 @@ metadata:
   name: ipamhandles.crd.projectcalico.org
   labels:
     gardener.cloud/role: system-component
-  creationTimestamp: null
 spec:
   group: crd.projectcalico.org
   names:
@@ -56,6 +55,8 @@ spec:
                 additionalProperties:
                   type: integer
                 type: object
+              deleted:
+                type: boolean
               handleID:
                 type: string
             required:

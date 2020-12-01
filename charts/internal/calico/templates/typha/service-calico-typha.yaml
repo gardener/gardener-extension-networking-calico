@@ -1,5 +1,6 @@
 {{- if .Values.config.typha.enabled }}
 ---
+# Source: calico/templates/calico-typha.yaml
 # This manifest creates a Service, which will be backed by Calico's Typha daemon.
 # Typha sits in between Felix and the API server, reducing Calico's load on the API server.
 apiVersion: v1
