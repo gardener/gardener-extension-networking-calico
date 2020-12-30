@@ -4,8 +4,8 @@ go 1.15
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
-	github.com/gardener/gardener v1.12.6
-	github.com/gardener/gardener-resource-manager v0.13.1
+	github.com/gardener/gardener v1.14.2-0.20201230161055-49941a659ae6
+	github.com/gardener/gardener-resource-manager v0.18.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.5.1
 	github.com/golang/mock v1.4.4-0.20200731163441-8734ec565a4d
@@ -18,25 +18,24 @@ require (
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.5
 	github.com/ulikunitz/xz v0.5.8 // indirect
-	k8s.io/api v0.18.8
-	k8s.io/apimachinery v0.18.8
+	k8s.io/api v0.18.10
+	k8s.io/apimachinery v0.18.10
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/code-generator v0.18.8
-	k8s.io/component-base v0.18.8
+	k8s.io/code-generator v0.18.10
+	k8s.io/component-base v0.18.10
 	k8s.io/helm v2.16.1+incompatible
-	k8s.io/utils v0.0.0-20200619165400-6e3d28b6ed19 // indirect
 	sigs.k8s.io/controller-runtime v0.6.3
 )
 
 replace (
-	k8s.io/api => k8s.io/api v0.18.8
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.8
-	k8s.io/apimachinery => k8s.io/apimachinery v0.18.8
-	k8s.io/apiserver => k8s.io/apiserver v0.18.8
-	k8s.io/client-go => k8s.io/client-go v0.18.8
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.18.8
-	k8s.io/code-generator => k8s.io/code-generator v0.18.8
-	k8s.io/component-base => k8s.io/component-base v0.18.8
+	k8s.io/api => k8s.io/api v0.18.10
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.10
+	k8s.io/apimachinery => k8s.io/apimachinery v0.18.10
+	k8s.io/apiserver => k8s.io/apiserver v0.18.10
+	k8s.io/client-go => k8s.io/client-go v0.18.10
+	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.18.10
+	k8s.io/code-generator => k8s.io/code-generator v0.18.10
+	k8s.io/component-base => k8s.io/component-base v0.18.10
 	k8s.io/helm => k8s.io/helm v2.13.1+incompatible
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.18.8
+	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.18.10
 )
