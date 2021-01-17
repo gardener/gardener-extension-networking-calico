@@ -333,3 +333,6 @@ More info can be found here <a href="https://docs.projectcalico.org/v3.9/referen
 </tbody>
 </table>
 <hr/>
+<p><em>
+Generated with <a href="https://github.com/ahmetb/gen-crd-api-reference-docs">gen-crd-api-reference-docs</a>
+</em></p>
