@@ -1,7 +1,7 @@
 {{- if .Values.config.typha.enabled }}
 ---
-kind: Deployment
 apiVersion: {{ include "deploymentversion" . }}
+kind: Deployment
 metadata:
   name: calico-typha-vertical-autoscaler
   namespace: kube-system

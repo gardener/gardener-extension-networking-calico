@@ -1,7 +1,7 @@
 {{- if .Values.config.typha.enabled }}
 ---
-kind: ConfigMap
 apiVersion: v1
+kind: ConfigMap
 metadata:
   name: calico-typha-vertical-autoscaler
   namespace: kube-system

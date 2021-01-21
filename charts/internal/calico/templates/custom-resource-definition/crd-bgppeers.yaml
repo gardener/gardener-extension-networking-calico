@@ -22,7 +22,6 @@ metadata:
   name: bgppeers.crd.projectcalico.org
   labels:
     gardener.cloud/role: system-component
-  creationTimestamp: null
 spec:
   group: crd.projectcalico.org
   names:
@@ -63,8 +62,8 @@ spec:
                 type: boolean
               node:
                 description: The node name identifying the Calico node instance that
-                  is peering with this peer. If this is not set, this represents a
-                  global peer, i.e. a peer that peers with every node in the deployment.
+                  is targeted by this peer. If this is not set, and no nodeSelector
+                  is specified, then this BGP peer selects all nodes in the cluster.
                 type: string
               nodeSelector:
                 description: Selector for the nodes that should have this peering.  When
@@ -106,12 +105,9 @@ spec:
                   peering between the local node and selected remote nodes, we configure
                   an IPv4 peering if both ends have NodeBGPSpec.IPv4Address specified,
                   and an IPv6 peering if both ends have NodeBGPSpec.IPv6Address specified.  The
-                  remote AS number comes from the remote node’s NodeBGPSpec.ASNumber,
+                  remote AS number comes from the remote node's NodeBGPSpec.ASNumber,
                   or the global default if that is not set.
                 type: string
-            required:
-            - asNumber
-            - peerIP
             type: object
         type: object
     served: true

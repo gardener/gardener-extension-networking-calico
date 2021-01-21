@@ -22,7 +22,6 @@ metadata:
   name: hostendpoints.crd.projectcalico.org
   labels:
     gardener.cloud/role: system-component
-  creationTimestamp: null
 spec:
   group: crd.projectcalico.org
   names:

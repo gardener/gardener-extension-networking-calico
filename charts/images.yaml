@@ -1,8 +1,8 @@
 images:
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
-  repository: quay.io/calico/node
-  tag: v3.16.4
+  repository: docker.io/calico/node
+  tag: v3.17.1
   targetVersion: ">= 1.16"
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
@@ -11,8 +11,8 @@ images:
   targetVersion: "< 1.16"
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
-  repository: quay.io/calico/cni
-  tag: v3.16.4
+  repository: docker.io/calico/cni
+  tag: v3.17.1
   targetVersion: ">= 1.16"
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
@@ -21,8 +21,8 @@ images:
   targetVersion: "< 1.16"
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
-  repository: quay.io/calico/typha
-  tag: v3.16.4
+  repository: docker.io/calico/typha
+  tag: v3.17.1
   targetVersion: ">= 1.16"
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
@@ -31,8 +31,8 @@ images:
   targetVersion: "< 1.16"
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
-  repository: quay.io/calico/kube-controllers
-  tag: v3.16.4
+  repository: docker.io/calico/kube-controllers
+  tag: v3.17.1
   targetVersion: ">= 1.16"
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
@@ -41,8 +41,8 @@ images:
   targetVersion: "< 1.16"
 - name: calico-podtodaemon-flex
   sourceRepository: github.com/projectcalico/pod2daemon
-  repository: quay.io/calico/pod2daemon-flexvol
-  tag: v3.16.4
+  repository: docker.io/calico/pod2daemon-flexvol
+  tag: v3.17.1
   targetVersion: ">= 1.16"
 - name: calico-podtodaemon-flex
   sourceRepository: github.com/projectcalico/pod2daemon

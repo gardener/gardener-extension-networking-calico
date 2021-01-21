@@ -1,7 +1,7 @@
 {{- if .Values.config.kubeControllers.enabled }}
 ---
-kind: ClusterRole
 apiVersion: {{ include "rbacversion" . }}
+kind: ClusterRole
 metadata:
   name: calico-kube-controllers
 rules:

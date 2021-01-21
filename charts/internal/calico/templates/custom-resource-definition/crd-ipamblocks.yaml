@@ -22,7 +22,6 @@ metadata:
   name: ipamblocks.crd.projectcalico.org
   labels:
     gardener.cloud/role: system-component
-  creationTimestamp: null
 spec:
   group: crd.projectcalico.org
   names:
@@ -86,7 +85,6 @@ spec:
             - allocations
             - attributes
             - cidr
-            - deleted
             - strictAffinity
             - unallocated
             type: object
