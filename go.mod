@@ -4,16 +4,16 @@ go 1.15
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
-	github.com/gardener/gardener v1.15.3
+	github.com/gardener/gardener v1.16.0
 	github.com/gardener/gardener-resource-manager v0.18.0
-	github.com/go-logr/logr v0.1.0
+	github.com/go-logr/logr v0.3.0
 	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/mock v1.4.4-0.20200731163441-8734ec565a4d
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
-	github.com/onsi/ginkgo v1.14.0
-	github.com/onsi/gomega v1.10.1
+	github.com/onsi/ginkgo v1.14.1
+	github.com/onsi/gomega v1.10.2
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
@@ -25,24 +25,24 @@ require (
 	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
 	golang.org/x/tools v0.0.0-20201202100533-7534955ac86b // indirect
-	k8s.io/api v0.18.10
-	k8s.io/apimachinery v0.18.10
+	k8s.io/api v0.19.6
+	k8s.io/apimachinery v0.19.6
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/code-generator v0.18.10
-	k8s.io/component-base v0.18.10
+	k8s.io/code-generator v0.19.6
+	k8s.io/component-base v0.19.6
 	k8s.io/helm v2.16.1+incompatible
-	sigs.k8s.io/controller-runtime v0.6.3
+	sigs.k8s.io/controller-runtime v0.7.1
 )
 
 replace (
-	k8s.io/api => k8s.io/api v0.18.10
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.10
-	k8s.io/apimachinery => k8s.io/apimachinery v0.18.10
-	k8s.io/apiserver => k8s.io/apiserver v0.18.10
-	k8s.io/client-go => k8s.io/client-go v0.18.10
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.18.10
-	k8s.io/code-generator => k8s.io/code-generator v0.18.10
-	k8s.io/component-base => k8s.io/component-base v0.18.10
+	k8s.io/api => k8s.io/api v0.19.6
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.19.6
+	k8s.io/apimachinery => k8s.io/apimachinery v0.19.6
+	k8s.io/apiserver => k8s.io/apiserver v0.19.6
+	k8s.io/client-go => k8s.io/client-go v0.19.6
+	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.19.6
+	k8s.io/code-generator => k8s.io/code-generator v0.19.6
+	k8s.io/component-base => k8s.io/component-base v0.19.6
 	k8s.io/helm => k8s.io/helm v2.13.1+incompatible
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.18.10
+	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.19.6
 )
