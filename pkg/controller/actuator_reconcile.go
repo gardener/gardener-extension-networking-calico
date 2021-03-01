@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -100,6 +101,14 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		if err != nil {
 			return err
 		}
+	}
+
+	if cluster.Shoot.Spec.Networking.Nodes != nil && len(*cluster.Shoot.Spec.Networking.Nodes) > 0 {
+		autodetectionMode := fmt.Sprintf("cidr=%s", *cluster.Shoot.Spec.Networking.Nodes)
+		if networkConfig == nil {
+			networkConfig = &calicov1alpha1.NetworkConfig{IPv4: &calicov1alpha1.IPv4{}}
+		}
+		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
 	}
 
 	// Create shoot chart renderer
