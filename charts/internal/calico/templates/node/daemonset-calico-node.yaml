@@ -159,10 +159,12 @@ spec:
             - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
               value: "ACCEPT"
             # Auto-detect the BGP IP address.
+            {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
             {{- if .Values.config.ipv4.autoDetectionMethod }}
             # On metal the ip is bound to the lo interface (routing to the host).
             - name: IP_AUTODETECTION_METHOD
               value: "{{ .Values.config.ipv4.autoDetectionMethod }}"
+            {{- end }}
             {{- end }}
             - name: IP
               value: "autodetect"
