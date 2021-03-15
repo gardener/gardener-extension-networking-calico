@@ -176,7 +176,6 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig) (*calicoConfig, e
 		}
 	}
 	if c.Backend == calicov1alpha1.None {
-		c.KubeControllers.Enabled = false
 		c.Felix.IPInIP.Enabled = false
 		c.IPv4.Mode = calicov1alpha1.Never
 	}
