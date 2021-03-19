@@ -209,7 +209,7 @@ var _ = Describe("Chart package test", func() {
 						"enabled": trueVar,
 					},
 					"kubeControllers": map[string]interface{}{
-						"enabled": falseVar,
+						"enabled": trueVar,
 					},
 					"veth_mtu": defaultMtu,
 					"monitoring": map[string]interface{}{
