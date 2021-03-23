@@ -127,7 +127,7 @@ func (c *calicoConfig) toMap() (map[string]interface{}, error) {
 }
 
 // ComputeCalicoChartValues computes the values for the calico chart.
-func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string) (map[string]interface{}, error) {
+func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string, wantsVPA bool) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(config)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
@@ -137,6 +137,9 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 		return nil, fmt.Errorf("could not convert calico config: %v", err)
 	}
 	calicoChartValues := map[string]interface{}{
+		"vpa": map[string]interface{}{
+			"enabled": wantsVPA,
+		},
 		"images": map[string]interface{}{
 			calico.CNIImageName:                                   imagevector.CalicoCNIImage(kubernetesVersion),
 			calico.TyphaImageName:                                 imagevector.CalicoTyphaImage(kubernetesVersion),
