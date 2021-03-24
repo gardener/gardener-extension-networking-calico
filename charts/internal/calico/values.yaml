@@ -30,4 +30,7 @@ images:
   calico-cpva: "image-repository:image-tag"
   calico-cpa: "image-repository:image-tag"
 
+vpa:
+  enabled: false
+
 # nodeSelector: {}

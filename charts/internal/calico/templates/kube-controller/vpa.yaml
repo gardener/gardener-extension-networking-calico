@@ -1,0 +1,14 @@
+{{- if .Values.vpa.enabled }}
+apiVersion: "autoscaling.k8s.io/v1beta2"
+kind: VerticalPodAutoscaler
+metadata:
+  name: calico-kube-controllers
+  namespace: {{ .Release.Namespace }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: calico-kube-controllers
+  updatePolicy:
+    updateMode: "Auto"
+{{- end }}
