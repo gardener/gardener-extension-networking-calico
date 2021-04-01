@@ -24,7 +24,7 @@ import (
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
-	mockchartrenderer "github.com/gardener/gardener/pkg/mock/gardener/chartrenderer"
+	mockchartrenderer "github.com/gardener/gardener/pkg/chartrenderer/mock"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
