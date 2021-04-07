@@ -36,6 +36,7 @@ rules:
       - create
       - update
       - delete
+      - watch
 {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
   # kube-controllers manages hostendpoints.
   - apiGroups: ["crd.projectcalico.org"]
