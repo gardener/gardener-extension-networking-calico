@@ -6,7 +6,7 @@ COPY . .
 RUN make install
 
 ############# gardener-extension-networking-calico
-FROM eu.gcr.io/gardener-project/3rd/alpine:3.13.2 AS gardener-extension-networking-calico
+FROM eu.gcr.io/gardener-project/3rd/alpine:3.13.4 AS gardener-extension-networking-calico
 
 COPY charts /charts
 COPY --from=builder /go/bin/gardener-extension-networking-calico /gardener-extension-networking-calico
