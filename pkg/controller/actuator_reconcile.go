@@ -18,8 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
@@ -27,12 +25,12 @@ import (
 	"github.com/gardener/gardener-resource-manager/pkg/manager"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/operation/common"
-	"github.com/gardener/gardener/pkg/utils/chart"
-
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
+	"github.com/gardener/gardener/pkg/utils/chart"
+	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -134,7 +132,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		NewManagedResource(a.client).
 		WithNamespacedName(network.Namespace, CalicoConfigSecretName).
 		WithSecretRefs(secretRefs).
-		WithInjectedLabels(map[string]string{common.ShootNoCleanup: "true"}).
+		WithInjectedLabels(map[string]string{constants.ShootNoCleanup: "true"}).
 		Reconcile(ctx); err != nil {
 		return err
 	}
