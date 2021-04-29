@@ -67,6 +67,13 @@ spec:
         {{- else}}
         command: ["/opt/cni/bin/install"]
         {{- end }}
+        {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
+        envFrom:
+        - configMapRef:
+            # Allow KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT to be overridden for eBPF mode.
+            name: kubernetes-services-endpoint
+            optional: true
+        {{- end }}
         env:
           # Name of the CNI config file to create.
           - name: CNI_CONF_NAME

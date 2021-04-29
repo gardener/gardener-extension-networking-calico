@@ -22,7 +22,6 @@ metadata:
   name: bgppeers.crd.projectcalico.org
   labels:
     gardener.cloud/role: system-component
-  name: bgppeers.crd.projectcalico.org
 spec:
   group: crd.projectcalico.org
   names:
