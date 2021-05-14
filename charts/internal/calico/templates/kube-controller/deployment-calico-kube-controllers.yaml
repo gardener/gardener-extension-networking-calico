@@ -71,11 +71,20 @@ spec:
             limits:
               cpu: 50m
               memory: 100Mi
+          livenessProbe:
+            exec:
+              command:
+              - /usr/bin/check-status
+              - -l
+            periodSeconds: 10
+            initialDelaySeconds: 10
+            failureThreshold: 6
           readinessProbe:
             exec:
               command:
                 - /usr/bin/check-status
                 - -r
+            periodSeconds: 10
           securityContext:
             capabilities:
               drop:
