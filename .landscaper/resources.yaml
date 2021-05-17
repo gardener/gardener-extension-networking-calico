@@ -1,0 +1,18 @@
+---
+  type: landscaper.gardener.cloud/blueprint
+  name: networking-calico-controller-registration
+  relation: local
+  input:
+    type: "dir"
+    path: "./blueprint"
+    compress: true
+    mediaType: "application/vnd.gardener.landscaper.blueprint.v1+tar+gzip"
+---
+type: helm.io/chart
+name: networking-calico-chart
+relation: local
+input:
+  type: "dir"
+  path: "../charts/gardener-extension-networking-calico"
+  compress: true
+---
