@@ -103,6 +103,8 @@ spec:
             name: cni-bin-dir
           - mountPath: /host/etc/cni/net.d
             name: cni-net-dir
+          - mountPath: /host/secondary-bin-dir
+            name: cni-bin-dir
         securityContext:
           privileged: true
         # Adds a Flex Volume Driver that creates a per-pod Unix Domain Socket to allow Dikastes
