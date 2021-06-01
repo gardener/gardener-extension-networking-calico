@@ -32,9 +32,9 @@ spec:
       # Make sure to not use the coredns for DNS resolution.
       dnsPolicy: Default
       securityContext:
-        supplementalGroups: [ 65534 ]
-        fsGroup: 65534
-        runAsUser: 65534
+        supplementalGroups: [ 65532 ]
+        fsGroup: 65532
+        runAsUser: 65532
       containers:
         - image: {{ index .Values.images "calico-cpa" }}
           name: autoscaler
