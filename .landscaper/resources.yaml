@@ -15,4 +15,5 @@ input:
   type: "dir"
   path: "../charts/gardener-extension-networking-calico"
   compress: true
+  preserveDir: true
 ---
