@@ -54,8 +54,13 @@ docker-login:
 	@gcloud auth activate-service-account --key-file .kube-secrets/gcr/gcr-readwrite.json
 
 .PHONY: docker-images
-docker-images:
-	@docker build -t $(IMAGE_PREFIX)/$(NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME) .
+docker-images: TAGS="-t $(IMAGE_PREFIX)/$(NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(NAME):latest"
+docker-images: docker-build
+
+.PHONY: docker-build
+docker-build:
+	@echo "build with tags $(TAGS)"
+	@docker build "$(TAGS)" -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME) .
 
 #####################################################################
 # Rules for verification, formatting, linting, testing and cleaning #
@@ -121,9 +126,8 @@ verify-extended: install-requirements check-generate check format test-cov test-
 #####################################################################
 
 .PHONY: cnudie-docker-images
-cnudie-docker-images:
-	@echo "Building docker images for version $(EFFECTIVE_VERSION) for registry $(CNUDIE_IMAGE_REGISTRY)"
-	@docker build -t $(CNUDIE_IMAGE_REGISTRY)/$(NAME):$(EFFECTIVE_VERSION) -f Dockerfile .
+cnudie-docker-images: TAGS="-t $(CNUDIE_IMAGE_REGISTRY)/$(NAME):$(EFFECTIVE_VERSION)"
+cnudie-docker-images: docker-build
 
 .PHONY: cnudie-docker-push
 cnudie-docker-push:
