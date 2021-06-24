@@ -24,7 +24,7 @@ LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
 
 EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
-CNUDIE_IMAGE_REGISTRY       := $(shell "$(HACK_DIR)/get-image-registry.sh")
+CNUDIE_IMAGE_REGISTRY       := $(shell source "$(HACK_DIR)/environment.sh"; get_image_registry)
 
 #########################################
 # Rules for local development scenarios #

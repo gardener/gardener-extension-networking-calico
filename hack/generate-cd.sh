@@ -1,15 +1,17 @@
 #!/bin/bash
 #
-# Copyright (c) 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+# Copyright (c) 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 #
 # SPDX-License-Identifier: Apache-2.0
 
 set -e
 
 SOURCE_PATH="$(dirname $0)/.."
-IMAGE_REGISTRY="$(${SOURCE_PATH}/hack/get-image-registry.sh)"
-CD_REGISTRY="$(${SOURCE_PATH}/hack/get-cd-registry.sh)"
-COMPONENT_NAME="$(${SOURCE_PATH}/hack/get-cd-component-name.sh)"
+source "${SOURCE_PATH}/hack/environment.sh"
+
+IMAGE_REGISTRY=$(get_image_registry)
+CD_REGISTRY=$(get_cd_registry)
+COMPONENT_NAME=$(get_cd_component_name)
 
 CA_PATH="$(mktemp -d)"
 TMP_COMPONENT_DESCRIPTOR_PATH="${CA_PATH}/component-descriptor.yaml"

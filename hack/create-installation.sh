@@ -7,11 +7,13 @@
 set -e
 
 SOURCE_PATH="$(dirname $0)/.."
+source "${SOURCE_PATH}/hack/environment.sh"
+
 TMP_DIR="$(mktemp -d)"
 INSTALLATION_PATH="${TMP_DIR}/installation.yaml"
 
-REGISTRY="$(${SOURCE_PATH}/hack/get-cd-registry.sh)"
-COMPONENT_NAME="$(${SOURCE_PATH}/hack/get-cd-component-name.sh)"
+REGISTRY=$(get_cd_registry)
+COMPONENT_NAME=$(get_cd_component_name)
 
 cat << EOF > ${INSTALLATION_PATH}
 apiVersion: landscaper.gardener.cloud/v1alpha1
