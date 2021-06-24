@@ -25,3 +25,4 @@ get_cd_component_name () {
 get_image_registry () {
   echo "eu.gcr.io/gardener-project/gardener/extensions"
 }
+
