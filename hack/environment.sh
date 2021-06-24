@@ -13,7 +13,7 @@ get_cd_registry () {
   if [ -n "$registry" ]; then
     echo $registry
   else
-    info "Please insert your registry in function get_cd_registry in environment.sh"
+    info "Please insert your registry for the component descriptors in function get_cd_registry in environment.sh"
     exit 1
   fi
 }
