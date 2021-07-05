@@ -45,7 +45,7 @@ deployItems:
               updatePolicy:
                 updateMode: "Auto"
               {{- end }}
-            controllers:
+            controller:
               {{- if .imports.controllerRegistration.concurrentSyncs }}
               concurrentSyncs: {{ .imports.controllerRegistration.concurrentSyncs }}
               healthcheck:
