@@ -12,6 +12,11 @@ gardener-extension-networking-calico:
             image: 'eu.gcr.io/gardener-project/gardener/extensions/networking-calico'
             dockerfile: 'Dockerfile'
             target: gardener-extension-networking-calico
+          gardener-extension-admission-calico:
+            registry: 'gcr-readwrite'
+            image: 'eu.gcr.io/gardener-project/gardener/extensions/admission-calico'
+            dockerfile: 'Dockerfile'
+            target: gardener-extension-admission-calico
   jobs:
     head-update:
       traits:
@@ -43,4 +48,6 @@ gardener-extension-networking-calico:
         publish:
           dockerimages:
             gardener-extension-networking-calico:
+              tag_as_latest: true
+            gardener-extension-admission-calico:
               tag_as_latest: true
