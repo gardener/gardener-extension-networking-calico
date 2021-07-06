@@ -3,11 +3,7 @@ kubelet.config.k8s.io/v1beta1
 {{- end -}}
 
 {{- define "schedulercomponentconfigversion" -}}
-{{- if semverCompare ">= 1.12-0" .Capabilities.KubeVersion.GitVersion -}}
 kubescheduler.config.k8s.io/v1alpha1
-{{- else -}}
-componentconfig/v1alpha1
-{{- end -}}
 {{- end -}}
 
 {{- define "proxycomponentconfigversion" -}}
@@ -19,11 +15,7 @@ apiserver.k8s.io/v1alpha1
 {{- end -}}
 
 {{- define "auditkubernetesversion" -}}
-{{- if semverCompare ">= 1.12-0" .Capabilities.KubeVersion.GitVersion -}}
 audit.k8s.io/v1
-{{- else -}}
-audit.k8s.io/v1beta1
-{{- end -}}
 {{- end -}}
 
 {{- define "rbacversion" -}}
@@ -71,17 +63,9 @@ policy/v1beta1
 {{- end -}}
 
 {{- define "ingressversion" -}}
-{{- if semverCompare ">= 1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 networking.k8s.io/v1beta1
-{{- else -}}
-extensions/v1beta1
-{{- end -}}
 {{- end -}}
 
 {{- define "storageclassversion" -}}
-{{- if semverCompare ">= 1.13-0" .Capabilities.KubeVersion.GitVersion -}}
 storage.k8s.io/v1
-{{- else -}}
-storage.k8s.io/v1beta1
-{{- end -}}
 {{- end -}}
