@@ -32,6 +32,7 @@ import (
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -110,6 +111,10 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 			networkConfig.IPv4 = &calicov1alpha1.IPv4{}
 		}
 		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
+	}
+
+	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {
+		return field.Forbidden(field.NewPath("spec", "kubernetes", "kubeProxy", "enabled"), "Disabling kube-proxy is forbidden in conjunction with calico")
 	}
 
 	// Create shoot chart renderer
