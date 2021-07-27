@@ -112,6 +112,20 @@ string
 </tr>
 <tr>
 <td>
+<code>ebpfDataplane</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.EbpfDataplane">
+EbpfDataplane
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>EbpfDataplane enables the eBPF dataplane mode.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>ipip</code></br>
 <em>
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv4PoolMode">
@@ -160,6 +174,35 @@ Will be removed in a future Gardener release.</p>
 </p>
 <p>
 </p>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.EbpfDataplane">EbpfDataplane
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>Enabled enables the eBPF dataplane mode.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.IPAM">IPAM
 </h3>
 <p>

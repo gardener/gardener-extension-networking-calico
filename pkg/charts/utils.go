@@ -45,10 +45,20 @@ type calicoConfig struct {
 }
 
 type felix struct {
-	IPInIP felixIPinIP `json:"ipinip"`
+	IPInIP                      felixIPinIP                      `json:"ipinip"`
+	BPF                         felixBPF                         `json:"bpf"`
+	BPFKubeProxyIptablesCleanup felixBPFKubeProxyIptablesCleanup `json:"bpfKubeProxyIPTablesCleanup"`
 }
 
 type felixIPinIP struct {
+	Enabled bool `json:"enabled"`
+}
+
+type felixBPF struct {
+	Enabled bool `json:"enabled"`
+}
+
+type felixBPFKubeProxyIptablesCleanup struct {
 	Enabled bool `json:"enabled"`
 }
 
@@ -84,6 +94,12 @@ var defaultCalicoConfig = calicoConfig{
 	Felix: felix{
 		IPInIP: felixIPinIP{
 			Enabled: true,
+		},
+		BPF: felixBPF{
+			Enabled: false,
+		},
+		BPFKubeProxyIptablesCleanup: felixBPFKubeProxyIptablesCleanup{
+			Enabled: false,
 		},
 	},
 	IPv4: ipv4{
@@ -127,8 +143,8 @@ func (c *calicoConfig) toMap() (map[string]interface{}, error) {
 }
 
 // ComputeCalicoChartValues computes the values for the calico chart.
-func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string, wantsVPA bool) (map[string]interface{}, error) {
-	typedConfig, err := generateChartValues(config)
+func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string, wantsVPA bool, kubeProxyEnabled bool) (map[string]interface{}, error) {
+	typedConfig, err := generateChartValues(config, kubeProxyEnabled)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
 	}
@@ -154,7 +170,6 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 		},
 		"config": calicoConfig,
 	}
-
 	if workerSystemComponentsActivated {
 		calicoChartValues["nodeSelector"] = map[string]string{
 			gardenv1beta1constants.LabelWorkerPoolSystemComponents: "true",
@@ -164,7 +179,7 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 	return calicoChartValues, nil
 }
 
-func generateChartValues(config *calicov1alpha1.NetworkConfig) (*calicoConfig, error) {
+func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool) (*calicoConfig, error) {
 	c := newCalicoConfig()
 	if config == nil {
 		return &c, nil
@@ -182,6 +197,14 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig) (*calicoConfig, e
 		c.KubeControllers.Enabled = false
 		c.Felix.IPInIP.Enabled = false
 		c.IPv4.Mode = calicov1alpha1.Never
+	}
+
+	if config.EbpfDataplane != nil && config.EbpfDataplane.Enabled {
+		c.Felix.BPF.Enabled = true
+	}
+
+	if !kubeProxyEnabled {
+		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
 	}
 
 	if config.IPAM != nil {

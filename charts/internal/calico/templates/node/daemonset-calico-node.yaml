@@ -223,6 +223,12 @@ spec:
               value: "{{ .Values.config.felix.ipinip.enabled }}"
             - name: "CALICO_IPV4POOL_{{ .Values.config.ipv4.pool | upper }}"
               value: "{{ .Values.config.ipv4.mode }}"
+            # Enable eBPF dataplane mode.
+            - name: FELIX_BPFENABLED
+              value: "{{ .Values.config.felix.bpf.enabled }}"
+            # Controls whether Felix will clean up the iptables rules created by the Kubernetes kube-proxy; should only be enabled if kube-proxy is not running.
+            - name: FELIX_BPFKUBEPROXYIPTABLESCLEANUPENABLED
+              value: "{{ .Values.config.felix.bpfKubeProxyIPTablesCleanup.enabled }}"
             # Choose the backend to use.
             - name: CALICO_NETWORKING_BACKEND
               valueFrom:

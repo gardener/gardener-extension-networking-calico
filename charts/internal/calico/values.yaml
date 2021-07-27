@@ -21,6 +21,10 @@ config:
   felix:
     ipinip:
       enabled: "true"
+    bpf:
+      enabled: "false"
+    bpfKubeProxyIPTablesCleanup:
+      enabled: "false"
 images:
   calico-node: "image-repository:image-tag"
   calico-cni: "image-repository:image-tag"
