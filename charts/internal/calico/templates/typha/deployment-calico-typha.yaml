@@ -130,10 +130,12 @@ spec:
             host: localhost
           periodSeconds: 30
           initialDelaySeconds: 30
+          timeoutSeconds: 10
         readinessProbe:
           httpGet:
             path: /readiness
             port: 9098
             host: localhost
           periodSeconds: 10
+          timeoutSeconds: 10
 {{- end }}

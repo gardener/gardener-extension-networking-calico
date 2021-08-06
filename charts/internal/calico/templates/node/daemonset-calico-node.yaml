@@ -262,6 +262,7 @@ spec:
             periodSeconds: 10
             initialDelaySeconds: 10
             failureThreshold: 6
+            timeoutSeconds: 10
           readinessProbe:
             exec:
               command:
@@ -271,7 +272,12 @@ spec:
               - -bird-ready
               {{- end }}
             periodSeconds: 10
+            timeoutSeconds: 10
           volumeMounts:
+            # For maintaining CNI plugin API credentials.
+            - mountPath: /host/etc/cni/net.d
+              name: cni-net-dir
+              readOnly: false
             - mountPath: /lib/modules
               name: lib-modules
               readOnly: true
@@ -295,9 +301,6 @@ spec:
               mountPath: /var/log/calico/cni
               readOnly: true
               {{- end }}
-            # Needed for managing the kubeconfig used by CNI (CALICO_MANAGE_CNI=true)
-            - mountPath: /host/etc/cni/net.d
-              name: cni-net-dir
       volumes:
         # Used by calico/node.
         - name: lib-modules
