@@ -55,13 +55,14 @@ var _ = Describe("Chart package test", func() {
 		poolIPIP                                        = calicov1alpha1.PoolIPIP
 		poolVXlan                                       = calicov1alpha1.PoolVXLan
 
-		network                  *extensionsv1alpha1.Network
-		networkConfigNil         *calicov1alpha1.NetworkConfig
-		networkConfigBackendNone *calicov1alpha1.NetworkConfig
-		networkConfigAll         *calicov1alpha1.NetworkConfig
-		networkConfigAllMTU      *calicov1alpha1.NetworkConfig
-		networkConfigDeprecated  *calicov1alpha1.NetworkConfig
-		networkConfigInvalid     *calicov1alpha1.NetworkConfig
+		network                       *extensionsv1alpha1.Network
+		networkConfigNil              *calicov1alpha1.NetworkConfig
+		networkConfigBackendNone      *calicov1alpha1.NetworkConfig
+		networkConfigAll              *calicov1alpha1.NetworkConfig
+		networkConfigAllMTU           *calicov1alpha1.NetworkConfig
+		networkConfigAllEBPFDataplane *calicov1alpha1.NetworkConfig
+		networkConfigDeprecated       *calicov1alpha1.NetworkConfig
+		networkConfigInvalid          *calicov1alpha1.NetworkConfig
 
 		objectMeta = metav1.ObjectMeta{
 			Name:      "foo",
@@ -110,6 +111,21 @@ var _ = Describe("Chart package test", func() {
 			},
 			VethMTU: &mtuVar,
 		}
+		networkConfigAllEBPFDataplane = &calicov1alpha1.NetworkConfig{
+			Backend: &backendVXLan,
+			IPAM: &calicov1alpha1.IPAM{
+				CIDR: &podCIDR,
+				Type: "host-local",
+			},
+			IPv4: &calicov1alpha1.IPv4{
+				Pool:                &poolVXlan,
+				Mode:                &crossSubnet,
+				AutoDetectionMethod: &autodetectionMethod,
+			},
+			EbpfDataplane: &calicov1alpha1.EbpfDataplane{
+				Enabled: true,
+			},
+		}
 		networkConfigDeprecated = &calicov1alpha1.NetworkConfig{
 			Backend: &backendBird,
 			IPAM: &calicov1alpha1.IPAM{
@@ -134,7 +150,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeCalicoChartValues", func() {
 		It("empty network config should properly render calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, false, kubernetesVersion, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, false, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -174,6 +190,12 @@ var _ = Describe("Chart package test", func() {
 						"ipinip": map[string]interface{}{
 							"enabled": true,
 						},
+						"bpf": map[string]interface{}{
+							"enabled": false,
+						},
+						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
+							"enabled": false,
+						},
 					},
 					"ipv4": map[string]interface{}{
 						"pool":                string(poolIPIP),
@@ -187,7 +209,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeCalicoChartValues", func() {
 		It("should disable felix ip in ip and set pool mode to never when setting backend to none", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, false, kubernetesVersion, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, false, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -227,6 +249,12 @@ var _ = Describe("Chart package test", func() {
 						"ipinip": map[string]interface{}{
 							"enabled": false,
 						},
+						"bpf": map[string]interface{}{
+							"enabled": false,
+						},
+						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
+							"enabled": false,
+						},
 					},
 					"ipv4": map[string]interface{}{
 						"pool":                string(poolIPIP),
@@ -240,7 +268,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeAllCalicoChartValues", func() {
 		It("should correctly compute all of the calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false, kubernetesVersion, true)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false, kubernetesVersion, true, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -280,6 +308,12 @@ var _ = Describe("Chart package test", func() {
 						"ipinip": map[string]interface{}{
 							"enabled": true,
 						},
+						"bpf": map[string]interface{}{
+							"enabled": false,
+						},
+						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
+							"enabled": false,
+						},
 					},
 					"ipv4": map[string]interface{}{
 						"pool":                string(poolVXlan),
@@ -290,7 +324,7 @@ var _ = Describe("Chart package test", func() {
 			}))
 		})
 		It("should correctly compute all of the calico chart values with mtu", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, false, kubernetesVersion, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, false, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -330,6 +364,68 @@ var _ = Describe("Chart package test", func() {
 						"ipinip": map[string]interface{}{
 							"enabled": true,
 						},
+						"bpf": map[string]interface{}{
+							"enabled": false,
+						},
+						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
+							"enabled": false,
+						},
+					},
+					"ipv4": map[string]interface{}{
+						"pool":                string(poolVXlan),
+						"mode":                string(*networkConfigAll.IPv4.Mode),
+						"autoDetectionMethod": *networkConfigAll.IPv4.AutoDetectionMethod,
+					},
+				},
+			}))
+		})
+		It("should correctly compute all of the calico chart values with ebpf dataplane enabled and kube-proxy disabled", func() {
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllEBPFDataplane, false, kubernetesVersion, false, false)
+			Expect(err).To(BeNil())
+			Expect(values).To(Equal(map[string]interface{}{
+				"images": map[string]interface{}{
+					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
+					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
+					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
+					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
+					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
+					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
+					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
+				},
+				"global": map[string]string{
+					"podCIDR": network.Spec.PodCIDR,
+				},
+				"vpa": map[string]interface{}{
+					"enabled": false,
+				},
+				"config": map[string]interface{}{
+					"backend": string(*networkConfigAll.Backend),
+					"ipam": map[string]interface{}{
+						"type":   networkConfigAll.IPAM.Type,
+						"subnet": string(*networkConfigAll.IPAM.CIDR),
+					},
+					"typha": map[string]interface{}{
+						"enabled": trueVar,
+					},
+					"kubeControllers": map[string]interface{}{
+						"enabled": trueVar,
+					},
+					"veth_mtu": defaultMtu,
+					"monitoring": map[string]interface{}{
+						"enabled":          true,
+						"typhaMetricsPort": "9093",
+						"felixMetricsPort": "9091",
+					},
+					"felix": map[string]interface{}{
+						"ipinip": map[string]interface{}{
+							"enabled": true,
+						},
+						"bpf": map[string]interface{}{
+							"enabled": true,
+						},
+						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
+							"enabled": true,
+						},
 					},
 					"ipv4": map[string]interface{}{
 						"pool":                string(poolVXlan),
@@ -343,7 +439,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeAllCalicoChartValues", func() {
 		It("should respect deprecated fields in order to keep backwards compatibility", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, false, kubernetesVersion, true)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, false, kubernetesVersion, true, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -383,6 +479,12 @@ var _ = Describe("Chart package test", func() {
 						"ipinip": map[string]interface{}{
 							"enabled": true,
 						},
+						"bpf": map[string]interface{}{
+							"enabled": false,
+						},
+						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
+							"enabled": false,
+						},
 					},
 					"ipv4": map[string]interface{}{
 						"pool":                string(calicov1alpha1.PoolIPIP),
@@ -396,7 +498,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ActivatesSystemComponentNodeSelector", func() {
 		It("should set a nodeSelector when desired", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, true, kubernetesVersion, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, true, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -436,6 +538,12 @@ var _ = Describe("Chart package test", func() {
 						"ipinip": map[string]interface{}{
 							"enabled": true,
 						},
+						"bpf": map[string]interface{}{
+							"enabled": false,
+						},
+						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
+							"enabled": false,
+						},
 					},
 					"ipv4": map[string]interface{}{
 						"pool":                string(poolIPIP),
@@ -452,7 +560,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeInvalidCalicoChartValues", func() {
 		It("should error on invalid config value", func() {
-			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, false, kubernetesVersion, true)
+			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, false, kubernetesVersion, true, true)
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 	})
@@ -474,7 +582,7 @@ var _ = Describe("Chart package test", func() {
 				},
 			}, nil)
 
-			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, false, kubernetesVersion, false)
+			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, false, kubernetesVersion, false, true)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -76,10 +77,17 @@ func (s *shoot) Validate(ctx context.Context, new, old client.Object) error {
 }
 
 func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
+
+	networkConfig, err := s.decodeNetworkingConfig(shoot.Spec.Networking.ProviderConfig)
+	if err != nil {
+		return err
+	}
+
 	if shoot.Spec.Kubernetes.KubeProxy != nil {
 		if shoot.Spec.Kubernetes.KubeProxy.Enabled != nil {
-			if !*shoot.Spec.Kubernetes.KubeProxy.Enabled {
-				return field.Forbidden(field.NewPath("spec", "kubernetes", "kubeProxy", "enabled"), "Disabling kube-proxy is forbidden in conjunction with calico")
+			if !*shoot.Spec.Kubernetes.KubeProxy.Enabled && networkConfig.EbpfDataplane != nil && !networkConfig.EbpfDataplane.Enabled {
+
+				return field.Forbidden(field.NewPath("spec", "kubernetes", "kubeProxy", "enabled"), "Disabling kube-proxy is forbidden in conjunction with calico without running in ebpf dataplane")
 			}
 		}
 	}
@@ -93,4 +101,14 @@ func (s *shoot) validateShootUpdate(ctx context.Context, oldShoot, shoot *core.S
 
 func (s *shoot) validateShootCreation(ctx context.Context, shoot *core.Shoot) error {
 	return s.validateShoot(ctx, shoot)
+}
+
+func (s *shoot) decodeNetworkingConfig(network *runtime.RawExtension) (*calicov1alpha1.NetworkConfig, error) {
+	networkConfig := &calicov1alpha1.NetworkConfig{}
+	if network != nil && network.Raw != nil {
+		if _, _, err := s.decoder.Decode(network.Raw, nil, networkConfig); err != nil {
+			return nil, err
+		}
+	}
+	return networkConfig, nil
 }

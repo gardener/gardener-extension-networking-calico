@@ -8,6 +8,37 @@ In this document we are describing how this configuration looks like for Calico 
 
 Calico Typha is an optional component of Project Calico designed to offload the Kubernetes API server. The Typha daemon sits between the datastore (such as the Kubernetes API server which is the one used by Gardener managed Kubernetes) and many instances of Felix. Typha’s main purpose is to increase scale by reducing each node’s impact on the datastore. You can opt-out Typha via `.spec.networking.providerConfig.typha.enabled=false` of your Shoot manifest. By default the Typha is enabled.
 
+## EBPF Dataplane
+
+Calico can be run in ebpf dataplane mode. This has several benefits, calico scales to higher troughput, uses less cpu per GBit and has native support for kubernetes services (without needing kube-proxy).
+To switch to a pure ebpf dataplane it is recommended to run without an overlay network. The following configuration can be used to run without an overlay and without kube-proxy.
+
+An example ebpf dataplane `NetworkingConfig` manifest:
+
+```yaml
+apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
+kind: NetworkConfig
+ipv4:
+  mode: Never
+ebpfDataplane:
+  enabled: true
+backend: bird
+```
+
+To disable kube-proxy set the enabled field to false in the shoot manifest.
+
+```yaml
+apiVersion: core.gardener.cloud/v1alpha1
+kind: Shoot
+metadata:
+  name: ebpf-shoot
+  namespace: garden-dev
+spec:
+  kubernetes:
+    kubeProxy:
+      enabled: false
+```
+
 ## Example `NetworkingConfig` manifest
 
 An example `NetworkingConfig` for the Calico extension looks as follows:
@@ -18,6 +49,8 @@ kind: NetworkConfig
 ipam:
   type: host-local
   cidr: usePodCIDR
+ipv4:
+  mode: Always
 vethMTU: 1440
 backend: bird
 typha:

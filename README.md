@@ -22,6 +22,10 @@ spec:
     ipam:
       type: host-local
       cidr: usePodCIDR
+    ebpfDataplane:
+      enabled: false
+    ipv4:
+      mode: Always
     backend: bird
     typha:
       enabled: true
