@@ -44,8 +44,7 @@ type actuator struct {
 
 	client client.Client
 
-	gardenerClientset gardenerkubernetes.Interface
-	chartApplier      gardenerkubernetes.ChartApplier
+	chartApplier gardenerkubernetes.ChartApplier
 }
 
 const LogID = "network-calico-actuator"
@@ -67,11 +66,9 @@ func (a *actuator) InjectConfig(config *rest.Config) error {
 	a.restConfig = config
 
 	var err error
-	a.gardenerClientset, err = gardenerkubernetes.NewWithConfig(gardenerkubernetes.WithRESTConfig(config))
+	a.chartApplier, err = gardenerkubernetes.NewChartApplierForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "could not create Gardener client")
+		return errors.Wrap(err, "could not create ChartApplier")
 	}
-
-	a.chartApplier = a.gardenerClientset.ChartApplier()
 	return nil
 }
