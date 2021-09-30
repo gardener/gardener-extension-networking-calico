@@ -2,8 +2,8 @@
 # This manifest installs the calico/node container, as well
 # as the Calico CNI plugins and network config on
 # each master and worker node in a Kubernetes cluster.
-apiVersion: {{ include "daemonsetversion" . }}
 kind: DaemonSet
+apiVersion: {{ include "daemonsetversion" . }}
 metadata:
   name: calico-node
   namespace: kube-system
@@ -36,7 +36,6 @@ spec:
         {{- end }}
         checksum/configmap-calico: {{ include (print $.Template.BasePath "/node/configmap-calico-config.yaml") . | sha256sum }}
     spec:
-      priorityClassName: system-node-critical
       nodeSelector:
         kubernetes.io/os: linux
       hostNetwork: true
@@ -53,8 +52,9 @@ spec:
       # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
       # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
       terminationGracePeriodSeconds: 0
+      priorityClassName: system-node-critical
       initContainers:
-      # This container installs the Calico CNI binaries
+      # This container installs the CNI binaries
       # and CNI network config file on each node.
       - name: install-cni
         image: {{ index .Values.images "calico-cni" }}
@@ -164,15 +164,23 @@ spec:
             # Enable felix info logging.
             - name: FELIX_LOGSEVERITYSCREEN
               value: "error"
+            # Wait for the datastore.
+            - name: WAIT_FOR_DATASTORE
+              value: "true"
+            # Set based on the k8s node name.
+            - name: NODENAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # Choose the backend to use.
+            - name: CALICO_NETWORKING_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: calico_backend
             # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
               value: "k8s,bgp"
-            # Disable file logging so `kubectl logs` works.
-            - name: CALICO_DISABLE_FILE_LOGGING
-              value: "true"
-            # Set Felix endpoint to host default action to ACCEPT.
-            - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
-              value: "ACCEPT"
             # Auto-detect the BGP IP address.
             {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
             {{- if .Values.config.ipv4.autoDetectionMethod }}
@@ -183,9 +191,6 @@ spec:
             {{- end }}
             - name: IP
               value: "autodetect"
-            # Disable IPV6 on Kubernetes.
-            - name: FELIX_IPV6SUPPORT
-              value: "false"
             {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
             # Enable or Disable VXLAN on the default IP pool.
             - name: CALICO_IPV4POOL_VXLAN
@@ -211,14 +216,20 @@ spec:
                   name: calico-config
                   key: veth_mtu
             {{- end }}
-            # Wait for the datastore.
-            - name: WAIT_FOR_DATASTORE
-              value: "true"
             # The default IPv4 pool to create on startup if none exists. Pod IPs will be
             # chosen from this range. Changing this value after installation will have
             # no effect. This should fall within `--cluster-cidr`.
             - name: CALICO_IPV4POOL_CIDR
               value: "{{ .Values.global.podCIDR }}"
+            # Disable file logging so `kubectl logs` works.
+            - name: CALICO_DISABLE_FILE_LOGGING
+              value: "true"
+            # Set Felix endpoint to host default action to ACCEPT.
+            - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
+              value: "ACCEPT"
+            # Disable IPv6 on Kubernetes.
+            - name: FELIX_IPV6SUPPORT
+              value: "false"
             - name: FELIX_IPINIPENABLED
               value: "{{ .Values.config.felix.ipinip.enabled }}"
             - name: "CALICO_IPV4POOL_{{ .Values.config.ipv4.pool | upper }}"
@@ -229,17 +240,6 @@ spec:
             # Controls whether Felix will clean up the iptables rules created by the Kubernetes kube-proxy; should only be enabled if kube-proxy is not running.
             - name: FELIX_BPFKUBEPROXYIPTABLESCLEANUPENABLED
               value: "{{ .Values.config.felix.bpfKubeProxyIPTablesCleanup.enabled }}"
-            # Choose the backend to use.
-            - name: CALICO_NETWORKING_BACKEND
-              valueFrom:
-                configMapKeyRef:
-                  name: calico-config
-                  key: calico_backend
-            # Set based on the k8s node name.
-            - name: NODENAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
             - name: FELIX_HEALTHENABLED
               value: "true"
             # Limit NAT port range: https://github.com/projectcalico/felix/pull/1838
@@ -308,7 +308,7 @@ spec:
               readOnly: true
               {{- end }}
       volumes:
-        # Used by calico/node.
+        # Used by calico-node.
         - name: lib-modules
           hostPath:
             path: /lib/modules
