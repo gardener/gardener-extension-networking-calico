@@ -107,12 +107,12 @@ spec:
             value: "kubernetes"
           - name: TYPHA_HEALTHENABLED
             value: "true"
-          # Uncomment these lines to enable prometheus metrics.  Since Typha is host-networked,
+          # Uncomment these lines to enable prometheus metrics. Since Typha is host-networked,
           # this opens a port on the host, which may need to be secured.
-#          - name: TYPHA_PROMETHEUSMETRICSENABLED
-#            value: "true"
-#          - name: TYPHA_PROMETHEUSMETRICSPORT
-#            value: "9093"
+          #- name: TYPHA_PROMETHEUSMETRICSENABLED
+          #  value: "true"
+          #- name: TYPHA_PROMETHEUSMETRICSPORT
+          #  value: "9093"
         resources:
           requests:
             cpu: 200m
@@ -120,9 +120,6 @@ spec:
           limits:
             cpu: 500m
             memory: 700Mi
-        securityContext:
-          runAsNonRoot: true
-          allowPrivilegeEscalation: false
         livenessProbe:
           httpGet:
             path: /liveness
@@ -131,6 +128,9 @@ spec:
           periodSeconds: 30
           initialDelaySeconds: 30
           timeoutSeconds: 10
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
         readinessProbe:
           httpGet:
             path: /readiness

@@ -15,12 +15,12 @@ metadata:
     scheduler.alpha.kubernetes.io/critical-pod: ''
   {{- end }}
 spec:
+  # The controllers can only have a single active instance.
+  replicas: 1
   revisionHistoryLimit: 0
   selector:
     matchLabels:
       k8s-app: calico-kube-controllers
-  # The controller can only have a single active instance.
-  replicas: 1
   strategy:
     type: Recreate
   template:
