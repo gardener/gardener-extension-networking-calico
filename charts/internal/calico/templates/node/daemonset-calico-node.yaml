@@ -257,6 +257,12 @@ spec:
             limits:
               cpu: 800m
               memory: 700Mi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - /bin/calico-node
+                - -shutdown
           livenessProbe:
             exec:
               command:
