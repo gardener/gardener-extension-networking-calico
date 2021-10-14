@@ -112,16 +112,6 @@ spec:
             mountPath: /host/driver
         securityContext:
           privileged: true
-      # Container just prints the content of the host /opt/cni/bin directory to check for copy failures
-      - name: install-cni-check
-        image: {{ index .Values.images "calico-podtodaemon-flex" }}
-        command:
-          - ls
-          - -la
-          - /host/opt/cni/bin
-        volumeMounts:
-          - mountPath: /host/opt/cni/bin
-            name: cni-bin-dir
       containers:
         # Runs calico-node container on each Kubernetes node. This
         # container programs network policy and routes on each
