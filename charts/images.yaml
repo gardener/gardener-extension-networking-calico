@@ -3,7 +3,12 @@ images:
   sourceRepository: github.com/projectcalico/calico
   repository: docker.io/calico/node
   tag: v3.20.2
-  targetVersion: ">= 1.16"
+  targetVersion: "> 1.16"
+- name: calico-node
+  sourceRepository: github.com/projectcalico/calico
+  repository: docker.io/calico/node
+  tag: v1.19.1
+  targetVersion: "~ 1.16"
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
   repository: quay.io/calico/node
@@ -13,7 +18,12 @@ images:
   sourceRepository: github.com/projectcalico/cni-plugin
   repository: docker.io/calico/cni
   tag: v3.20.2
-  targetVersion: ">= 1.16"
+  targetVersion: "> 1.16"
+- name: calico-cni
+  sourceRepository: github.com/projectcalico/cni-plugin
+  repository: docker.io/calico/cni
+  tag: v1.19.1
+  targetVersion: "~ 1.16"
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
   repository: quay.io/calico/cni
@@ -23,7 +33,17 @@ images:
   sourceRepository: github.com/projectcalico/typha
   repository: docker.io/calico/typha
   tag: v3.20.2
-  targetVersion: ">= 1.16"
+  targetVersion: "> 1.16"
+  labels:
+  - name: cloud.gardener.cnudie/dso/scanning-hints/binary_id/v1
+    value:
+      policy: skip
+      comment: payload are two statically linked ELF-binaries and some configuration/license files - not suitable for binary-id-scanning
+- name: calico-typha
+  sourceRepository: github.com/projectcalico/typha
+  repository: docker.io/calico/typha
+  tag: v3.19.1
+  targetVersion: "~ 1.16"
   labels:
   - name: cloud.gardener.cnudie/dso/scanning-hints/binary_id/v1
     value:
@@ -43,7 +63,12 @@ images:
   sourceRepository: github.com/projectcalico/kube-controllers
   repository: docker.io/calico/kube-controllers
   tag: v3.20.2
-  targetVersion: ">= 1.16"
+  targetVersion: "> 1.16"
+- name: calico-kube-controllers
+  sourceRepository: github.com/projectcalico/kube-controllers
+  repository: docker.io/calico/kube-controllers
+  tag: v3.19.1
+  targetVersion: "~ 1.16"
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
   repository: quay.io/calico/kube-controllers
@@ -53,7 +78,12 @@ images:
   sourceRepository: github.com/projectcalico/pod2daemon
   repository: docker.io/calico/pod2daemon-flexvol
   tag: v3.20.2
-  targetVersion: ">= 1.16"
+  targetVersion: "> 1.16"
+- name: calico-podtodaemon-flex
+  sourceRepository: github.com/projectcalico/pod2daemon
+  repository: docker.io/calico/pod2daemon-flexvol
+  tag: v3.19.1
+  targetVersion: "~ 1.16"
 - name: calico-podtodaemon-flex
   sourceRepository: github.com/projectcalico/pod2daemon
   repository: quay.io/calico/pod2daemon-flexvol
