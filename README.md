@@ -17,7 +17,7 @@ spec:
   clusterCIDR: 192.168.0.0/24
   serviceCIDR:  10.96.0.0/24
   providerConfig:
-    apiVersion: calico.extensions.gardener.cloud/v1alpha1
+    apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
     kind: NetworkConfig
     ipam:
       type: host-local
