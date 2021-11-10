@@ -63,7 +63,7 @@ spec:
                 type: boolean
               awsSrcDstCheck:
                 description: 'Set source-destination-check on AWS EC2 instances. Accepted
-                  value must be one of "DoNothing", "Enabled" or "Disabled". [Default:
+                  value must be one of "DoNothing", "Enable" or "Disable". [Default:
                   DoNothing]'
                 enum:
                 - DoNothing
@@ -97,6 +97,13 @@ spec:
                 description: 'BPFEnabled, if enabled Felix will use the BPF dataplane.
                   [Default: false]'
                 type: boolean
+              bpfExtToServiceConnmark:
+                description: 'BPFExtToServiceConnmark in BPF mode, control a 32bit
+                  mark that is set on connections from an external client to a local
+                  service. This mark allows us to control how packets of that connection
+                  are routed within the host and how is routing intepreted by RPF
+                  check. [Default: 0]'
+                type: integer
               bpfExternalServiceMode:
                 description: 'BPFExternalServiceMode in BPF mode, controls how connections
                   from outside the cluster to services (node ports and cluster IPs)
@@ -107,13 +114,6 @@ spec:
                   node appears to use the IP of the ingress node; this requires a
                   permissive L2 network.  [Default: Tunnel]'
                 type: string
-              bpfExtToServiceConnmark:
-                description: 'BPFExtToServiceConnmark in BPF mode, controls a
-                  32bit mark that is set on connections from an external client to
-                  a local service. This mark allows us to control how packets of
-                  that connection are routed within the host and how is routing
-                  intepreted by RPF check. [Default: 0]'
-                type: integer
               bpfKubeProxyEndpointSlicesEnabled:
                 description: BPFKubeProxyEndpointSlicesEnabled in BPF mode, controls
                   whether Felix's embedded kube-proxy accepts EndpointSlices or not.
@@ -456,11 +456,11 @@ spec:
                 description: 'PrometheusMetricsPort is the TCP port that the Prometheus
                   metrics server should bind to. [Default: 9091]'
                 type: integer
-              prometheusProcessMetricsEnabled:
-                description: 'PrometheusProcessMetricsEnabled disables process metrics
-                  collection, which the Prometheus client does by default, when set
-                  to false. This reduces the number of metrics reported, reducing
-                  Prometheus load. [Default: true]'
+              prometheusWireGuardMetricsEnabled:
+                description: 'PrometheusWireGuardMetricsEnabled disables wireguard
+                  metrics collection, which the Prometheus client does by default,
+                  when set to false. This reduces the number of metrics reported,
+                  reducing Prometheus load. [Default: true]'
                 type: boolean
               removeExternalRoutes:
                 description: Whether or not to remove device routes that have not
@@ -539,9 +539,9 @@ spec:
                 type: integer
               vxlanVNI:
                 type: integer
-              wireguardEnabled:
-                description: 'WireguardEnabled controls whether Wireguard is enabled.
-                  [Default: false]'
+              wireguardHostEncryptionEnabled:
+                description: 'WireguardHostEncryptionEnabled controls whether Wireguard
+                  host-to-host encryption is enabled. [Default: false]'
                 type: boolean
               wireguardInterfaceName:
                 description: 'WireguardInterfaceName specifies the name to use for
