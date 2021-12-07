@@ -16,11 +16,12 @@ metadata:
     # if it ever gets evicted.
     scheduler.alpha.kubernetes.io/critical-pod: ''
     cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
+    resources.gardener.cloud/preserve-resources: 'true'
   labels:
     k8s-app: calico-typha
     gardener.cloud/role: system-component
 spec:
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 5
   strategy:
     type: Recreate
   selector:

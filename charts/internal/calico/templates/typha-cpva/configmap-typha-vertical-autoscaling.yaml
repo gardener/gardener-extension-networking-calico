@@ -14,7 +14,13 @@ data:
             "base": "120m",
             "step": "80m",
             "nodesPerStep": 10,
-            "max": "1000m"
+            "max": "500m"
+          },
+          "memory": {
+            "base": "100Mi",
+            "step": "40Mi",
+            "nodesPerStep": 10,
+            "max": "2000Mi"
           }
         }
       }
