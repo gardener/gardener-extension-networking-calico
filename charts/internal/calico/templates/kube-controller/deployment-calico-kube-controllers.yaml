@@ -70,7 +70,7 @@ spec:
               memory: 50Mi
             limits:
               cpu: 50m
-              memory: 100Mi
+              memory: 300Mi
           livenessProbe:
             exec:
               command:
