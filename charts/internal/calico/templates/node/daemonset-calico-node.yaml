@@ -13,6 +13,7 @@ metadata:
   annotations:
     resources.gardener.cloud/preserve-resources: 'true'
 spec:
+  revisionHistoryLimit: 5
   selector:
     matchLabels:
       k8s-app: calico-node
@@ -153,9 +154,6 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: typha_service_name
-            # Enable felix info logging.
-            - name: FELIX_LOGSEVERITYSCREEN
-              value: "error"
             # Wait for the datastore.
             - name: WAIT_FOR_DATASTORE
               value: "true"
