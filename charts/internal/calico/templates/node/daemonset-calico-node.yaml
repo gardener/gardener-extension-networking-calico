@@ -151,9 +151,6 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: typha_service_name
-            # Enable felix info logging.
-            - name: FELIX_LOGSEVERITYSCREEN
-              value: "error"
             # Wait for the datastore.
             - name: WAIT_FOR_DATASTORE
               value: "true"

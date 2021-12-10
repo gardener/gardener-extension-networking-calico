@@ -380,7 +380,9 @@ spec:
                 type: string
               logSeverityScreen:
                 description: 'LogSeverityScreen is the log severity above which logs
-                  are sent to the stdout. [Default: Info]'
+                  are sent to the stdout. [Default: Warning]'
+                type: string
+                default: "Warning"
                 type: string
               logSeveritySys:
                 description: 'LogSeveritySys is the log severity above which logs
