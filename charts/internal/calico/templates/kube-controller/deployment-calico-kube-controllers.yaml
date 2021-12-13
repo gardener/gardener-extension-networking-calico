@@ -17,7 +17,7 @@ metadata:
 spec:
   # The controllers can only have a single active instance.
   replicas: 1
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 5
   selector:
     matchLabels:
       k8s-app: calico-kube-controllers
