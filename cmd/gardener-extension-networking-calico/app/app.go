@@ -38,8 +38,9 @@ import (
 // NewControllerManagerCommand creates a new command for running a Calico controller.
 func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	var (
-		restOpts = &controllercmd.RESTOptions{}
-		mgrOpts  = &controllercmd.ManagerOptions{
+		generalOpts = &controllercmd.GeneralOptions{}
+		restOpts    = &controllercmd.RESTOptions{}
+		mgrOpts     = &controllercmd.ManagerOptions{
 			LeaderElection:             true,
 			LeaderElectionResourceLock: resourcelock.LeasesResourceLock,
 			LeaderElectionID:           controllercmd.LeaderElectionNameID(calico.Name),
@@ -61,6 +62,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 		configFileOpts = &calicocmd.ConfigOptions{}
 
 		aggOption = controllercmd.NewOptionAggregator(
+			generalOpts,
 			restOpts,
 			mgrOpts,
 			calicoCtrlOpts,
@@ -97,6 +99,12 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			if err := calicoinstall.AddToScheme(mgr.GetScheme()); err != nil {
 				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
 			}
+
+			useProjectedTokenMount, err := controller.UseServiceAccountTokenVolumeProjection(generalOpts.Completed().GardenerVersion)
+			if err != nil {
+				controllercmd.LogErrAndExit(err, "could not determine whether service account token volume projection should be used")
+			}
+			calicocontroller.DefaultAddOptions.UseProjectedTokenMount = useProjectedTokenMount
 
 			reconcileOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			calicoCtrlOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.Controller)

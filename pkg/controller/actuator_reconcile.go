@@ -63,13 +63,12 @@ func activateSystemComponentsNodeSelector(shoot *gardencorev1beta1.Shoot) bool {
 			atLeastOneWorkerPoolHasSystemComponents = true
 			break
 		}
-
 	}
 
 	return atLeastOneWorkerPoolHasSystemComponents
 }
 
-func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
+func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool, useProjectedTokenMount bool) error {
 	calicoControlPlaneMonitoringChart := &chart.Chart{
 		Name: calico.MonitoringName,
 		Path: calico.CalicoMonitoringChartPath,
@@ -85,7 +84,7 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 		return client.IgnoreNotFound(calicoControlPlaneMonitoringChart.Delete(ctx, seedClient, network.Namespace))
 	}
 
-	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", map[string]interface{}{})
+	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", map[string]interface{}{"useProjectedTokenMount": useProjectedTokenMount})
 }
 
 // Reconcile implements Network.Actuator.
@@ -127,7 +126,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return fmt.Errorf("could not create chart renderer for shoot '%s': %w", network.Namespace, err)
 	}
 
-	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot), cluster.Shoot.Spec.Kubernetes.Version, gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot), kubeProxyEnabled)
+	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot), cluster.Shoot.Spec.Kubernetes.Version, gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot), kubeProxyEnabled, a.useProjectedTokenMount)
 	if err != nil {
 		return err
 	}
@@ -146,7 +145,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return err
 	}
 
-	if err := applyMonitoringConfig(ctx, a.client, a.chartApplier, network, false); err != nil {
+	if err := applyMonitoringConfig(ctx, a.client, a.chartApplier, network, false, a.useProjectedTokenMount); err != nil {
 		return err
 	}
 
