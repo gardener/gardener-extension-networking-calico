@@ -22,7 +22,7 @@ import (
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
-	"github.com/gardener/gardener-resource-manager/pkg/manager"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -30,6 +30,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
+	"github.com/gardener/gardener/pkg/utils/managedresources/builder"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -48,8 +49,8 @@ func withLocalObjectRefs(refs ...string) []corev1.LocalObjectReference {
 	return localObjectRefs
 }
 
-func calicoSecret(cl client.Client, calicoConfig []byte, namespace string) (*manager.Secret, []corev1.LocalObjectReference) {
-	return manager.NewSecret(cl).
+func calicoSecret(cl client.Client, calicoConfig []byte, namespace string) (*builder.Secret, []corev1.LocalObjectReference) {
+	return builder.NewSecret(cl).
 		WithKeyValues(map[string][]byte{charts.CalicoConfigKey: calicoConfig}).
 		WithNamespacedName(namespace, CalicoConfigSecretName), withLocalObjectRefs(CalicoConfigSecretName)
 }
@@ -136,7 +137,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return err
 	}
 
-	if err := manager.
+	if err := builder.
 		NewManagedResource(a.client).
 		WithNamespacedName(network.Namespace, CalicoConfigSecretName).
 		WithSecretRefs(secretRefs).
