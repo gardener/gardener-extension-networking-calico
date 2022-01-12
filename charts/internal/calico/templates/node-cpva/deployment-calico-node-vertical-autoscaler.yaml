@@ -48,7 +48,7 @@ spec:
               memory: 50Mi
             limits:
               cpu: 10m
-              memory: 50Mi
+              memory: 200Mi
           volumeMounts:
             - name: config
               mountPath: /etc/config

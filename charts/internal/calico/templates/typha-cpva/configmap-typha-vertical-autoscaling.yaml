@@ -14,11 +14,25 @@ data:
             "base": "120m",
             "step": "80m",
             "nodesPerStep": 10,
-            "max": "500m"
+            "max": "1000m"
           },
           "memory": {
             "base": "100Mi",
             "step": "40Mi",
+            "nodesPerStep": 10,
+            "max": "2000Mi"
+          }
+        },
+        "limits": {
+          "cpu": {
+            "base": "400m",
+            "step": "100m",
+            "nodesPerStep": 10,
+            "max": "1000m"
+          },
+          "memory": {
+            "base": "400Mi",
+            "step": "50Mi",
             "nodesPerStep": 10,
             "max": "2000Mi"
           }
