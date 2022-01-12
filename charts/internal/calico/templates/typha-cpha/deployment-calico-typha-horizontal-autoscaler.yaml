@@ -8,7 +8,7 @@ metadata:
   labels:
     k8s-app: calico-typha-autoscaler
 spec:
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 5
   replicas: 1
   selector:
     matchLabels:
@@ -51,6 +51,6 @@ spec:
               memory: 50Mi
             limits:
               cpu: 10m
-              memory: 50Mi
+              memory: 200Mi
       serviceAccountName: typha-cpha
 {{- end }}

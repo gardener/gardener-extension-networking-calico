@@ -16,13 +16,18 @@ metadata:
     # if it ever gets evicted.
     scheduler.alpha.kubernetes.io/critical-pod: ''
     cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
+    resources.gardener.cloud/preserve-resources: 'true'
   labels:
     k8s-app: calico-typha
     gardener.cloud/role: system-component
 spec:
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 5
   strategy:
-    type: Recreate
+    # Ensure that typha always stays available
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 25%
   selector:
     matchLabels:
       k8s-app: calico-typha
@@ -93,7 +98,7 @@ spec:
           {{-  end }}
           # Enable "info" logging by default.  Can be set to "debug" to increase verbosity.
           - name: TYPHA_LOGSEVERITYSCREEN
-            value: "error"
+            value: "info"
           # Disable logging to file and syslog since those don't make sense in Kubernetes.
           - name: TYPHA_LOGFILEPATH
             value: "none"
@@ -118,7 +123,7 @@ spec:
             cpu: 200m
             memory: 100Mi
           limits:
-            cpu: 500m
+            cpu: 1000m
             memory: 2000Mi
         securityContext:
           runAsNonRoot: true

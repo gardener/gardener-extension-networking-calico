@@ -10,7 +10,10 @@ metadata:
   labels:
     k8s-app: calico-node
     gardener.cloud/role: system-component
+  annotations:
+    resources.gardener.cloud/preserve-resources: 'true'
 spec:
+  revisionHistoryLimit: 5
   selector:
     matchLabels:
       k8s-app: calico-node
@@ -161,9 +164,6 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: typha_service_name
-            # Enable felix info logging.
-            - name: FELIX_LOGSEVERITYSCREEN
-              value: "error"
             # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
               value: "k8s,bgp"
@@ -250,7 +250,7 @@ spec:
               memory: 100Mi
             limits:
               cpu: 800m
-              memory: 700Mi
+              memory: 1400Mi
           livenessProbe:
             exec:
               command:
