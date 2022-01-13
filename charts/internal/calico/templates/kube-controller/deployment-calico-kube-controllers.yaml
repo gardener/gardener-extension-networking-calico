@@ -15,7 +15,7 @@ metadata:
     scheduler.alpha.kubernetes.io/critical-pod: ''
   {{- end }}
 spec:
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 5
   selector:
     matchLabels:
       k8s-app: calico-kube-controllers
