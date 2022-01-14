@@ -456,6 +456,12 @@ spec:
                 description: 'PrometheusMetricsPort is the TCP port that the Prometheus
                   metrics server should bind to. [Default: 9091]'
                 type: integer
+              prometheusProcessMetricsEnabled:
+                description: 'PrometheusProcessMetricsEnabled disables process metrics
+                  collection, which the Prometheus client does by default, when set
+                  to false. This reduces the number of metrics reported, reducing
+                  Prometheus load. [Default: true]'
+                type: boolean
               prometheusWireGuardMetricsEnabled:
                 description: 'PrometheusWireGuardMetricsEnabled disables wireguard
                   metrics collection, which the Prometheus client does by default,
@@ -539,6 +545,10 @@ spec:
                 type: integer
               vxlanVNI:
                 type: integer
+              wireguardEnabled:
+                description: 'WireguardEnabled controls whether Wireguard is enabled.
+                  [Default: false]'
+                type: boolean
               wireguardHostEncryptionEnabled:
                 description: 'WireguardHostEncryptionEnabled controls whether Wireguard
                   host-to-host encryption is enabled. [Default: false]'
