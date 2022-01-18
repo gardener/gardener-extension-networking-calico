@@ -9,12 +9,6 @@ data:
     {
       "calico-node": {
         "requests": {
-          "cpu": {
-            "base": "120m",
-            "step": "80m",
-            "nodesPerStep": 10,
-            "max": "800m"
-          },
           "memory": {
             "base": "50Mi",
             "step": "50Mi",
