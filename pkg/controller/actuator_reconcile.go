@@ -22,7 +22,7 @@ import (
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
-	"github.com/gardener/gardener-resource-manager/pkg/manager"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -30,6 +30,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
+	"github.com/gardener/gardener/pkg/utils/managedresources/builder"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -48,8 +49,8 @@ func withLocalObjectRefs(refs ...string) []corev1.LocalObjectReference {
 	return localObjectRefs
 }
 
-func calicoSecret(cl client.Client, calicoConfig []byte, namespace string) (*manager.Secret, []corev1.LocalObjectReference) {
-	return manager.NewSecret(cl).
+func calicoSecret(cl client.Client, calicoConfig []byte, namespace string) (*builder.Secret, []corev1.LocalObjectReference) {
+	return builder.NewSecret(cl).
 		WithKeyValues(map[string][]byte{charts.CalicoConfigKey: calicoConfig}).
 		WithNamespacedName(namespace, CalicoConfigSecretName), withLocalObjectRefs(CalicoConfigSecretName)
 }
@@ -62,13 +63,12 @@ func activateSystemComponentsNodeSelector(shoot *gardencorev1beta1.Shoot) bool {
 			atLeastOneWorkerPoolHasSystemComponents = true
 			break
 		}
-
 	}
 
 	return atLeastOneWorkerPoolHasSystemComponents
 }
 
-func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
+func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool, useProjectedTokenMount bool) error {
 	calicoControlPlaneMonitoringChart := &chart.Chart{
 		Name: calico.MonitoringName,
 		Path: calico.CalicoMonitoringChartPath,
@@ -84,7 +84,7 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 		return client.IgnoreNotFound(calicoControlPlaneMonitoringChart.Delete(ctx, seedClient, network.Namespace))
 	}
 
-	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", map[string]interface{}{})
+	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", map[string]interface{}{"useProjectedTokenMount": useProjectedTokenMount})
 }
 
 // Reconcile implements Network.Actuator.
@@ -126,7 +126,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return fmt.Errorf("could not create chart renderer for shoot '%s': %w", network.Namespace, err)
 	}
 
-	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot), cluster.Shoot.Spec.Kubernetes.Version, gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot), kubeProxyEnabled)
+	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot), cluster.Shoot.Spec.Kubernetes.Version, gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot), kubeProxyEnabled, a.useProjectedTokenMount)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return err
 	}
 
-	if err := manager.
+	if err := builder.
 		NewManagedResource(a.client).
 		WithNamespacedName(network.Namespace, CalicoConfigSecretName).
 		WithSecretRefs(secretRefs).
@@ -145,7 +145,7 @@ func (a *actuator) Reconcile(ctx context.Context, network *extensionsv1alpha1.Ne
 		return err
 	}
 
-	if err := applyMonitoringConfig(ctx, a.client, a.chartApplier, network, false); err != nil {
+	if err := applyMonitoringConfig(ctx, a.client, a.chartApplier, network, false, a.useProjectedTokenMount); err != nil {
 		return err
 	}
 

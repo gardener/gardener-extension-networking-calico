@@ -143,7 +143,7 @@ func (c *calicoConfig) toMap() (map[string]interface{}, error) {
 }
 
 // ComputeCalicoChartValues computes the values for the calico chart.
-func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string, wantsVPA bool, kubeProxyEnabled bool) (map[string]interface{}, error) {
+func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string, wantsVPA bool, kubeProxyEnabled bool, useProjectedTokenMount bool) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(config, kubeProxyEnabled)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
@@ -168,7 +168,8 @@ func ComputeCalicoChartValues(network *extensionsv1alpha1.Network, config *calic
 		"global": map[string]string{
 			"podCIDR": network.Spec.PodCIDR,
 		},
-		"config": calicoConfig,
+		"config":                 calicoConfig,
+		"useProjectedTokenMount": useProjectedTokenMount,
 	}
 	if workerSystemComponentsActivated {
 		calicoChartValues["nodeSelector"] = map[string]string{

@@ -40,21 +40,23 @@ var (
 type actuator struct {
 	logger logr.Logger
 
+	restConfig *rest.Config
+	client     client.Client
+
 	chartRendererFactory extensionscontroller.ChartRendererFactory
-	restConfig           *rest.Config
+	chartApplier         gardenerkubernetes.ChartApplier
 
-	client client.Client
-
-	chartApplier gardenerkubernetes.ChartApplier
+	useProjectedTokenMount bool
 }
 
 const LogID = "network-calico-actuator"
 
 // NewActuator creates a new Actuator that updates the status of the handled Network resources.
-func NewActuator(chartRendererFactory extensionscontroller.ChartRendererFactory) network.Actuator {
+func NewActuator(chartRendererFactory extensionscontroller.ChartRendererFactory, useProjectedTokenMount bool) network.Actuator {
 	return &actuator{
-		logger:               log.Log.WithName(LogID),
-		chartRendererFactory: chartRendererFactory,
+		logger:                 log.Log.WithName(LogID),
+		chartRendererFactory:   chartRendererFactory,
+		useProjectedTokenMount: useProjectedTokenMount,
 	}
 }
 

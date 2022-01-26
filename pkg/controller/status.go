@@ -17,13 +17,13 @@ package controller
 import (
 	"context"
 
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/util/retry"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (a *actuator) updateProviderStatus(
@@ -36,14 +36,14 @@ func (a *actuator) updateProviderStatus(
 		return err
 	}
 
-	return extensionscontroller.TryUpdateStatus(ctx, retry.DefaultBackoff, a.client, network, func() error {
-		network.Status.ProviderStatus = &runtime.RawExtension{Object: status}
-		network.Status.LastOperation = extensionscontroller.LastOperation(gardencorev1beta1.LastOperationTypeReconcile,
-			gardencorev1beta1.LastOperationStateSucceeded,
-			100,
-			"Calico was configured successfully")
-		return nil
-	})
+	patch := client.MergeFrom(network.DeepCopy())
+	network.Status.ProviderStatus = &runtime.RawExtension{Object: status}
+	network.Status.LastOperation = extensionscontroller.LastOperation(gardencorev1beta1.LastOperationTypeReconcile,
+		gardencorev1beta1.LastOperationStateSucceeded,
+		100,
+		"Calico was configured successfully",
+	)
+	return a.client.Status().Patch(ctx, network, patch)
 }
 
 func (a *actuator) ComputeNetworkStatus(networkConfig *calicov1alpha1.NetworkConfig) (*calicov1alpha1.NetworkStatus, error) {

@@ -37,8 +37,8 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Name:       extensionswebhook.ValidatorName,
 		Path:       extensionswebhook.ValidatorPath,
 		Predicates: []predicate.Predicate{createCalicoPredicate()},
-		Validators: map[extensionswebhook.Validator][]client.Object{
-			NewShootValidator(): {&core.Shoot{}},
+		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
+			NewShootValidator(): {{Obj: &core.Shoot{}}},
 		},
 	})
 }
