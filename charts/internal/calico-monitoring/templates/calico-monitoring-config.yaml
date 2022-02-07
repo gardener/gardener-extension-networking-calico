@@ -23,6 +23,8 @@ data:
       kubernetes_sd_configs:
       - role: endpoints
         api_server: https://kube-apiserver:443
+        namespaces:
+          names: [kube-system]
         tls_config:
         {{- if .Values.useProjectedTokenMount }}
           ca_file: /etc/prometheus/seed/ca.crt
@@ -33,15 +35,24 @@ data:
 {{ include "prometheus.tls-config.kube-cert-auth" . | indent 10 }}
         {{- end }}
       relabel_configs:
-      - source_labels: [__meta_kubernetes_service_name]
-        regex: calico-felix-monitoring
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_pod_container_port_name]
+        regex: calico-felix-monitoring;metrics
         action: keep
+      - source_labels: [__meta_kubernetes_endpoint_node_name]
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
       - target_label: __address__
         replacement: kube-apiserver:443
-      - source_labels: [__meta_kubernetes_pod_name]
-        regex: (.+)
+      - source_labels: [__meta_kubernetes_pod_name, __meta_kubernetes_pod_container_port_number]
+        regex: (.+);(.+)
         target_label: __metrics_path__
-        replacement: /api/v1/namespaces/kube-system/pods/${1}:9091/proxy/metrics
+        replacement: /api/v1/namespaces/kube-system/pods/${1}:${2}/proxy/metrics
+      metric_relabel_configs:
+      - source_labels: [ __name__ ]
+        regex: felix_.+
+        action: keep
+
     - job_name: 'typha-metrics'
       scheme: https
       tls_config:
@@ -58,18 +69,28 @@ data:
       kubernetes_sd_configs:
       - role: endpoints
         api_server: https://kube-apiserver:443
+        namespaces:
+          names: [kube-system]
         tls_config:
 {{ include "prometheus.tls-config.kube-cert-auth" . | indent 10 }}
       relabel_configs:
-      - source_labels: [__meta_kubernetes_service_name]
-        regex: calico-typha-monitoring
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_pod_container_port_name]
+        regex: calico-typha-monitoring;metrics
         action: keep
       - target_label: __address__
         replacement: kube-apiserver:443
+      - source_labels: [__meta_kubernetes_endpoint_node_name]
+        target_label: node
       - source_labels: [__meta_kubernetes_pod_name]
-        regex: (.+)
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_name, __meta_kubernetes_pod_container_port_number]
+        regex: (.+);(.+)
         target_label: __metrics_path__
-        replacement: /api/v1/namespaces/kube-system/pods/${1}:9093/proxy/metrics
+        replacement: /api/v1/namespaces/kube-system/pods/${1}:${2}/proxy/metrics
+      metric_relabel_configs:
+      - source_labels: [ __name__ ]
+        regex: typha_.+
+        action: keep
 
   dashboard_operators: |
     calico-felix-dashboard.json: |-
