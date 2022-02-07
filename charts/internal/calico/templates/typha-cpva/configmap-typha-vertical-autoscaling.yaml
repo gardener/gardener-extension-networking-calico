@@ -11,29 +11,29 @@ data:
       "calico-typha": {
         "requests": {
           "cpu": {
-            "base": "120m",
-            "step": "80m",
-            "nodesPerStep": 10,
+            "base": "180m",
+            "step": "140m",
+            "nodesPerStep": 17,
             "max": "1000m"
           },
           "memory": {
-            "base": "100Mi",
-            "step": "40Mi",
-            "nodesPerStep": 10,
+            "base": "180Mi",
+            "step": "70Mi",
+            "nodesPerStep": 17,
             "max": "2000Mi"
           }
         },
         "limits": {
           "cpu": {
-            "base": "400m",
-            "step": "100m",
-            "nodesPerStep": 10,
+            "base": "500m",
+            "step": "170m",
+            "nodesPerStep": 17,
             "max": "1000m"
           },
           "memory": {
-            "base": "400Mi",
-            "step": "50Mi",
-            "nodesPerStep": 10,
+            "base": "600Mi",
+            "step": "85Mi",
+            "nodesPerStep": 17,
             "max": "2000Mi"
           }
         }
