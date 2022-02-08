@@ -10,10 +10,6 @@ metadata:
   labels:
     k8s-app: calico-kube-controllers
     gardener.cloud/role: system-component
-  {{- if semverCompare "< 1.16" .Capabilities.KubeVersion.GitVersion }}
-  annotations:
-    scheduler.alpha.kubernetes.io/critical-pod: ''
-  {{- end }}
 spec:
   # The controllers can only have a single active instance.
   replicas: 1

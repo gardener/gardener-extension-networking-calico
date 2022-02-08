@@ -30,9 +30,7 @@ data:
         {
           "type": "calico",
           "log_level": "error",
-        {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion }}
           "log_file_path": "/var/log/calico/cni/cni.log",
-        {{- end }}
           "datastore_type": "kubernetes",
           "nodename": "__KUBERNETES_NODE_NAME__",
           "mtu": __CNI_MTU__,
