@@ -2,7 +2,7 @@ images:
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
   repository: docker.io/calico/node
-  tag: v3.21.4
+  tag: v3.22.0
   targetVersion: ">= 1.17"
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
@@ -17,7 +17,7 @@ images:
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
   repository: docker.io/calico/cni
-  tag: v3.21.4
+  tag: v3.22.0
   targetVersion: ">= 1.17"
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
@@ -32,7 +32,7 @@ images:
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
   repository: docker.io/calico/typha
-  tag: v3.21.4
+  tag: v3.22.0
   targetVersion: ">= 1.17"
   labels:
   - name: cloud.gardener.cnudie/dso/scanning-hints/binary_id/v1
@@ -62,7 +62,7 @@ images:
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
   repository: docker.io/calico/kube-controllers
-  tag: v3.21.4
+  tag: v3.22.0
   targetVersion: ">= 1.17"
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
@@ -77,7 +77,7 @@ images:
 - name: calico-podtodaemon-flex
   sourceRepository: github.com/projectcalico/pod2daemon
   repository: docker.io/calico/pod2daemon-flexvol
-  tag: v3.21.4
+  tag: v3.22.0
   targetVersion: ">= 1.17"
 - name: calico-podtodaemon-flex
   sourceRepository: github.com/projectcalico/pod2daemon
