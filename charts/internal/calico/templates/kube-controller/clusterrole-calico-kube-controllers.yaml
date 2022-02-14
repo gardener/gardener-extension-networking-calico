@@ -40,7 +40,6 @@ rules:
       - update
       - delete
       - watch
-{{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
   # kube-controllers manages hostendpoints.
   - apiGroups: ["crd.projectcalico.org"]
     resources:
@@ -51,7 +50,6 @@ rules:
       - create
       - update
       - delete
-{{- end }}
   # Needs access to update clusterinformations.
   - apiGroups: ["crd.projectcalico.org"]
     resources:
@@ -60,7 +58,6 @@ rules:
       - get
       - create
       - update
-{{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
   # KubeControllersConfiguration is where it gets its config
   - apiGroups: ["crd.projectcalico.org"]
     resources:
@@ -74,5 +71,4 @@ rules:
       - update
       # watch for changes
       - watch
-{{- end }}
 {{- end }}

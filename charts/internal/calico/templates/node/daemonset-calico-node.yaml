@@ -30,13 +30,6 @@ spec:
         k8s-app: calico-node
         gardener.cloud/role: system-component
       annotations:
-        {{- if semverCompare "< 1.16" .Capabilities.KubeVersion.GitVersion }}
-        # This, along with the CriticalAddonsOnly toleration below,
-        # marks the pod as a critical add-on, ensuring it gets
-        # priority scheduling and that its resources are reserved
-        # if it ever gets evicted.
-        scheduler.alpha.kubernetes.io/critical-pod: ''
-        {{- end }}
         checksum/configmap-calico: {{ include (print $.Template.BasePath "/node/configmap-calico-config.yaml") . | sha256sum }}
     spec:
       nodeSelector:
@@ -61,18 +54,12 @@ spec:
       # and CNI network config file on each node.
       - name: install-cni
         image: {{ index .Values.images "calico-cni" }}
-        {{- if semverCompare "< 1.16" .Capabilities.KubeVersion.GitVersion }}
-        command: ["/install-cni.sh"]
-        {{- else}}
         command: ["/opt/cni/bin/install"]
-        {{- end }}
-        {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
         envFrom:
         - configMapRef:
             # Allow KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT to be overridden for eBPF mode.
             name: kubernetes-services-endpoint
             optional: true
-        {{- end }}
         env:
           # Name of the CNI config file to create.
           - name: CNI_CONF_NAME
@@ -121,13 +108,11 @@ spec:
         # host.
         - name: calico-node
           image: {{ index .Values.images "calico-node" }}
-          {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
           envFrom:
           - configMapRef:
               # Allow KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT to be overridden for eBPF mode.
               name: kubernetes-services-endpoint
               optional: true
-          {{- end }}
           ports:
             {{- if .Values.config.monitoring.enabled }}
           - containerPort: {{  .Values.config.monitoring.felixMetricsPort }}
@@ -172,27 +157,22 @@ spec:
             - name: CLUSTER_TYPE
               value: "k8s,bgp"
             # Auto-detect the BGP IP address.
-            {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
             {{- if .Values.config.ipv4.autoDetectionMethod }}
             # On metal the ip is bound to the lo interface (routing to the host).
             - name: IP_AUTODETECTION_METHOD
               value: "{{ .Values.config.ipv4.autoDetectionMethod }}"
             {{- end }}
-            {{- end }}
             - name: IP
               value: "autodetect"
-            {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
             # Enable or Disable VXLAN on the default IP pool.
             - name: CALICO_IPV4POOL_VXLAN
               value: "Never"
-            {{- end }}
             # Set MTU for tunnel device used if ipip is enabled
             - name: FELIX_IPINIPMTU
               valueFrom:
                 configMapKeyRef:
                   name: calico-config
                   key: veth_mtu
-            {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
             # Set MTU for the VXLAN tunnel device.
             - name: FELIX_VXLANMTU
               valueFrom:
@@ -205,7 +185,6 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: veth_mtu
-            {{- end }}
             # The default IPv4 pool to create on startup if none exists. Pod IPs will be
             # chosen from this range. Changing this value after installation will have
             # no effect. This should fall within `--cluster-cidr`.
@@ -294,7 +273,6 @@ spec:
               readOnly: false
             - name: policysync
               mountPath: /var/run/nodeagent
-            {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
             # For eBPF mode, we need to be able to mount the BPF filesystem at /sys/fs/bpf so we mount in the
             # parent directory.
             - name: sysfs
@@ -302,7 +280,6 @@ spec:
             - name: cni-log-dir
               mountPath: /var/log/calico/cni
               readOnly: true
-              {{- end }}
       volumes:
         # Used by calico-node.
         - name: lib-modules
@@ -318,12 +295,10 @@ spec:
           hostPath:
             path: /run/xtables.lock
             type: FileOrCreate
-        {{- if semverCompare ">= 1.16" .Capabilities.KubeVersion.GitVersion  }}
         - name: sysfs
           hostPath:
             path: /sys/fs/
             type: DirectoryOrCreate
-        {{- end }}
         # Used to install CNI.
         - name: cni-bin-dir
           hostPath:
