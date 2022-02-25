@@ -16,7 +16,10 @@ webhooks:
     resources:
     - shoots
   failurePolicy: Fail
-  objectSelector: {}
+  # Please make sure you are running `gardener@v1.42` or later before enabling this object selector.
+  objectSelector:
+    matchLabels:
+      networking.extensions.gardener.cloud/calico: "true"
   namespaceSelector: {}
   sideEffects: None
   admissionReviewVersions:
