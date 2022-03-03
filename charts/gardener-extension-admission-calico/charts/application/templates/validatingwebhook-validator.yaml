@@ -16,7 +16,11 @@ webhooks:
     resources:
     - shoots
   failurePolicy: Fail
-  objectSelector: {}
+  objectSelector:
+    {{- if .Values.global.webhookConfig.useObjectSelector }}
+    matchLabels:
+      networking.extensions.gardener.cloud/calico: "true"
+    {{- end }}
   namespaceSelector: {}
   sideEffects: None
   admissionReviewVersions:
