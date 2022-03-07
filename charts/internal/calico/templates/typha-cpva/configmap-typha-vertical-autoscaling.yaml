@@ -24,17 +24,9 @@ data:
           }
         },
         "limits": {
-          "cpu": {
-            "base": "500m",
-            "step": "170m",
-            "nodesPerStep": 17,
-            "max": "1000m"
-          },
           "memory": {
-            "base": "600Mi",
-            "step": "85Mi",
-            "nodesPerStep": 17,
-            "max": "2000Mi"
+            "base": "4000Mi",
+            "max": "4000Mi"
           }
         }
       }
