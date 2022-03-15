@@ -69,7 +69,6 @@ spec:
               cpu: 10m
               memory: 50Mi
             limits:
-              cpu: 50m
               memory: 300Mi
           livenessProbe:
             exec:
@@ -79,12 +78,14 @@ spec:
             periodSeconds: 10
             initialDelaySeconds: 10
             failureThreshold: 6
+            timeoutSeconds: 10
           readinessProbe:
             exec:
               command:
                 - /usr/bin/check-status
                 - -r
             periodSeconds: 10
+            timeoutSeconds: 10
           securityContext:
             capabilities:
               drop:
