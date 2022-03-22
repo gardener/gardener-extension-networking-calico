@@ -12,5 +12,12 @@ spec:
     name: calico-kube-controllers
   updatePolicy:
     updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: "*"
+      minAllowed:
+        cpu: 10m
+        memory: 50Mi
+      controlledValues: RequestsOnly
 {{- end }}
 {{- end }}
