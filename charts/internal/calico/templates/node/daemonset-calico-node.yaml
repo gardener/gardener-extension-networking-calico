@@ -224,7 +224,6 @@ spec:
               cpu: 250m
               memory: 100Mi
             limits:
-              cpu: "1000"
               memory: 2800Mi
           lifecycle:
             preStop:
