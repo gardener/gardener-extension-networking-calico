@@ -17,10 +17,6 @@ data:
           }
         },
         "limits": {
-          "cpu": {
-            "base": "1000",
-            "max": "1000"
-          },
           "memory": {
             "base": "2800Mi",
             "max": "2800Mi"
