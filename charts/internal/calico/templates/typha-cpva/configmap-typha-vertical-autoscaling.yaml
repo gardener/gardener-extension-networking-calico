@@ -24,10 +24,6 @@ data:
           }
         },
         "limits": {
-          "cpu": {
-            "base": "1000",
-            "max": "1000"
-          },
           "memory": {
             "base": "4000Mi",
             "max": "4000Mi"
