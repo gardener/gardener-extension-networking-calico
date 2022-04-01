@@ -35,10 +35,10 @@ import (
 
 	networkcontroller "github.com/gardener/gardener-extension-networking-calico/pkg/controller"
 
-	healthcheckoperation "github.com/gardener/gardener/extensions/test/integration/healthcheck"
+	healthcheckoperation "github.com/gardener/gardener/extensions/test/testmachinery/healthcheck"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/test/framework"
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 )
 
 const (

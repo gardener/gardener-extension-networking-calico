@@ -26,7 +26,7 @@ import (
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	mockchartrenderer "github.com/gardener/gardener/pkg/chartrenderer/mock"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/manifest"
@@ -205,6 +205,7 @@ var _ = Describe("Chart package test", func() {
 				},
 				"useProjectedTokenMount": true,
 			}))
+
 		})
 	})
 
@@ -576,13 +577,19 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#RenderCalicoChart", func() {
 		var (
-			ctrl                = gomock.NewController(GinkgoT())
-			mockChartRenderer   = mockchartrenderer.NewMockInterface(ctrl)
+			ctrl                *gomock.Controller
+			mockChartRenderer   *mockchartrenderer.MockInterface
+			testManifestContent string
+			mkManifest          func(name string) manifest.Manifest
+		)
+		BeforeEach(func() {
+			ctrl = gomock.NewController(GinkgoT())
+			mockChartRenderer = mockchartrenderer.NewMockInterface(ctrl)
 			testManifestContent = "test-content"
-			mkManifest          = func(name string) manifest.Manifest {
+			mkManifest = func(name string) manifest.Manifest {
 				return manifest.Manifest{Name: fmt.Sprintf("test/templates/%s", name), Content: testManifestContent}
 			}
-		)
+		})
 		It("Render Calico charts correctly", func() {
 			mockChartRenderer.EXPECT().Render(calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, gomock.Any()).Return(&chartrenderer.RenderedChart{
 				ChartName: "test",
