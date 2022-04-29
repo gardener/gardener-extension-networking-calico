@@ -12,28 +12,20 @@ data:
       tls_config:
         # This is needed because the kubelets' certificates are not are generated
         # for a specific pod IP
-      {{- if .Values.useProjectedTokenMount }}
         insecure_skip_verify: true
       authorization:
         type: Bearer
         credentials_file: /var/run/secrets/gardener.cloud/shoot/token/token
-      {{- else }}
-{{ include "prometheus.tls-config.kube-cert-auth-insecure" . | indent 8 }}
-      {{- end }}
       kubernetes_sd_configs:
       - role: endpoints
         api_server: https://kube-apiserver:443
         namespaces:
           names: [kube-system]
         tls_config:
-        {{- if .Values.useProjectedTokenMount }}
           ca_file: /etc/prometheus/seed/ca.crt
         authorization:
           type: Bearer
           credentials_file: /var/run/secrets/gardener.cloud/shoot/token/token
-        {{- else }}
-{{ include "prometheus.tls-config.kube-cert-auth" . | indent 10 }}
-        {{- end }}
       relabel_configs:
       - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_pod_container_port_name]
         regex: calico-felix-monitoring;metrics
@@ -58,21 +50,20 @@ data:
       tls_config:
         # This is needed because the kubelets' certificates are not are generated
         # for a specific pod IP
-      {{- if .Values.useProjectedTokenMount }}
         insecure_skip_verify: true
       authorization:
         type: Bearer
         credentials_file: /var/run/secrets/gardener.cloud/shoot/token/token
-      {{- else }}
-{{ include "prometheus.tls-config.kube-cert-auth-insecure" . | indent 8 }}
-      {{- end }}
       kubernetes_sd_configs:
       - role: endpoints
         api_server: https://kube-apiserver:443
         namespaces:
           names: [kube-system]
         tls_config:
-{{ include "prometheus.tls-config.kube-cert-auth" . | indent 10 }}
+         ca_file: /etc/prometheus/seed/ca.crt
+        authorization:
+          type: Bearer
+          credentials_file: /var/run/secrets/gardener.cloud/shoot/token/token
       relabel_configs:
       - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_pod_container_port_name]
         regex: calico-typha-monitoring;metrics
