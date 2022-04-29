@@ -15,9 +15,17 @@
 package constants
 
 const (
+	// SecretManagerIdentityControllerManager is the identity for the secret manager used inside controller-manager.
+	SecretManagerIdentityControllerManager = "controller-manager"
+	// SecretManagerIdentityGardenlet is the identity for the secret manager used inside gardenlet.
+	SecretManagerIdentityGardenlet = "gardenlet"
+
 	// SecretNameCACluster is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of a shoot cluster.
 	SecretNameCACluster = "ca"
+	// SecretNameCAClient is a constant for the name of a Kubernetes secret object that contains the client CA
+	// certificate of a shoot cluster.
+	SecretNameCAClient = "ca-client"
 	// SecretNameCAETCD is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the etcd of a shoot cluster.
 	SecretNameCAETCD = "ca-etcd"
@@ -33,6 +41,10 @@ const (
 	// SecretNameCAVPN is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the VPN components of a shoot cluster.
 	SecretNameCAVPN = "ca-vpn"
+	// SecretNameCASeed is a constant for the name of a Kubernetes secret object that contains the CA
+	// certificate generated for a seed cluster.
+	SecretNameCASeed = "ca-seed"
+
 	// SecretNameCloudProvider is a constant for the name of a Kubernetes secret object that contains the provider
 	// specific credentials that shall be used to create/delete the shoot.
 	SecretNameCloudProvider = "cloudprovider"
@@ -40,8 +52,11 @@ const (
 	// (public and private key) that can be used to SSH into the shoot nodes.
 	SecretNameSSHKeyPair = "ssh-keypair"
 	// SecretNameServiceAccountKey is a constant for the name of a Kubernetes secret object that contains a
-	// PEM-encoded private RSA or ECDSA key used by the Kube Controller Manager to sign service account tokens
+	// PEM-encoded private RSA or ECDSA key used by the Kube Controller Manager to sign service account tokens.
 	SecretNameServiceAccountKey = "service-account-key"
+	// SecretNameObservabilityIngress is a constant for the name of a Kubernetes secret object that contains the ingress
+	// credentials for observability components.
+	SecretNameObservabilityIngress = "observability-ingress"
 
 	// SecretNameGardener is a constant for the name of a Kubernetes secret object that contains the client
 	// certificate and a kubeconfig for a shoot cluster. It is used by Gardener and can be used by extension
