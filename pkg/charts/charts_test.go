@@ -150,7 +150,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeCalicoChartValues", func() {
 		It("empty network config should properly render calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, false, kubernetesVersion, false, true, true)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, false, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -203,7 +203,6 @@ var _ = Describe("Chart package test", func() {
 						"autoDetectionMethod": nil,
 					},
 				},
-				"useProjectedTokenMount": true,
 			}))
 
 		})
@@ -211,7 +210,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeCalicoChartValues", func() {
 		It("should disable felix ip in ip and set pool mode to never when setting backend to none", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, false, kubernetesVersion, false, true, true)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, false, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -264,14 +263,13 @@ var _ = Describe("Chart package test", func() {
 						"autoDetectionMethod": nil,
 					},
 				},
-				"useProjectedTokenMount": true,
 			}))
 		})
 	})
 
 	Describe("#ComputeAllCalicoChartValues", func() {
 		It("should correctly compute all of the calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false, kubernetesVersion, true, true, true)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false, kubernetesVersion, true, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -324,12 +322,11 @@ var _ = Describe("Chart package test", func() {
 						"autoDetectionMethod": *networkConfigAll.IPv4.AutoDetectionMethod,
 					},
 				},
-				"useProjectedTokenMount": true,
 			}))
 		})
 
 		It("should correctly compute all of the calico chart values with mtu", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, false, kubernetesVersion, false, true, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, false, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -382,12 +379,11 @@ var _ = Describe("Chart package test", func() {
 						"autoDetectionMethod": *networkConfigAll.IPv4.AutoDetectionMethod,
 					},
 				},
-				"useProjectedTokenMount": false,
 			}))
 		})
 
 		It("should correctly compute all of the calico chart values with ebpf dataplane enabled and kube-proxy disabled", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllEBPFDataplane, false, kubernetesVersion, false, false, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllEBPFDataplane, false, kubernetesVersion, false, false)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -440,14 +436,13 @@ var _ = Describe("Chart package test", func() {
 						"autoDetectionMethod": *networkConfigAll.IPv4.AutoDetectionMethod,
 					},
 				},
-				"useProjectedTokenMount": false,
 			}))
 		})
 	})
 
 	Describe("#ComputeAllCalicoChartValues", func() {
 		It("should respect deprecated fields in order to keep backwards compatibility", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, false, kubernetesVersion, true, true, false)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, false, kubernetesVersion, true, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -500,14 +495,13 @@ var _ = Describe("Chart package test", func() {
 						"autoDetectionMethod": *networkConfigDeprecated.IPAutoDetectionMethod,
 					},
 				},
-				"useProjectedTokenMount": false,
 			}))
 		})
 	})
 
 	Describe("#ActivatesSystemComponentNodeSelector", func() {
 		It("should set a nodeSelector when desired", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, true, kubernetesVersion, false, true, true)
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, true, kubernetesVersion, false, true)
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -563,14 +557,13 @@ var _ = Describe("Chart package test", func() {
 				"nodeSelector": map[string]string{
 					"worker.gardener.cloud/system-components": "true",
 				},
-				"useProjectedTokenMount": true,
 			}))
 		})
 	})
 
 	Describe("#ComputeInvalidCalicoChartValues", func() {
 		It("should error on invalid config value", func() {
-			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, false, kubernetesVersion, true, true, true)
+			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, false, kubernetesVersion, true, true)
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 	})
@@ -598,7 +591,7 @@ var _ = Describe("Chart package test", func() {
 				},
 			}, nil)
 
-			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, false, kubernetesVersion, false, true, true)
+			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, false, kubernetesVersion, false, true)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

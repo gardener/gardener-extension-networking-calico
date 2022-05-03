@@ -38,5 +38,3 @@ vpa:
   enabled: false
 
 # nodeSelector: {}
-
-useProjectedTokenMount: false

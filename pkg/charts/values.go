@@ -26,8 +26,8 @@ import (
 const CalicoConfigKey = "config.yaml"
 
 // RenderCalicoChart renders the calico chart with the given values.
-func RenderCalicoChart(renderer chartrenderer.Interface, network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string, wantsVPA bool, kubeProxyEnabled bool, useProjectedTokenMount bool) ([]byte, error) {
-	values, err := ComputeCalicoChartValues(network, config, workerSystemComponentsActivated, kubernetesVersion, wantsVPA, kubeProxyEnabled, useProjectedTokenMount)
+func RenderCalicoChart(renderer chartrenderer.Interface, network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, workerSystemComponentsActivated bool, kubernetesVersion string, wantsVPA bool, kubeProxyEnabled bool) ([]byte, error) {
+	values, err := ComputeCalicoChartValues(network, config, workerSystemComponentsActivated, kubernetesVersion, wantsVPA, kubeProxyEnabled)
 	if err != nil {
 		return nil, err
 	}
