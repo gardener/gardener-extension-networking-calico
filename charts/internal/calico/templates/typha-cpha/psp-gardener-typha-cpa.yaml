@@ -6,7 +6,7 @@ metadata:
   name: gardener.kube-system.typha-cpa
 spec:
   volumes:
-  - secret
+  - projected
   runAsUser:
     rule: MustRunAsNonRoot
   seLinux:

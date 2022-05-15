@@ -2,10 +2,11 @@
 apiVersion: {{ include "podsecuritypolicyversion" .}}
 kind: PodSecurityPolicy
 metadata:
-  name: gardener.cloud.calico-node-cpva
+  name: gardener.kube-system.calico-node-cpva
 spec:
   volumes:
-  - secret
+  - configMap
+  - projected
   runAsUser:
     rule: MustRunAsNonRoot
   seLinux:
