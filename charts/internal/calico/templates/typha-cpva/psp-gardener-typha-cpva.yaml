@@ -3,10 +3,11 @@
 apiVersion: {{ include "podsecuritypolicyversion" .}}
 kind: PodSecurityPolicy
 metadata:
-  name: gardener.cloud.typha-cpva
+  name: gardener.kube-system.typha-cpva
 spec:
   volumes:
-  - secret
+  - configMap
+  - projected
   runAsUser:
     rule: MustRunAsNonRoot
   seLinux:
