@@ -8,6 +8,7 @@ spec:
   volumes:
   - hostPath
   - secret
+  - projected
   hostNetwork: true
   {{- if .Values.config.monitoring.enabled }}
   hostPorts:
