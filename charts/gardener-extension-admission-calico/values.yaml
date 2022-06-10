@@ -16,6 +16,9 @@ global:
       minAllowed:
         cpu: 50m
         memory: 64Mi
+      maxAllowed:
+        cpu: 4
+        memory: 10G
     updatePolicy:
       updateMode: "Auto"
   webhookConfig:
