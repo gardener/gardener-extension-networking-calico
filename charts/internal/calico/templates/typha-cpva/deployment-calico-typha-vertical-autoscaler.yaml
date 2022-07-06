@@ -28,7 +28,7 @@ spec:
       nodeSelector:
 {{ toYaml .Values.nodeSelector | indent 8 }}
       {{- end }}
-      priorityClassName: system-cluster-critical
+      priorityClassName: gardener-shoot-system-800
       # Make sure to not use the coredns for DNS resolution.
       dnsPolicy: Default
       securityContext:
