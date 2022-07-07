@@ -69,6 +69,7 @@ rules:
       - pods/status
     verbs:
       - patch
+  {{- if semverCompare "> 1.20" .Capabilities.KubeVersion.GitVersion }}
   # Used for creating service account tokens to be used by the CNI plugin
   - apiGroups: [""]
     resources:
@@ -77,6 +78,7 @@ rules:
       - calico-node
     verbs:
       - create
+  {{- end }}
   # Calico monitors various CRDs for config.
   - apiGroups: ["crd.projectcalico.org"]
     resources:
