@@ -48,9 +48,6 @@ spec:
       priorityClassName: system-cluster-critical
       # Make sure to not use the coredns for DNS resolution.
       dnsPolicy: Default
-      hostIPC: false
-      hostNetwork: false
-      hostPID: false
       containers:
         - name: calico-kube-controllers
           image: {{ index .Values.images "calico-kube-controllers" }}
@@ -82,12 +79,4 @@ spec:
                 - -r
             periodSeconds: 10
             timeoutSeconds: 10
-          securityContext:
-            capabilities:
-              drop:
-                - ALL
-            allowPrivilegeEscalation: true
-            # Health checks are written on a file which is
-            # writable only to root
-            privileged: true
 {{- end }}

@@ -8,13 +8,10 @@ spec:
   volumes:
     - secret
     - projected
-  hostIPC: false
-  hostNetwork: false
-  hostPID: false
-  privileged: true
-  requiredDropCapabilities:
-    - ALL
+  privileged: false
   runAsUser:
+    # TODO(ialidzhikov): Switch to MustRunAsNonRoot when the arm64 image of the calico-kube-controllers
+    # does no longer run as root. Ref https://github.com/projectcalico/calico/pull/6346.
     rule: RunAsAny
   seLinux:
     rule: RunAsAny
