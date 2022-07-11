@@ -26,16 +26,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
+const (
+	// Name is a name for a validation webhook.
+	Name = "validator"
+)
+
 var logger = log.Log.WithName("calico-validator-webhook")
 
 // New creates a new webhook that validates Shoot resources.
 func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
-	logger.Info("Setting up webhook", "name", extensionswebhook.ValidatorName)
+	logger.Info("Setting up webhook", "name", Name)
 
 	return extensionswebhook.New(mgr, extensionswebhook.Args{
 		Provider:   calico.Name,
-		Name:       extensionswebhook.ValidatorName,
-		Path:       extensionswebhook.ValidatorPath,
+		Name:       Name,
+		Path:       "/webhooks/validate",
 		Predicates: []predicate.Predicate{createCalicoPredicate()},
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
 			NewShootValidator(): {{Obj: &core.Shoot{}}},
