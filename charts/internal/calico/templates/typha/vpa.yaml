@@ -17,5 +17,8 @@ spec:
       minAllowed:
         cpu: 200m
         memory: 100Mi
+      maxAllowed:
+        cpu: 4
+        memory: 10G
       controlledValues: RequestsOnly
 {{- end }}
