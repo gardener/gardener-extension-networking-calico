@@ -1,3 +1,4 @@
+{{- if not .Values.pspDisabled }}
 ---
 apiVersion: {{ include "rbacversion" . }}
 kind: RoleBinding
@@ -12,3 +13,4 @@ subjects:
   - kind: ServiceAccount
     name: calico-node-cpva
     namespace: kube-system
+{{- end }}
