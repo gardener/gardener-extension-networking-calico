@@ -22,11 +22,9 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/network"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
-	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var (
@@ -38,8 +36,6 @@ var (
 )
 
 type actuator struct {
-	logger logr.Logger
-
 	restConfig *rest.Config
 	client     client.Client
 
@@ -47,12 +43,9 @@ type actuator struct {
 	chartApplier         gardenerkubernetes.ChartApplier
 }
 
-const LogID = "network-calico-actuator"
-
 // NewActuator creates a new Actuator that updates the status of the handled Network resources.
 func NewActuator(chartRendererFactory extensionscontroller.ChartRendererFactory) network.Actuator {
 	return &actuator{
-		logger:               log.Log.WithName(LogID),
 		chartRendererFactory: chartRendererFactory,
 	}
 }
