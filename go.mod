@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
-	github.com/gardener/gardener v1.50.1
+	github.com/gardener/gardener v1.52.0
 	github.com/go-logr/logr v1.2.3
 	github.com/golang/mock v1.6.0
 	github.com/onsi/ginkgo/v2 v2.1.4
@@ -93,7 +93,6 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -115,17 +114,17 @@ require (
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20220407144326-9054f6ed7bac // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	istio.io/api v0.0.0-20220304035241-8c47cbbea144 // indirect
-	istio.io/client-go v1.12.5 // indirect
-	istio.io/gogo-genproto v0.0.0-20210113155706-4daf5697332f // indirect
+	istio.io/api v0.0.0-20220512181135-e8ec1e1d89de // indirect
+	istio.io/client-go v1.14.0 // indirect
 	k8s.io/apiextensions-apiserver v0.24.2 // indirect
 	k8s.io/apiserver v0.24.2 // indirect
-	k8s.io/autoscaler/vertical-pod-autoscaler v0.10.0 // indirect
+	k8s.io/autoscaler/vertical-pod-autoscaler v0.11.0 // indirect
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185 // indirect
 	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
@@ -152,10 +151,4 @@ replace (
 	k8s.io/component-base => k8s.io/component-base v0.24.2
 	k8s.io/helm => k8s.io/helm v2.13.1+incompatible
 	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.24.2
-)
-
-// workaround for https://github.com/gardener/hvpa-controller/issues/92, remove once it's fixed
-replace (
-	github.com/gardener/hvpa-controller => github.com/gardener/hvpa-controller v0.4.0
-	github.com/gardener/hvpa-controller/api => github.com/gardener/hvpa-controller/api v0.4.0
 )
