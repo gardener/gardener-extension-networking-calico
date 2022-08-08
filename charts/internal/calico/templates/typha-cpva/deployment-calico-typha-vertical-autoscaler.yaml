@@ -33,6 +33,10 @@ spec:
       dnsPolicy: Default
       securityContext:
         runAsUser: 65534
+        runAsNonRoot: true
+        supplementalGroups:
+        - 1
+        fsGroup: 1
       containers:
         - image:  {{ index .Values.images "calico-cpva" }}
           name: autoscaler

@@ -22,7 +22,6 @@ import (
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -123,13 +122,23 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil {
 		kubeProxyEnabled = *cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled
 	}
+
 	// Create shoot chart renderer
 	chartRenderer, err := a.chartRendererFactory.NewChartRendererForShoot(cluster.Shoot.Spec.Kubernetes.Version)
 	if err != nil {
 		return fmt.Errorf("could not create chart renderer for shoot '%s': %w", network.Namespace, err)
 	}
 
-	calicoChart, err := charts.RenderCalicoChart(chartRenderer, network, networkConfig, activateSystemComponentsNodeSelector(cluster.Shoot), cluster.Shoot.Spec.Kubernetes.Version, gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot), kubeProxyEnabled)
+	calicoChart, err := charts.RenderCalicoChart(
+		chartRenderer,
+		network,
+		networkConfig,
+		activateSystemComponentsNodeSelector(cluster.Shoot),
+		cluster.Shoot.Spec.Kubernetes.Version,
+		gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
+		kubeProxyEnabled,
+		gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+	)
 	if err != nil {
 		return err
 	}

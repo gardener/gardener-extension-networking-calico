@@ -75,6 +75,8 @@ spec:
       securityContext:
         runAsUser: 65534
         fsGroup: 65534
+        supplementalGroups:
+        - 1
       containers:
       - image: {{ index .Values.images "calico-typha" }}
         name: calico-typha

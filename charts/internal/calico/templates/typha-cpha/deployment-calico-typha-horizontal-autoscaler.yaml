@@ -35,6 +35,7 @@ spec:
         supplementalGroups: [ 65532 ]
         fsGroup: 65532
         runAsUser: 65532
+        runAsNonRoot: true
       containers:
         - image: {{ index .Values.images "calico-cpa" }}
           name: autoscaler

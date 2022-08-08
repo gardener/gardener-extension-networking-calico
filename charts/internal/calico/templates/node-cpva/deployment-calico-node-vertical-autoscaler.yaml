@@ -28,7 +28,11 @@ spec:
       {{- end }}
       priorityClassName: system-cluster-critical
       securityContext:
+        runAsNonRoot: true
         runAsUser: 65534
+        fsGroup: 1
+        supplementalGroups:
+        - 1
       # Make sure to not use the coredns for DNS resolution.
       dnsPolicy: Default
       containers:
