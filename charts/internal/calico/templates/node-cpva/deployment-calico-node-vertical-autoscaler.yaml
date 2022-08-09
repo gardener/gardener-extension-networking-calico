@@ -33,6 +33,10 @@ spec:
         fsGroup: 1
         supplementalGroups:
         - 1
+        {{- if semverCompare ">= 1.19" .Capabilities.KubeVersion.GitVersion }}
+        seccompProfile:
+          type: RuntimeDefault
+        {{- end }}
       # Make sure to not use the coredns for DNS resolution.
       dnsPolicy: Default
       containers:

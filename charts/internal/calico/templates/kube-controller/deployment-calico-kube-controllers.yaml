@@ -48,6 +48,11 @@ spec:
       priorityClassName: system-cluster-critical
       # Make sure to not use the coredns for DNS resolution.
       dnsPolicy: Default
+      {{- if semverCompare ">= 1.19" .Capabilities.KubeVersion.GitVersion }}
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      {{- end }}
       containers:
         - name: calico-kube-controllers
           image: {{ index .Values.images "calico-kube-controllers" }}

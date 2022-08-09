@@ -3,6 +3,9 @@
 apiVersion: {{ include "podsecuritypolicyversion" .}}
 kind: PodSecurityPolicy
 metadata:
+  annotations:
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'runtime/default'
   name: gardener.kube-system.calico
 spec:
   privileged: true
@@ -28,6 +31,7 @@ spec:
   - pathPrefix: /var/lib/kubelet/volumeplugins/nodeagent~uds
   - pathPrefix: /var/log/calico/cni
   - pathPrefix: /sys/fs/
+  - pathPrefix: /proc
   runAsUser:
     rule: RunAsAny
   seLinux:

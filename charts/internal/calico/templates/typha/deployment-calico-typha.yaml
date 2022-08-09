@@ -77,6 +77,10 @@ spec:
         fsGroup: 65534
         supplementalGroups:
         - 1
+        {{- if semverCompare ">= 1.19" .Capabilities.KubeVersion.GitVersion }}
+        seccompProfile:
+          type: RuntimeDefault
+        {{- end }}
       containers:
       - image: {{ index .Values.images "calico-typha" }}
         name: calico-typha
