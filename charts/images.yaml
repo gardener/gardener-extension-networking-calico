@@ -58,7 +58,7 @@ images:
 - name: calico-cpa
   sourceRepository: github.com/kubernetes-sigs/cluster-proportional-autoscaler
   repository: k8s.gcr.io/cpa/cluster-proportional-autoscaler
-  tag: 1.8.5
+  tag: 1.8.6
 - name: calico-cpva
   sourceRepository: github.com/kubernetes-sigs/cluster-proportional-vertical-autoscaler
   repository: k8s.gcr.io/cpa/cpvpa
