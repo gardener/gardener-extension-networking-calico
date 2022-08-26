@@ -42,6 +42,7 @@ type calicoConfig struct {
 	KubeControllers kubeControllers        `json:"kubeControllers"`
 	VethMTU         string                 `json:"veth_mtu"`
 	Monitoring      monitoring             `json:"monitoring"`
+	NonPrivileged   bool                   `json:"nonPrivileged"`
 }
 
 type felix struct {
@@ -151,8 +152,9 @@ func ComputeCalicoChartValues(
 	wantsVPA bool,
 	kubeProxyEnabled bool,
 	isPSPDisabled bool,
+	nonPrivileged bool,
 ) (map[string]interface{}, error) {
-	typedConfig, err := generateChartValues(config, kubeProxyEnabled)
+	typedConfig, err := generateChartValues(config, kubeProxyEnabled, nonPrivileged)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
 	}
@@ -188,7 +190,7 @@ func ComputeCalicoChartValues(
 	return calicoChartValues, nil
 }
 
-func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool) (*calicoConfig, error) {
+func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool) (*calicoConfig, error) {
 	c := newCalicoConfig()
 	if config == nil {
 		return &c, nil
@@ -267,6 +269,11 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 
 	if config.VethMTU != nil {
 		c.VethMTU = *config.VethMTU
+	}
+
+	c.NonPrivileged = nonPrivileged
+	if config.EbpfDataplane != nil && config.EbpfDataplane.Enabled {
+		c.NonPrivileged = false
 	}
 
 	return &c, nil

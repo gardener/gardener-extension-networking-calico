@@ -30,4 +30,8 @@ type ControllerConfiguration struct {
 	ClientConnection *componentbaseconfig.ClientConnectionConfiguration
 	// HealthCheckConfig is the config for the health check controller
 	HealthCheckConfig *healthcheckconfig.HealthCheckConfig
+	// FeatureGates is a map of feature names to bools that enable
+	// or disable alpha/experimental features.
+	// Default: nil
+	FeatureGates map[string]bool
 }

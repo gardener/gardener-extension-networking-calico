@@ -22,6 +22,7 @@ import (
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -138,6 +139,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
 		kubeProxyEnabled,
 		gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+		features.FeatureGate.Enabled(features.NonPrivilegedCalicoNode),
 	)
 	if err != nil {
 		return err

@@ -98,6 +98,7 @@ spec:
             name: cni-bin-dir
         securityContext:
           privileged: true
+      {{- if .Values.config.felix.bpf.enabled }}
       {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
       # This init container mounts the necessary filesystems needed by the BPF data plane
       # i.e. bpf at /sys/fs/bpf and cgroup2 at /run/calico/cgroup. Calico-node initialisation is executed
@@ -124,6 +125,7 @@ spec:
         securityContext:
           privileged: true
       {{- end }}
+      {{- end }}
       {{- if semverCompare "< 1.21" .Capabilities.KubeVersion.GitVersion }}
         # Adds a Flex Volume Driver that creates a per-pod Unix Domain Socket to allow Dikastes
         # to communicate with Felix over the Policy Sync API.
@@ -135,6 +137,26 @@ spec:
         securityContext:
           privileged: true
       {{- end }}
+      {{- if .Values.config.nonPrivileged }}
+      - name: hostpath-init
+        image: {{ index .Values.images "calico-node" }}
+        command: ["sh", "-c", "calico-node -hostpath-init"]
+        env:
+        - name: NODE_USER_ID
+          value: "999"
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/run
+          name: var-run
+          readOnly: false
+        - mountPath: /var/lib
+          name: var-lib
+          readOnly: false
+        - mountPath: /var/log
+          name: var-log
+          readOnly: false
+      {{- end}}
       containers:
         # Runs calico-node container on each Kubernetes node. This
         # container programs network policy and routes on each
@@ -256,7 +278,18 @@ spec:
             - name: CALICO_MANAGE_CNI
               value: "true"
           securityContext:
+            {{- if not .Values.config.nonPrivileged }}
             privileged: true
+            {{- else }}
+            runAsUser: 999
+            runAsGroup: 0
+            privileged: false
+            capabilities:
+              add:
+              - NET_RAW
+              - NET_ADMIN
+              - NET_BIND_SERVICE
+            {{- end}}
           resources:
             requests:
               cpu: 250m
@@ -302,14 +335,27 @@ spec:
             - mountPath: /run/xtables.lock
               name: xtables-lock
               readOnly: false
+            {{- if not .Values.config.nonPrivileged }}
             - mountPath: /var/run/calico
               name: var-run-calico
               readOnly: false
             - mountPath: /var/lib/calico
               name: var-lib-calico
               readOnly: false
+            {{- else }}
+            - mountPath: /var/run
+              name: var-run
+              readOnly: false
+            - mountPath: /var/lib
+              name: var-lib
+              readOnly: false
+            - mountPath: /var/log
+              name: var-log
+              readOnly: false
+            {{- end}}
             - name: policysync
               mountPath: /var/run/nodeagent
+            {{- if .Values.config.felix.bpf.enabled }}
             # For eBPF mode, we need to be able to mount the BPF filesystem at /sys/fs/bpf so we mount in the
             # parent directory.
             {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
@@ -319,6 +365,7 @@ spec:
             - name: sysfs
               mountPath: /sys/fs/
             {{- end }}
+            {{- end}}
             - name: cni-log-dir
               mountPath: /var/log/calico/cni
               readOnly: true
@@ -327,16 +374,29 @@ spec:
         - name: lib-modules
           hostPath:
             path: /lib/modules
+        {{- if not .Values.config.nonPrivileged }}
         - name: var-run-calico
           hostPath:
             path: /var/run/calico
         - name: var-lib-calico
           hostPath:
             path: /var/lib/calico
+        {{- else }}
+        - name: var-run
+          hostPath:
+            path: /var/run
+        - name: var-lib
+          hostPath:
+            path: /var/lib
+        - name: var-log
+          hostPath:
+            path: /var/log
+        {{- end}}
         - name: xtables-lock
           hostPath:
             path: /run/xtables.lock
             type: FileOrCreate
+        {{- if .Values.config.felix.bpf.enabled }}
         {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
         - name: sys-fs
         {{- else }}
@@ -354,6 +414,7 @@ spec:
         - name: nodeproc
           hostPath:
             path: /proc
+        {{- end }}
         {{- end }}
         # Used to install CNI.
         - name: cni-bin-dir

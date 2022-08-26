@@ -16,6 +16,7 @@ package main
 
 import (
 	"github.com/gardener/gardener-extension-networking-calico/cmd/gardener-extension-networking-calico/app"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 
 	"github.com/gardener/gardener/pkg/logger"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -24,6 +25,8 @@ import (
 
 func main() {
 	runtimelog.SetLogger(logger.ZapLogger(false))
+	features.RegisterFeatureGates()
+
 	cmd := app.NewControllerManagerCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {
