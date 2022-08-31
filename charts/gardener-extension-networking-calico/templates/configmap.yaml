@@ -17,3 +17,7 @@ data:
       qps: {{ required ".Values.config.clientConnection.qps is required" .Values.config.clientConnection.qps }}
       burst: {{ required ".Values.config.clientConnection.burst is required" .Values.config.clientConnection.burst }}
 {{- end }}
+{{- if .Values.config.featureGates }}
+    featureGates:
+{{ toYaml .Values.config.featureGates | indent 6 }}
+{{- end }}

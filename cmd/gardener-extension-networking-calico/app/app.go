@@ -32,6 +32,7 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	calicocmd "github.com/gardener/gardener-extension-networking-calico/pkg/cmd"
 	calicocontroller "github.com/gardener/gardener-extension-networking-calico/pkg/controller"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/healthcheck"
 )
 
@@ -79,6 +80,11 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			if err := aggOption.Complete(); err != nil {
 				return fmt.Errorf("error completing options: %w", err)
 			}
+
+			if err := features.FeatureGate.SetFromMap(configFileOpts.Completed().Config.FeatureGates); err != nil {
+				return fmt.Errorf("error setting feature gates: %w", err)
+			}
+
 			util.ApplyClientConnectionConfigurationToRESTConfig(configFileOpts.Completed().Config.ClientConnection, restOpts.Completed().Config)
 
 			completedMgrOpts := mgrOpts.Completed().Options()

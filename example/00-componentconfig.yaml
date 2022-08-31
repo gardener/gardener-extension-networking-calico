@@ -6,5 +6,6 @@ clientConnection:
   contentType: application/json
   qps: 100
   burst: 130
-#healthCheckConfig:
-#  syncPeriod: 30s
+# healthCheckConfig:
+#   syncPeriod: 30s
+featureGates: {}
