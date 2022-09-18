@@ -8,9 +8,9 @@ This document explains configuration options supported by the networking-calico 
 
 ##### Motivation
 
-Running containers in privileged mode is not recommended as privileged containers run with all [linux capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html) enabled and can access the host's resources. Running containers in privileged mode opens number of security thread such as breakout to underlyining host OS.
+Running containers in privileged mode is not recommended as privileged containers run with all [linux capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html) enabled and can access the host's resources. Running containers in privileged mode opens number of security threats such as breakout to underlying host OS.
 
-##### Support for non-provileged and non-root mode
+##### Support for non-privileged and non-root mode
 
 The Calico project has a preliminary support for running the calico-node component in non-privileged mode (see [this guide](https://projectcalico.docs.tigera.io/security/non-privileged)). Similar to [Tigera Calico operator](https://github.com/tigera/operator) the networking-calico extension can also run calico-node in non-privileged and non-root mode. This feature is controller via feature gate named `NonPrivilegedCalicoNode`. The feature gates are configured in the [ControllerConfiguration](../example/00-componentconfig.yaml) of networking-calico. The corresponding ControllerDeployment configuration that enables the `NonPrivilegedCalicoNode` would look like:
 
