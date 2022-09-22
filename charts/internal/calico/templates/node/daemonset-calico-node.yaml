@@ -156,7 +156,7 @@ spec:
         - mountPath: /var/log
           name: var-log
           readOnly: false
-      {{- end}}
+      {{- end }}
       containers:
         # Runs calico-node container on each Kubernetes node. This
         # container programs network policy and routes on each
@@ -289,7 +289,7 @@ spec:
               - NET_RAW
               - NET_ADMIN
               - NET_BIND_SERVICE
-            {{- end}}
+            {{- end }}
           resources:
             requests:
               cpu: 250m
@@ -352,7 +352,7 @@ spec:
             - mountPath: /var/log
               name: var-log
               readOnly: false
-            {{- end}}
+            {{- end }}
             - name: policysync
               mountPath: /var/run/nodeagent
             {{- if .Values.config.felix.bpf.enabled }}
@@ -365,7 +365,7 @@ spec:
             - name: sysfs
               mountPath: /sys/fs/
             {{- end }}
-            {{- end}}
+            {{- end }}
             - name: cni-log-dir
               mountPath: /var/log/calico/cni
               readOnly: true
@@ -391,7 +391,7 @@ spec:
         - name: var-log
           hostPath:
             path: /var/log
-        {{- end}}
+        {{- end }}
         - name: xtables-lock
           hostPath:
             path: /run/xtables.lock
