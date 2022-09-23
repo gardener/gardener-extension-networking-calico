@@ -9,6 +9,12 @@ metadata:
   name: gardener.kube-system.calico
 spec:
   privileged: true
+  {{- if .Values.config.nonPrivileged }}
+  allowedCapabilities:
+  - NET_RAW
+  - NET_ADMIN
+  - NET_BIND_SERVICE
+  {{- end }}
   volumes:
   - hostPath
   - secret
@@ -21,8 +27,14 @@ spec:
   {{- end }}
   allowedHostPaths:
   - pathPrefix: /lib/modules
+  {{- if not .Values.config.nonPrivileged }}
   - pathPrefix: /var/run/calico
   - pathPrefix: /var/lib/calico
+  {{- else }}
+  - pathPrefix: /var/run
+  - pathPrefix: /var/lib
+  - pathPrefix: /var/log
+  {{- end }}
   - pathPrefix: /opt/cni/bin
   - pathPrefix: /etc/cni/net.d
   - pathPrefix: /run/xtables.lock
