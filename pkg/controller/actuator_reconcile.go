@@ -34,6 +34,7 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -111,6 +112,15 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			networkConfig.IPv4 = &calicov1alpha1.IPv4{}
 		}
 		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
+	}
+
+	if networkConfig.Overlay != nil && networkConfig.Overlay.Enabled {
+		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.StringPtr(string(calicov1alpha1.Always)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.StringPtr(string(calicov1alpha1.Bird)))
+	}
+	if networkConfig.Overlay != nil && !networkConfig.Overlay.Enabled {
+		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.StringPtr(string(calicov1alpha1.Never)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.StringPtr(string(calicov1alpha1.None)))
 	}
 
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {

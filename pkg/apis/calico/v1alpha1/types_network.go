@@ -85,6 +85,9 @@ type NetworkConfig struct {
 	// EbpfDataplane enables the eBPF dataplane mode.
 	// +optional
 	EbpfDataplane *EbpfDataplane `json:"ebpfDataplane,omitempty"`
+	// Overlay enables the network overlay
+	// +optional
+	Overlay *Overlay `json:"overlay,omitempty"`
 
 	// DEPRECATED.
 	// IPIP is the IPIP Mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
@@ -127,5 +130,10 @@ type Typha struct {
 
 type EbpfDataplane struct {
 	// Enabled enables the eBPF dataplane mode.
+	Enabled bool `json:"enabled"`
+}
+
+type Overlay struct {
+	// Enabled enables the network overlay.
 	Enabled bool `json:"enabled"`
 }

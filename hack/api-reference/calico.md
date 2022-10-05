@@ -126,6 +126,20 @@ EbpfDataplane
 </tr>
 <tr>
 <td>
+<code>overlay</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Overlay">
+Overlay
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Overlay enables the network overlay</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>ipip</code></br>
 <em>
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv4PoolMode">
@@ -340,6 +354,35 @@ string
 </tr>
 </thead>
 <tbody>
+</tbody>
+</table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Overlay">Overlay
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>Enabled enables the network overlay.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Typha">Typha
