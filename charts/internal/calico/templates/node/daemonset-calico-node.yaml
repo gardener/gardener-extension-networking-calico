@@ -175,11 +175,7 @@ spec:
             protocol: TCP
             {{- end}}
           env:
-            {{- if eq .Values.config.ipam.type "host-local"}}
-            - name: USE_POD_CIDR
-              value: "true"
-            {{- end }}
-            {{- if .Values.config.monitoring.enabled }}
+             {{- if .Values.config.monitoring.enabled }}
             - name: FELIX_PROMETHEUSMETRICSENABLED
               value: "{{ .Values.config.monitoring.enabled }}"
             - name: FELIX_PROMETHEUSMETRICSPORT
@@ -212,13 +208,37 @@ spec:
             - name: CLUSTER_TYPE
               value: "k8s,bgp"
             # Auto-detect the BGP IP address.
-            {{- if .Values.config.ipv4.autoDetectionMethod }}
+            {{- if ne .Values.config.ipv4.autoDetectionMethod "none" }}
             # On metal the ip is bound to the lo interface (routing to the host).
             - name: IP_AUTODETECTION_METHOD
               value: "{{ .Values.config.ipv4.autoDetectionMethod }}"
-            {{- end }}
             - name: IP
               value: "autodetect"
+            - name: CALICO_IPV4POOL_CIDR
+              value: "{{ .Values.global.podCIDR }}"
+            {{- end }}
+            {{- if ne .Values.config.ipv6.autoDetectionMethod "none" }}
+            # On metal the ip is bound to the lo interface (routing to the host).
+            - name: IP6_AUTODETECTION_METHOD
+              value: "{{ .Values.config.ipv6.autoDetectionMethod }}"
+            - name: IP6
+              value: "autodetect"
+            - name: IP
+              value: "none"
+            - name: CALICO_ROUTER_ID
+              value: "hash"
+            - name: FELIX_IPV6SUPPORT
+              value: "true"
+            - name: CALICO_IPV6POOL_CIDR
+              value: "{{ .Values.global.podCIDR }}"
+            - name: CALICO_IPV6POOL_NAT_OUTGOING
+              value: "true"
+            {{- end }}
+            {{- if eq .Values.config.ipv6.autoDetectionMethod "none" }}
+            # Disable IPv6 on Kubernetes.
+            - name: FELIX_IPV6SUPPORT
+              value: "false"
+            {{- end }}
             # Enable or Disable VXLAN on the default IP pool.
             - name: CALICO_IPV4POOL_VXLAN
               value: "Never"
@@ -245,20 +265,12 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: veth_mtu
-            # The default IPv4 pool to create on startup if none exists. Pod IPs will be
-            # chosen from this range. Changing this value after installation will have
-            # no effect. This should fall within `--cluster-cidr`.
-            - name: CALICO_IPV4POOL_CIDR
-              value: "{{ .Values.global.podCIDR }}"
             # Disable file logging so `kubectl logs` works.
             - name: CALICO_DISABLE_FILE_LOGGING
               value: "true"
             # Set Felix endpoint to host default action to ACCEPT.
             - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
               value: "ACCEPT"
-            # Disable IPv6 on Kubernetes.
-            - name: FELIX_IPV6SUPPORT
-              value: "false"
             - name: FELIX_IPINIPENABLED
               value: "{{ .Values.config.felix.ipinip.enabled }}"
             - name: "CALICO_IPV4POOL_{{ .Values.config.ipv4.pool | upper }}"

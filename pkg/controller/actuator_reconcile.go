@@ -111,6 +111,16 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			networkConfig.IPv4 = &calicov1alpha1.IPv4{}
 		}
 		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
+
+		if networkConfig.IPv6 == nil {
+			autoNone := "none"
+			autoKubeInt := "kubernetes-internal-ip"
+			networkConfig.IPv6 = &calicov1alpha1.IPv6{}
+			networkConfig.IPv6.AutoDetectionMethod = &autoKubeInt
+
+			// Set IPv4 autodetect to none when using IPv6
+			networkConfig.IPv4.AutoDetectionMethod = &autoNone
+		}
 	}
 
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {

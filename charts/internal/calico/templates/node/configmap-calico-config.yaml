@@ -34,14 +34,11 @@ data:
           "datastore_type": "kubernetes",
           "nodename": "__KUBERNETES_NODE_NAME__",
           "mtu": __CNI_MTU__,
-        {{- if .Values.config.ipam.subnet }}
+        {{- if ne .Values.config.ipv6.autoDetectionMethod "none" }}
           "ipam": {
-            "type": "{{ .Values.config.ipam.type }}",
-            "subnet": "{{ .Values.config.ipam.subnet }}"
-          },
-        {{- else }}
-          "ipam": {
-            "type": "{{ .Values.config.ipam.type }}",
+            "type": "calico-ipam",
+            "assign_ipv4": "false",
+            "assign_ipv6": "true"
           },
         {{- end }}
           "policy": {

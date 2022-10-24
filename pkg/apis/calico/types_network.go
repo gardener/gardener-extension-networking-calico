@@ -27,6 +27,7 @@ const (
 )
 
 type IPv4PoolMode string
+type IPv6PoolMode string
 
 const (
 	Always      IPv4PoolMode = "Always"
@@ -38,6 +39,7 @@ const (
 type CIDR string
 
 type IPv4Pool string
+type IPv6Pool string
 
 const (
 	PoolIPIP  IPv4Pool = "ipip"
@@ -58,6 +60,20 @@ type IPv4 struct {
 	AutoDetectionMethod *string
 }
 
+// IPv6 contains configuration for calico ipv4 specific settings
+type IPv6 struct {
+	// Pool configures the type of ip pool for the tunnel interface.
+	// https://docs.projectcalico.org/v3.8/reference/node/configuration#environment-variables
+	Pool *IPv6Pool
+	// Mode is the mode for the IPv6 Pool (e.g. Always, Never, CrossSubnet)
+	// ipip pools accept all pool mode values values
+	// vxlan pools accept only Always and Never (unchecked)
+	Mode *IPv6PoolMode
+	// AutoDetectionMethod is the method to use to autodetect the IPv6 address for this host. This is only used when the IPv6 address is being autodetected.
+	// https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods
+	AutoDetectionMethod *string
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NetworkConfig configuration for the calico networking plugin
@@ -69,6 +85,8 @@ type NetworkConfig struct {
 	IPAM *IPAM
 	// IPv4 contains configuration for calico ipv4 specific settings
 	IPv4 *IPv4
+	// IPv6 contains configuration for calico ipv4 specific settings
+	IPv6 *IPv6
 	// Typha settings to use for calico-typha component
 	Typha *Typha
 	// VethMTU settings used to configure calico port mtu

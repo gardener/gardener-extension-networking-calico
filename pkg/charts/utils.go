@@ -37,6 +37,7 @@ type calicoConfig struct {
 	Backend         calicov1alpha1.Backend `json:"backend"`
 	Felix           felix                  `json:"felix"`
 	IPv4            ipv4                   `json:"ipv4"`
+	IPv6            ipv6                   `json:"ipv6"`
 	IPAM            ipam                   `json:"ipam"`
 	Typha           typha                  `json:"typha"`
 	KubeControllers kubeControllers        `json:"kubeControllers"`
@@ -66,6 +67,12 @@ type felixBPFKubeProxyIptablesCleanup struct {
 type ipv4 struct {
 	Pool                calicov1alpha1.IPv4Pool     `json:"pool"`
 	Mode                calicov1alpha1.IPv4PoolMode `json:"mode"`
+	AutoDetectionMethod *string                     `json:"autoDetectionMethod"`
+}
+
+type ipv6 struct {
+	Pool                calicov1alpha1.IPv6Pool     `json:"pool"`
+	Mode                calicov1alpha1.IPv6PoolMode `json:"mode"`
 	AutoDetectionMethod *string                     `json:"autoDetectionMethod"`
 }
 
@@ -260,6 +267,18 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 		}
 		if config.IPAutoDetectionMethod != nil {
 			c.IPv4.AutoDetectionMethod = config.IPAutoDetectionMethod
+		}
+	}
+
+	if config.IPv6 != nil {
+		c.IPv6.Mode = calicov1alpha1.Neverv6
+		autoNone := "none"
+		c.IPv4.AutoDetectionMethod = &autoNone
+		if config.IPv6.AutoDetectionMethod != nil {
+			c.IPv6.AutoDetectionMethod = config.IPv6.AutoDetectionMethod
+		} else {
+			defaultAuto := "kubernetes-internal-ip"
+			c.IPv6.AutoDetectionMethod = &defaultAuto
 		}
 	}
 

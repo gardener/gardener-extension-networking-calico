@@ -27,17 +27,21 @@ const (
 )
 
 type IPv4PoolMode string
+type IPv6PoolMode string
 
 const (
 	Always      IPv4PoolMode = "Always"
 	Never       IPv4PoolMode = "Never"
 	CrossSubnet IPv4PoolMode = "CrossSubnet"
 	Off         IPv4PoolMode = "Off"
+
+	Neverv6 IPv6PoolMode = "Never"
 )
 
 type CIDR string
 
 type IPv4Pool string
+type IPv6Pool string
 
 const (
 	PoolIPIP  IPv4Pool = "ipip"
@@ -61,6 +65,23 @@ type IPv4 struct {
 	AutoDetectionMethod *string `json:"autoDetectionMethod,omitempty"`
 }
 
+// IPv6 contains configuration for calico ipv4 specific settings
+type IPv6 struct {
+	// Pool configures the type of ip pool for the tunnel interface
+	// https://docs.projectcalico.org/v3.8/reference/node/configuration#environment-variables
+	// +optional
+	Pool *IPv6Pool `json:"pool,omitempty"`
+	// Mode is the mode for the IPv6 Pool (e.g. Always, Never, CrossSubnet)
+	// ipip pools accept all pool mode values values
+	// vxlan pools accept only Always and Never (unchecked)
+	// +optional
+	Mode *IPv6PoolMode `json:"mode,omitempty"`
+	// AutoDetectionMethod is the method to use to autodetect the IPv6 address for this host. This is only used when the IPv6 address is being autodetected.
+	// https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods
+	// +optional
+	AutoDetectionMethod *string `json:"autoDetectionMethod,omitempty"`
+}
+
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -76,6 +97,9 @@ type NetworkConfig struct {
 	// IPv4 contains configuration for calico ipv4 specific settings
 	// +optional
 	IPv4 *IPv4 `json:"ipv4,omitempty"`
+	// IPv6 contains configuration for calico ipv6 specific settings
+	// +optional
+	IPv6 *IPv6 `json:"ipv6,omitempty"`
 	// Typha settings to use for calico-typha component
 	// +optional
 	Typha *Typha `json:"typha,omitempty"`

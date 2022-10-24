@@ -18,6 +18,10 @@ config:
     pool: ipip # or vxlan
     mode: "Always"
     autoDetectionMethod: "first-found"
+  ipv6:
+    pool: ipip # or vxlan
+    mode: "Never"
+    autoDetectionMethod: "none"
   felix:
     ipinip:
       enabled: "true"

@@ -86,6 +86,20 @@ IPv4
 </tr>
 <tr>
 <td>
+<code>ipv6</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv6">
+IPv6
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>IPv6 contains configuration for calico ipv6 specific settings</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>typha</code></br>
 <em>
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Typha">
@@ -324,6 +338,85 @@ string
 (<em>Appears on:</em>
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>, 
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv4">IPv4</a>)
+</p>
+<p>
+</p>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.IPv6">IPv6
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+<p>IPv6 contains configuration for calico ipv4 specific settings</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>pool</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv6Pool">
+IPv6Pool
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Pool configures the type of ip pool for the tunnel interface
+<a href="https://docs.projectcalico.org/v3.8/reference/node/configuration#environment-variables">https://docs.projectcalico.org/v3.8/reference/node/configuration#environment-variables</a></p>
+</td>
+</tr>
+<tr>
+<td>
+<code>mode</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv6PoolMode">
+IPv6PoolMode
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Mode is the mode for the IPv6 Pool (e.g. Always, Never, CrossSubnet)
+ipip pools accept all pool mode values values
+vxlan pools accept only Always and Never (unchecked)</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>autoDetectionMethod</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>AutoDetectionMethod is the method to use to autodetect the IPv6 address for this host. This is only used when the IPv6 address is being autodetected.
+<a href="https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods">https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.IPv6Pool">IPv6Pool
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv6">IPv6</a>)
+</p>
+<p>
+</p>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.IPv6PoolMode">IPv6PoolMode
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv6">IPv6</a>)
 </p>
 <p>
 </p>
