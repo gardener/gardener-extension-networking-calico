@@ -84,4 +84,6 @@ spec:
                 - -r
             periodSeconds: 10
             timeoutSeconds: 10
+          securityContext:
+            readOnlyRootFilesystem: false
 {{- end }}
