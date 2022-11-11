@@ -1,19 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gardener-extension-networking-calico
+  name: {{ include "name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: gardener-extension-networking-calico
-    helm.sh/chart: gardener-extension-networking-calico
-    app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "commonObjectLabels" . | indent 4 }}
 spec:
   revisionHistoryLimit: 0
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: gardener-extension-networking-calico
-      app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "labels" . | indent 6 }}
   template:
     metadata:
       annotations:
@@ -22,8 +19,7 @@ spec:
         {{- end }}
         checksum/configmap-{{ include "name" . }}-config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
-        app.kubernetes.io/name: gardener-extension-networking-calico
-        app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "labels" . | indent 8 }}
     spec:
       priorityClassName: gardener-system-900
       serviceAccountName: gardener-extension-networking-calico
