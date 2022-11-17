@@ -83,6 +83,7 @@ spec:
         {{- end }}
       containers:
       - image: {{ index .Values.images "calico-typha" }}
+        imagePullPolicy: IfNotPresent
         name: calico-typha
         ports:
         - containerPort: 5473
