@@ -9,13 +9,13 @@ Starting versions:
 The default configuration of shoot clusters is without overlay network.
 
 ## Understanding overlay network
-The Overlay networking permits the routing of packets between multiples pods located on multiple nodes, even is the pod and the node network are not the same.
+The Overlay networking permits the routing of packets between multiples pods located on multiple nodes, even if the pod and the node network are not the same.
 
 This is done through the encapsulation of pod packets in the node network so that the routing can be done as usual. We use `ipip` encapsulation with calico in case the overlay network is enabled. This (simply put) sends an IP packet as workload in another IP packet.
 
 ![](./assets/Overlay-Network.drawio.png)
 
-In order to simplify the troubleshooting of problems and reducing the latency of packets travelling between nodes, the no overlay network is enabled by default for extension default as stated above for all new clusters.
+In order to simplify the troubleshooting of problems and reducing the latency of packets travelling between nodes, the overlay network is disabled by default for extension default as stated above for all new clusters.
 
 ![](./assets/No-Overlay-Network.drawio.png)
 
@@ -27,9 +27,9 @@ This has the advantage of:
 - More direct and simpler setup, which makes the problems much easier to troubleshoot.
 
 ## Enabling the overlay network
-In certain cases, the overlay network might be preferable if, for example, the customer wants to create multiple cluster in the same VPC. 
+In certain cases, the overlay network might be preferable if, for example, the customer wants to create multiple clusters in the same VPC without ensuring there's no overlap between the pod networks. 
 
-**In that case (multiple shoot in the same VPC), if the pod's network is not configured properly, there is a very strong chance that some pod IP address might overlay, which is going to cause all sorts of funny problems.** So, if someone asks you how to avoid that, they need to make sure that the podCIDR for each shoot **do not overlap with each other**.
+**In that case (multiple shoot in the same VPC), if the pod's network is not configured properly, there is a very strong chance that some pod IP address might overlap, which is going to cause all sorts of funny problems.** So, if someone asks you how to avoid that, they need to make sure that the podCIDR for each shoot **do not overlap with each other**.
 
 To enable the overlay network, add the following to the shoot's YAML:
 ```yaml
@@ -44,9 +44,7 @@ spec:
     providerConfig:
       apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
       kind: NetworkConfig
-      backend: bird
-      ipv4:
-        mode: Always
+      overlay: true
   ...
 ```
 
@@ -64,15 +62,13 @@ spec:
     providerConfig:
       apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
       kind: NetworkConfig
-      backend: None
-      ipv4:
-        mode: Never
+      overlay: false
   ...
 ```
 
 ## How to know if a cluster is using overlay or not?
 You can look at any of the old nodes. If there are tunl0 devices at least at some point in time the overlay network was used.
-Another way is to look into the Network object in the shoot namespace on the seed (see example above).
+Another way is to look into the Network object in the shoot's control plane namespace on the seed (see example above).
 
 ## Do we have some documentation somewhere on how to do the migration?
 No, not yet. The migration from no overlay to overlay is fairly simply by just setting the configuration as specified above. The other way is more complicated as the Network configuration needs to be changed AND the local routes need to be cleaned.
