@@ -2,7 +2,7 @@
 apiVersion: "autoscaling.k8s.io/v1"
 kind: VerticalPodAutoscaler
 metadata:
-  name: gardener-extension-networking-calico-vpa
+  name: {{ include "name" . }}-vpa
   namespace: {{ .Release.Namespace }}
 spec:
   {{- if .Values.vpa.resourcePolicy }}

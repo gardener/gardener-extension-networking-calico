@@ -4,6 +4,7 @@ image:
   pullPolicy: IfNotPresent
 
 resources: {}
+
 vpa:
   enabled: true
   resourcePolicy:
