@@ -45,7 +45,8 @@ spec:
     providerConfig:
       apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
       kind: NetworkConfig
-      overlay: true
+      overlay:
+        enabled: true
   ...
 ```
 
@@ -63,7 +64,8 @@ spec:
     providerConfig:
       apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
       kind: NetworkConfig
-      overlay: false
+      overlay:
+        enabled: false
   ...
 ```
 
