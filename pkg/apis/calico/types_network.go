@@ -75,6 +75,8 @@ type NetworkConfig struct {
 	VethMTU *string
 	// EbpfDataplane enables the eBPF dataplane mode.
 	EbpfDataplane *EbpfDataplane
+	// Overlay enables the network overlay
+	Overlay *Overlay
 
 	// DEPRECATED.
 	// IPIP is the IPIP Mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
@@ -114,5 +116,10 @@ type Typha struct {
 
 type EbpfDataplane struct {
 	// Enabled enables the eBPF dataplane mode.
+	Enabled bool
+}
+
+type Overlay struct {
+	// Enabled enables the network overlay.
 	Enabled bool
 }

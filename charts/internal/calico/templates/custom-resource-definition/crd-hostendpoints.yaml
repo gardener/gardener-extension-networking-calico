@@ -13,6 +13,7 @@ spec:
     plural: hostendpoints
     singular: hostendpoint
   scope: Cluster
+  preserveUnknownFields: false
   versions:
   - name: v1
     schema:

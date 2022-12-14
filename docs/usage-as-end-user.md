@@ -28,7 +28,7 @@ backend: bird
 To disable kube-proxy set the enabled field to false in the shoot manifest.
 
 ```yaml
-apiVersion: core.gardener.cloud/v1alpha1
+apiVersion: core.gardener.cloud/v1beta1
 kind: Shoot
 metadata:
   name: ebpf-shoot
@@ -62,7 +62,7 @@ typha:
 Please find below an example `Shoot` manifest with calico networking configratations:
 
 ```yaml
-apiVersion: core.gardener.cloud/v1alpha1
+apiVersion: core.gardener.cloud/v1beta1
 kind: Shoot
 metadata:
   name: johndoe-azure
@@ -109,14 +109,14 @@ spec:
       typha:
         enabled: false
   kubernetes:
-    version: 1.16.1
+    version: 1.24.3
   maintenance:
     autoUpdate:
       kubernetesVersion: true
       machineImageVersion: true
   addons:
-    kubernetes-dashboard:
+    kubernetesDashboard:
       enabled: true
-    nginx-ingress:
+    nginxIngress:
       enabled: true
 ```

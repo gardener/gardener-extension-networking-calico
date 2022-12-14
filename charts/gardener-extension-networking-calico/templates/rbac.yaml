@@ -2,11 +2,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: gardener-extension-networking-calico
+  name: {{ include "name" . }}
   labels:
-    app.kubernetes.io/name: gardener-extension-networking-calico
-    helm.sh/chart: gardener-extension-networking-calico
-    app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "commonObjectLabels" . | indent 4 }}
 rules:
 - apiGroups:
   - extensions.gardener.cloud
@@ -34,15 +32,17 @@ rules:
   - leases
   verbs:
   - create
+  - list 
+  - watch 
 - apiGroups:
   - coordination.k8s.io
   resources:
   - leases
   resourceNames:
   - networking-calico-leader-election
+  - gardener-extension-heartbeat 
   verbs:
   - get
-  - watch
   - update
 - apiGroups:
   - resources.gardener.cloud

@@ -69,7 +69,7 @@ type NetworkConfig struct {
 	metav1.TypeMeta `json:",inline"`
 	// Backend defines whether a backend should be used or not (e.g., bird or none)
 	// +optional
-	Backend *Backend `json:"backend"`
+	Backend *Backend `json:"backend,omitempty"`
 	// IPAM to use for the Calico Plugin (e.g., host-local or Calico)
 	// +optional
 	IPAM *IPAM `json:"ipam,omitempty"`
@@ -85,6 +85,9 @@ type NetworkConfig struct {
 	// EbpfDataplane enables the eBPF dataplane mode.
 	// +optional
 	EbpfDataplane *EbpfDataplane `json:"ebpfDataplane,omitempty"`
+	// Overlay enables the network overlay
+	// +optional
+	Overlay *Overlay `json:"overlay,omitempty"`
 
 	// DEPRECATED.
 	// IPIP is the IPIP Mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
@@ -127,5 +130,10 @@ type Typha struct {
 
 type EbpfDataplane struct {
 	// Enabled enables the eBPF dataplane mode.
+	Enabled bool `json:"enabled"`
+}
+
+type Overlay struct {
+	// Enabled enables the network overlay.
 	Enabled bool `json:"enabled"`
 }
