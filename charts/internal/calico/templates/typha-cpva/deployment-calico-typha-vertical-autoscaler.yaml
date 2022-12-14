@@ -37,10 +37,8 @@ spec:
         supplementalGroups:
         - 1
         fsGroup: 1
-        {{- if semverCompare ">= 1.19" .Capabilities.KubeVersion.GitVersion }}
         seccompProfile:
           type: RuntimeDefault
-        {{- end }}
       containers:
         - image:  {{ index .Values.images "calico-cpva" }}
           name: autoscaler

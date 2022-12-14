@@ -42,7 +42,7 @@ var (
 
 var _ = Describe("Chart package test", func() {
 	var (
-		kubernetesVersion                               = "1.18.0"
+		kubernetesVersion                               = "1.20.0"
 		podCIDR                                         = calicov1alpha1.CIDR("12.0.0.0/8")
 		crossSubnet                                     = calicov1alpha1.CrossSubnet
 		always                                          = calicov1alpha1.Always
