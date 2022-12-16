@@ -36,10 +36,8 @@ spec:
         fsGroup: 65532
         runAsUser: 65532
         runAsNonRoot: true
-        {{- if semverCompare ">= 1.19" .Capabilities.KubeVersion.GitVersion }}
         seccompProfile:
           type: RuntimeDefault
-        {{- end }}
       containers:
         - image: {{ index .Values.images "calico-cpa" }}
           name: autoscaler

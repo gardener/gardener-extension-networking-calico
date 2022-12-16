@@ -45,11 +45,9 @@ spec:
         - effect: NoExecute
           operator: Exists
       serviceAccountName: calico-node
-      {{- if semverCompare ">= 1.19" .Capabilities.KubeVersion.GitVersion }}
       securityContext:
         seccompProfile:
           type: RuntimeDefault
-      {{- end }}
       # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
       # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
       terminationGracePeriodSeconds: 0
