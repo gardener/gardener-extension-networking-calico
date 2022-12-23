@@ -53,6 +53,13 @@ spec:
       terminationGracePeriodSeconds: 0
       priorityClassName: system-node-critical
       initContainers:
+      {{- if eq .Values.global.overlayEnabled "false" }}
+      - name: cleanup-routes
+        image: {{ index .Values.images "calico-node" }}
+        command: ["sh", "-c", "IFS=$'\n';for i in $(ip route | grep 'proto bird');do unset IFS;ip route del $i;done"]
+        securityContext:
+          privileged: true
+      {{- end }}
       # This container installs the CNI binaries
       # and CNI network config file on each node.
       - name: install-cni
@@ -159,6 +166,27 @@ spec:
         # Runs calico-node container on each Kubernetes node. This
         # container programs network policy and routes on each
         # host.
+        # Masquerade traffic to upstream DNS server
+        {{- if eq .Values.global.snatToUpstreamDNSEnabled "true" }}
+        - name: add-snat-rule-to-upstream-dns
+          image: {{ index .Values.images "calico-node" }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          env:
+          - name: POD_CIDR
+            value: {{ .Values.global.podCIDR }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 50Mi
+          command:
+          - /bin/sh
+          - -c
+          - "while true; do sleep 15; for i in $(cat /etc/resolv.conf | grep nameserver | sed -n -e 's/^.*nameserver //p' ); do iptables -t nat -C POSTROUTING -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment \"calico masquerade non-cluster\" -j MASQUERADE 2>/dev/null || iptables -t nat -I POSTROUTING 1 -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment \"calico masquerade non-cluster\" -j MASQUERADE; done; sleep 45; done"
+        {{- end }}
         - name: calico-node
           image: {{ index .Values.images "calico-node" }}
           envFrom:
@@ -272,6 +300,10 @@ spec:
             # Limit NAT port range: https://github.com/projectcalico/felix/pull/1838
             - name: FELIX_NATPORTRANGE
               value: "32768:65535"
+            {{- if eq .Values.global.snatToUpstreamDNSEnabled "true" }}
+            - name: FELIX_CHAININSERTMODE
+              value: "Append"
+            {{- end }}
             # Enable automatic management of kubeconfig used by CNI (required due to limited lifetime of service account tokens, default in starting with kubernetes v1.21, BoundServiceAccountTokenVolume feature)
             - name: CALICO_MANAGE_CNI
               value: "true"

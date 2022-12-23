@@ -150,6 +150,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		kubeProxyEnabled,
 		gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
 		features.FeatureGate.Enabled(features.NonPrivilegedCalicoNode),
+		*cluster.Shoot.Spec.Networking.Nodes,
 	)
 	if err != nil {
 		return err
