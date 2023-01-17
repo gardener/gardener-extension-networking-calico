@@ -24,7 +24,6 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -55,19 +54,6 @@ func calicoSecret(cl client.Client, calicoConfig []byte, namespace string) (*bui
 	return builder.NewSecret(cl).
 		WithKeyValues(map[string][]byte{charts.CalicoConfigKey: calicoConfig}).
 		WithNamespacedName(namespace, CalicoConfigSecretName), withLocalObjectRefs(CalicoConfigSecretName)
-}
-
-func activateSystemComponentsNodeSelector(shoot *gardencorev1beta1.Shoot) bool {
-	var atLeastOneWorkerPoolHasSystemComponents bool
-
-	for _, worker := range shoot.Spec.Provider.Workers {
-		if gardencorev1beta1helper.SystemComponentsAllowed(&worker) {
-			atLeastOneWorkerPoolHasSystemComponents = true
-			break
-		}
-	}
-
-	return atLeastOneWorkerPoolHasSystemComponents
 }
 
 func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
@@ -144,7 +130,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		chartRenderer,
 		network,
 		networkConfig,
-		activateSystemComponentsNodeSelector(cluster.Shoot),
 		cluster.Shoot.Spec.Kubernetes.Version,
 		gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
 		kubeProxyEnabled,

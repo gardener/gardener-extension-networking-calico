@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"strconv"
 
-	gardenv1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/imagevector"
@@ -148,7 +146,6 @@ func (c *calicoConfig) toMap() (map[string]interface{}, error) {
 func ComputeCalicoChartValues(
 	network *extensionsv1alpha1.Network,
 	config *calicov1alpha1.NetworkConfig,
-	workerSystemComponentsActivated bool,
 	kubernetesVersion string,
 	wantsVPA bool,
 	kubeProxyEnabled bool,
@@ -183,11 +180,6 @@ func ComputeCalicoChartValues(
 		},
 		"config":      calicoConfig,
 		"pspDisabled": isPSPDisabled,
-	}
-	if workerSystemComponentsActivated {
-		calicoChartValues["nodeSelector"] = map[string]string{
-			gardenv1beta1constants.LabelWorkerPoolSystemComponents: "true",
-		}
 	}
 
 	if config != nil && config.Overlay != nil {

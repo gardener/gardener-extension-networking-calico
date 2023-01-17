@@ -22,10 +22,6 @@ spec:
         networking.gardener.cloud/to-apiserver: allowed
         networking.gardener.cloud/to-dns: allowed
     spec:
-      {{- if .Values.nodeSelector }}
-      nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
-      {{- end }}
       priorityClassName: system-cluster-critical
       securityContext:
         runAsNonRoot: true
