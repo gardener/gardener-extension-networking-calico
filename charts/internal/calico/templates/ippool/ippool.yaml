@@ -1,0 +1,42 @@
+{{- if eq .Values.global.overlayEnabled "true" }}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: default-ipv4-ippool
+spec:
+  allowedUses:
+  - Workload
+  - Tunnel
+  blockSize: 26
+  cidr: "{{ .Values.global.podCIDR }}"
+  ipipMode: Always
+  natOutgoing: true
+  nodeSelector: all()
+  vxlanMode: Never
+{{- end }}
+{{- if eq .Values.global.overlayEnabled "false" }}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: default-ipv4-ippool
+spec:
+  allowedUses:
+  - Workload
+  - Tunnel
+  blockSize: 26
+  cidr: "{{ .Values.global.podCIDR }}"
+  ipipMode: Never
+  natOutgoing: true
+  nodeSelector: all()
+  vxlanMode: Never
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: no-snat-for-node-cidr
+spec:
+  cidr: "{{ .Values.global.nodeCIDR }}"
+  disabled: true
+{{- end }}

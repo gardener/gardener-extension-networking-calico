@@ -17,6 +17,7 @@ package charts
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	gardenv1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 
@@ -153,6 +154,7 @@ func ComputeCalicoChartValues(
 	kubeProxyEnabled bool,
 	isPSPDisabled bool,
 	nonPrivileged bool,
+	nodeCIDR string,
 ) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(config, kubeProxyEnabled, nonPrivileged)
 	if err != nil {
@@ -176,7 +178,8 @@ func ComputeCalicoChartValues(
 			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 		},
 		"global": map[string]string{
-			"podCIDR": network.Spec.PodCIDR,
+			"podCIDR":  network.Spec.PodCIDR,
+			"nodeCIDR": nodeCIDR,
 		},
 		"config":      calicoConfig,
 		"pspDisabled": isPSPDisabled,
@@ -185,6 +188,14 @@ func ComputeCalicoChartValues(
 		calicoChartValues["nodeSelector"] = map[string]string{
 			gardenv1beta1constants.LabelWorkerPoolSystemComponents: "true",
 		}
+	}
+
+	if config != nil && config.Overlay != nil {
+		calicoChartValues["global"].(map[string]string)["overlayEnabled"] = strconv.FormatBool(config.Overlay.Enabled)
+	}
+
+	if config != nil && config.Overlay != nil && !config.Overlay.Enabled && config.SnatToUpstreamDNS != nil {
+		calicoChartValues["global"].(map[string]string)["snatToUpstreamDNSEnabled"] = strconv.FormatBool(config.SnatToUpstreamDNS.Enabled)
 	}
 
 	return calicoChartValues, nil
