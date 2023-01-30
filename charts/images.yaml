@@ -4,21 +4,57 @@ images:
   repository: docker.io/calico/node
   tag: v3.25.0
   targetVersion: ">= 1.21"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'high'
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
   repository: docker.io/calico/node
   tag: v3.22.2
   targetVersion: "< 1.21"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'high'
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
   repository: docker.io/calico/cni
   tag: v3.25.0
   targetVersion: ">= 1.21"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'private'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'high'
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
   repository: docker.io/calico/cni
   tag: v3.22.2
   targetVersion: "< 1.21"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'private'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'high'
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
   repository: docker.io/calico/typha
@@ -29,6 +65,14 @@ images:
     value:
       policy: skip
       comment: payload are two statically linked ELF-binaries and some configuration/license files - not suitable for binary-id-scanning
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'high'
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
   repository: docker.io/calico/typha
@@ -39,27 +83,80 @@ images:
     value:
       policy: skip
       comment: payload are two statically linked ELF-binaries and some configuration/license files - not suitable for binary-id-scanning
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'high'
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
   repository: docker.io/calico/kube-controllers
   tag: v3.25.0
   targetVersion: ">= 1.21"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
   repository: docker.io/calico/kube-controllers
   tag: v3.22.2
   targetVersion: "< 1.21"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: calico-podtodaemon-flex
   sourceRepository: github.com/projectcalico/pod2daemon
   repository: docker.io/calico/pod2daemon-flexvol
   tag: v3.22.2
   # targetVersion is removed to avoid a panic in imagevector.findImage function.
   # targetVersion: "< 1.21"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'private'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'high'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: calico-cpa
   sourceRepository: github.com/kubernetes-sigs/cluster-proportional-autoscaler
   repository: registry.k8s.io/cpa/cluster-proportional-autoscaler
   tag: 1.8.6
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: calico-cpva
   sourceRepository: github.com/kubernetes-sigs/cluster-proportional-vertical-autoscaler
   repository: registry.k8s.io/cpa/cpvpa
   tag: v0.8.4
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
