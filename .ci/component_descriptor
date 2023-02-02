@@ -1,17 +1,3 @@
 #!/usr/bin/env bash
 
-set -o errexit
-set -o nounset
-set -o pipefail
-
-SOURCE_PATH="$(dirname $0)/.."
-
-"$SOURCE_PATH"/vendor/github.com/gardener/gardener/hack/.ci/component_descriptor "$SOURCE_PATH"
-
-echo "> building component networking-calico"
-
-CA_PATH="$(mktemp -d)"
-mv "$COMPONENT_DESCRIPTOR_PATH" "$CA_PATH/component-descriptor.yaml"
-component-cli ca "${CA_PATH}" "${CTF_PATH}" \
-    -r  "$SOURCE_PATH"/.landscaper/resources.yaml \
-    VERSION=${EFFECTIVE_VERSION}
+"$(dirname $0)"/../vendor/github.com/gardener/gardener/hack/.ci/component_descriptor "$(dirname $0)"/..
