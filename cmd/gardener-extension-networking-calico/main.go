@@ -24,7 +24,7 @@ import (
 )
 
 func main() {
-	runtimelog.SetLogger(logger.ZapLogger(false))
+	runtimelog.SetLogger(logger.MustNewZapLogger(logger.InfoLevel, logger.FormatJSON))
 	features.RegisterFeatureGates()
 
 	cmd := app.NewControllerManagerCommand(signals.SetupSignalHandler())
