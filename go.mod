@@ -15,8 +15,8 @@ require (
 	k8s.io/api v0.25.2
 	k8s.io/apimachinery v0.25.2
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/code-generator v0.25.0
-	k8s.io/component-base v0.25.0
+	k8s.io/code-generator v0.25.2
+	k8s.io/component-base v0.25.2
 	k8s.io/helm v2.16.1+incompatible
 	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 	sigs.k8s.io/controller-runtime v0.13.0
@@ -137,4 +137,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace k8s.io/client-go => k8s.io/client-go v0.25.0
+replace k8s.io/client-go => k8s.io/client-go v0.25.2
