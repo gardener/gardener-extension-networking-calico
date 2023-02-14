@@ -23,7 +23,6 @@ VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
 LD_FLAGS                    := "-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(IMAGE_TAG)"
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
-EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
 
 #########################################
 # Tools                                 #
@@ -72,8 +71,8 @@ docker-login:
 
 .PHONY: docker-images
 docker-images:
-	@docker build -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -t $(IMAGE_PREFIX)/$(NAME):$(EFFECTIVE_VERSION)           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
-	@docker build -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):latest -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):$(EFFECTIVE_VERSION) -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(ADMISSION_NAME) .
+	@docker build -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
+	@docker build -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(ADMISSION_NAME) .
 
 #####################################################################
 # Rules for verification, formatting, linting, testing and cleaning #
@@ -127,21 +126,3 @@ verify: check format test
 
 .PHONY: verify-extended
 verify-extended: check-generate check format test-cov test-cov-clean
-
-#####################################################################
-# Rules for cnudie component descriptors dev setup #
-#####################################################################
-
-.PHONY: cnudie-docker-push
-cnudie-docker-push:
-	@echo "Pushing docker images for version $(EFFECTIVE_VERSION) to registry $(IMAGE_PREFIX)"
-	@if ! docker images $(IMAGE_PREFIX)/$(NAME) | awk '{ print $$2 }' | grep -q -F $(EFFECTIVE_VERSION); then echo "$(IMAGE_PREFIX)/$(NAME) version $(EFFECTIVE_VERSION) is not yet built. Please run 'make cnudie-docker-images'"; false; fi
-	@docker push $(IMAGE_PREFIX)/$(NAME):$(EFFECTIVE_VERSION)
-
-.PHONY: cnudie-cd-build-push
-cnudie-cd-build-push:
-	@EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) ./hack/generate-cd.sh
-
-.PHONY: cnudie-create-installation
-cnudie-create-installation:
-	@EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) ./hack/create-installation.sh
