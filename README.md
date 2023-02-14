@@ -58,7 +58,7 @@ Finally after successful reconciliation an output similar to the one below shoul
 
 ## Compatibility
 
-The following lists known compatibility issues of this extension controller with other Gardener components.
+The following table lists known compatibility issues of this extension controller with other Gardener components.
 
 | Calico Extension | Gardener | Action | Notes |
 | ------------- | -------- | ------ |  --- |
