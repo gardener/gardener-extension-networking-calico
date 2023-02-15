@@ -88,7 +88,7 @@ type NetworkConfig struct {
 	// Overlay enables the network overlay
 	// +optional
 	Overlay *Overlay `json:"overlay,omitempty"`
-	// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server
+	// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server (default: enabled)
 	// +optional
 	SnatToUpstreamDNS *SnatToUpstreamDNS `json:"snatToUpstreamDNS,omitempty"`
 
@@ -141,7 +141,7 @@ type Overlay struct {
 	Enabled bool `json:"enabled"`
 }
 
-// SnatToUpstreamDNS  enables the masquerading of packets to the upstream dns server
+// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server
 type SnatToUpstreamDNS struct {
 	Enabled bool `json:"enabled"`
 }

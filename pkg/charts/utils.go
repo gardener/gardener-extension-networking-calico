@@ -186,8 +186,13 @@ func ComputeCalicoChartValues(
 		calicoChartValues["global"].(map[string]string)["overlayEnabled"] = strconv.FormatBool(config.Overlay.Enabled)
 	}
 
-	if config != nil && config.Overlay != nil && !config.Overlay.Enabled && config.SnatToUpstreamDNS != nil {
-		calicoChartValues["global"].(map[string]string)["snatToUpstreamDNSEnabled"] = strconv.FormatBool(config.SnatToUpstreamDNS.Enabled)
+	if config != nil && config.Overlay != nil && !config.Overlay.Enabled {
+		// Overlay is disabled => enable source NAT to upstream DNS per default
+		snatToUpstreamDNS := true
+		if config.SnatToUpstreamDNS != nil {
+			snatToUpstreamDNS = config.SnatToUpstreamDNS.Enabled
+		}
+		calicoChartValues["global"].(map[string]string)["snatToUpstreamDNSEnabled"] = strconv.FormatBool(snatToUpstreamDNS)
 	}
 
 	return calicoChartValues, nil

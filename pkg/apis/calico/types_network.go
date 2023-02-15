@@ -77,7 +77,7 @@ type NetworkConfig struct {
 	EbpfDataplane *EbpfDataplane
 	// Overlay enables the network overlay
 	Overlay *Overlay
-	// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server
+	// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server (default: enabled)
 	SnatToUpstreamDNS *SnatToUpstreamDNS
 
 	// DEPRECATED.
@@ -126,7 +126,7 @@ type Overlay struct {
 	Enabled bool
 }
 
-// SnatToUpstreamDNS  enables the masquerading of packets to the upstream dns server
+// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server
 type SnatToUpstreamDNS struct {
 	Enabled bool
 }

@@ -480,9 +480,10 @@ var _ = Describe("Chart package test", func() {
 					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 				},
 				"global": map[string]string{
-					"podCIDR":        network.Spec.PodCIDR,
-					"nodeCIDR":       string(nodeCIDR),
-					"overlayEnabled": "false",
+					"podCIDR":                  network.Spec.PodCIDR,
+					"nodeCIDR":                 string(nodeCIDR),
+					"overlayEnabled":           "false",
+					"snatToUpstreamDNSEnabled": "true",
 				},
 				"vpa": map[string]interface{}{
 					"enabled": true,
