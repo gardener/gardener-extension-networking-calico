@@ -166,7 +166,7 @@ var _ = Describe("Chart package test", func() {
 
 	Describe("#ComputeCalicoChartValues", func() {
 		It("empty network config should properly render calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, false, kubernetesVersion, false, true, true, false, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, kubernetesVersion, false, true, true, false, string(nodeCIDR))
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -227,7 +227,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should disable felix ip in ip and set pool mode to never when setting backend to none", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, false, kubernetesVersion, false, true, false, false, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigBackendNone, kubernetesVersion, false, true, false, false, string(nodeCIDR))
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -287,7 +287,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should correctly compute all of the calico chart values", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false, kubernetesVersion, true, true, false, false, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, kubernetesVersion, true, true, false, false, string(nodeCIDR))
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -347,7 +347,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should correctly compute all of the calico chart values with mtu", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, false, kubernetesVersion, false, true, false, false, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllMTU, kubernetesVersion, false, true, false, false, string(nodeCIDR))
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -407,7 +407,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should correctly compute all of the calico chart values with ebpf dataplane enabled and kube-proxy disabled", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllEBPFDataplane, false, kubernetesVersion, false, false, false, false, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllEBPFDataplane, kubernetesVersion, false, false, false, false, string(nodeCIDR))
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -467,7 +467,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should correctly compute all of the calico chart values with overlay disabled", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigOverlayDisabled, false, kubernetesVersion, true, true, false, false, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigOverlayDisabled, kubernetesVersion, true, true, false, false, string(nodeCIDR))
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -528,7 +528,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should respect deprecated fields in order to keep backwards compatibility", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, false, kubernetesVersion, true, true, false, false, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigDeprecated, kubernetesVersion, true, true, false, false, string(nodeCIDR))
 			Expect(err).To(BeNil())
 			Expect(values).To(Equal(map[string]interface{}{
 				"images": map[string]interface{}{
@@ -587,71 +587,8 @@ var _ = Describe("Chart package test", func() {
 			}))
 		})
 
-		It("should set a nodeSelector when desired", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigNil, true, kubernetesVersion, false, true, false, false, string(nodeCIDR))
-			Expect(err).To(BeNil())
-			Expect(values).To(Equal(map[string]interface{}{
-				"images": map[string]interface{}{
-					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
-					"calico-typha":            imagevector.CalicoTyphaImage(kubernetesVersion),
-					"calico-kube-controllers": imagevector.CalicoKubeControllersImage(kubernetesVersion),
-					"calico-node":             imagevector.CalicoNodeImage(kubernetesVersion),
-					"calico-podtodaemon-flex": imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
-					"calico-cpa":              imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
-					"calico-cpva":             imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
-				},
-				"global": map[string]string{
-					"podCIDR":  network.Spec.PodCIDR,
-					"nodeCIDR": string(nodeCIDR),
-				},
-				"vpa": map[string]interface{}{
-					"enabled": false,
-				},
-				"config": map[string]interface{}{
-					"backend": string(calicov1alpha1.Bird),
-					"ipam": map[string]interface{}{
-						"type":   "host-local",
-						"subnet": "usePodCidr",
-					},
-					"typha": map[string]interface{}{
-						"enabled": trueVar,
-					},
-					"kubeControllers": map[string]interface{}{
-						"enabled": trueVar,
-					},
-					"veth_mtu": defaultMtu,
-					"monitoring": map[string]interface{}{
-						"enabled":          true,
-						"typhaMetricsPort": "9093",
-						"felixMetricsPort": "9091",
-					},
-					"nonPrivileged": false,
-					"felix": map[string]interface{}{
-						"ipinip": map[string]interface{}{
-							"enabled": true,
-						},
-						"bpf": map[string]interface{}{
-							"enabled": false,
-						},
-						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
-							"enabled": false,
-						},
-					},
-					"ipv4": map[string]interface{}{
-						"pool":                string(poolIPIP),
-						"mode":                string(always),
-						"autoDetectionMethod": nil,
-					},
-				},
-				"nodeSelector": map[string]string{
-					"worker.gardener.cloud/system-components": "true",
-				},
-				"pspDisabled": false,
-			}))
-		})
-
 		It("should correctly compute calico chart values when non-privileged mode is enabled", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, false, kubernetesVersion, true, true, false, true, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAll, kubernetesVersion, true, true, false, true, string(nodeCIDR))
 			Expect(err).To(BeNil())
 
 			actual, err := utils.GetFromValuesMap(values, "config", "nonPrivileged")
@@ -660,7 +597,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should correctly compute calico chart values when non-privileged mode and ebpf dataplane are enabled", func() {
-			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllEBPFDataplane, false, kubernetesVersion, true, true, false, true, string(nodeCIDR))
+			values, err := charts.ComputeCalicoChartValues(network, networkConfigAllEBPFDataplane, kubernetesVersion, true, true, false, true, string(nodeCIDR))
 			Expect(err).To(BeNil())
 
 			actual, err := utils.GetFromValuesMap(values, "config", "nonPrivileged")
@@ -669,7 +606,7 @@ var _ = Describe("Chart package test", func() {
 		})
 
 		It("should error on invalid config value", func() {
-			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, false, kubernetesVersion, true, true, false, false, string(nodeCIDR))
+			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, false, false, string(nodeCIDR))
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 	})
@@ -697,7 +634,7 @@ var _ = Describe("Chart package test", func() {
 				},
 			}, nil)
 
-			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, false, kubernetesVersion, false, true, false, false, string(nodeCIDR))
+			_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, false, false, string(nodeCIDR))
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

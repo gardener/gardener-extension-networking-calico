@@ -41,6 +41,4 @@ images:
 vpa:
   enabled: false
 
-# nodeSelector: {}
-
 pspDisabled: false

@@ -31,18 +31,9 @@ spec:
         k8s-app: calico-kube-controllers
         gardener.cloud/role: system-component
     spec:
-      {{- if .Values.nodeSelector }}
-      nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
-      {{- end }}
       tolerations:
       # Make sure kube-controllers gets scheduled on all nodes.
       - effect: NoSchedule
-        operator: Exists
-      # Mark the pod as a critical add-on for rescheduling.
-      - key: CriticalAddonsOnly
-        operator: Exists
-      - effect: NoExecute
         operator: Exists
       serviceAccountName: calico-kube-controllers
       priorityClassName: system-cluster-critical

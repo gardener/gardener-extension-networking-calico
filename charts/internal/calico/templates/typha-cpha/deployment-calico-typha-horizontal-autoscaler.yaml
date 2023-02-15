@@ -24,10 +24,6 @@ spec:
         origin: gardener
         k8s-app: calico-typha-autoscaler
     spec:
-      {{- if .Values.nodeSelector }}
-      nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
-      {{- end }}
       priorityClassName: gardener-shoot-system-800
       # Make sure to not use the coredns for DNS resolution.
       dnsPolicy: Default

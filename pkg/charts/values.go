@@ -30,7 +30,6 @@ func RenderCalicoChart(
 	renderer chartrenderer.Interface,
 	network *extensionsv1alpha1.Network,
 	config *calicov1alpha1.NetworkConfig,
-	workerSystemComponentsActivated bool,
 	kubernetesVersion string,
 	wantsVPA bool,
 	kubeProxyEnabled bool,
@@ -38,7 +37,7 @@ func RenderCalicoChart(
 	nonPrivileged bool,
 	nodeCIDR string,
 ) ([]byte, error) {
-	values, err := ComputeCalicoChartValues(network, config, workerSystemComponentsActivated, kubernetesVersion, wantsVPA, kubeProxyEnabled, isPSPDisabled, nonPrivileged, nodeCIDR)
+	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, isPSPDisabled, nonPrivileged, nodeCIDR)
 	if err != nil {
 		return nil, err
 	}
