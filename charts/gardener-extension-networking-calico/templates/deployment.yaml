@@ -19,6 +19,11 @@ spec:
         checksum/configmap-network-imagevector-overwrite: {{ include (print $.Template.BasePath "/configmap-imagevector-overwrite.yaml") . | sha256sum }}
         {{- end }}
         checksum/configmap-{{ include "name" . }}-config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.metrics.enableScraping }}
+        prometheus.io/name: "{{ .Release.Name }}"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.metrics.port }}"
+        {{- end }}
       labels:
 {{ include "labels" . | indent 8 }}
     spec:
