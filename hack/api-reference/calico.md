@@ -149,7 +149,7 @@ SnatToUpstreamDNS
 </td>
 <td>
 <em>(Optional)</em>
-<p>SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server</p>
+<p>SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server (default: enabled)</p>
 </td>
 </tr>
 <tr>
@@ -406,7 +406,7 @@ bool
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
 </p>
 <p>
-<p>SnatToUpstreamDNS  enables the masquerading of packets to the upstream dns server</p>
+<p>SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server</p>
 </p>
 <table>
 <thead>
