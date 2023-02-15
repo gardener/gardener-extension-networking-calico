@@ -62,7 +62,7 @@ The following table lists known compatibility issues of this extension controlle
 
 | Calico Extension | Gardener | Action | Notes |
 | ------------- | -------- | ------ |  --- |
-| `>= v1.28.0` | `< v1.63.0` | Please first update Gardener components to `>= v1.63.0`. | Without the mentioned minimum Gardener version, Calico `Pod`s are not only scheduled to dedicated system component nodes in the shoot cluster.
+| `>= v1.30.0` | `< v1.63.0` | Please first update Gardener components to `>= v1.63.0`. | Without the mentioned minimum Gardener version, Calico `Pod`s are not only scheduled to dedicated system component nodes in the shoot cluster.
 ----
 
 ## How to start using or developing this extension controller locally
