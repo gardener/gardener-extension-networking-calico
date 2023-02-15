@@ -102,12 +102,12 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	}
 
 	if networkConfig.Overlay != nil && networkConfig.Overlay.Enabled {
-		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.StringPtr(string(calicov1alpha1.Always)))
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.StringPtr(string(calicov1alpha1.Bird)))
+		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Always)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
 	}
 	if networkConfig.Overlay != nil && !networkConfig.Overlay.Enabled {
-		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.StringPtr(string(calicov1alpha1.Never)))
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.StringPtr(string(calicov1alpha1.None)))
+		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Never)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
 	}
 
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {
