@@ -17,11 +17,6 @@ package charts_test
 import (
 	"fmt"
 
-	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/imagevector"
-
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	mockchartrenderer "github.com/gardener/gardener/pkg/chartrenderer/mock"
@@ -31,6 +26,11 @@ import (
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/manifest"
+
+	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/imagevector"
 )
 
 var (

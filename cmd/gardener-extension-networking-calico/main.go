@@ -15,12 +15,12 @@
 package main
 
 import (
-	"github.com/gardener/gardener-extension-networking-calico/cmd/gardener-extension-networking-calico/app"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
-
 	"github.com/gardener/gardener/pkg/logger"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
+	"github.com/gardener/gardener-extension-networking-calico/cmd/gardener-extension-networking-calico/app"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 )
 
 func main() {

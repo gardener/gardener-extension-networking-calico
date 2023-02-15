@@ -18,20 +18,20 @@ import (
 	"context"
 	"fmt"
 
-	admissioncmd "github.com/gardener/gardener-extension-networking-calico/pkg/admission/cmd"
-	calicoinstall "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/install"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
-	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
-
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	"github.com/gardener/gardener/pkg/apis/core/install"
+	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	"github.com/spf13/cobra"
 	componentbaseconfig "k8s.io/component-base/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	admissioncmd "github.com/gardener/gardener-extension-networking-calico/pkg/admission/cmd"
+	calicoinstall "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/install"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
 var log = logf.Log.WithName("gardener-extension-admission-calico")
