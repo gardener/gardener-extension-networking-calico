@@ -169,9 +169,14 @@ spec:
           image: {{ index .Values.images "calico-node" }}
           imagePullPolicy: IfNotPresent
           securityContext:
+            {{- if not .Values.config.nonPrivileged }}
+            privileged: true
+            {{- else }}
+            privileged: false
             capabilities:
               add:
-                - NET_ADMIN
+              - NET_ADMIN
+            {{- end }}
           env:
           - name: POD_CIDR
             value: {{ .Values.global.podCIDR }}
