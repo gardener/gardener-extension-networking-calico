@@ -18,11 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
-	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
@@ -35,6 +30,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
+	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 )
 
 const (
@@ -101,12 +102,12 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	}
 
 	if networkConfig.Overlay != nil && networkConfig.Overlay.Enabled {
-		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.StringPtr(string(calicov1alpha1.Always)))
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.StringPtr(string(calicov1alpha1.Bird)))
+		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Always)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
 	}
 	if networkConfig.Overlay != nil && !networkConfig.Overlay.Enabled {
-		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.StringPtr(string(calicov1alpha1.Never)))
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.StringPtr(string(calicov1alpha1.None)))
+		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Never)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
 	}
 
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {

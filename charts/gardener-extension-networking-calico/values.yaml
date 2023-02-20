@@ -51,3 +51,8 @@ config:
 
 gardener:
   version: ""
+
+## settings for metrics, e.g. scraping by seed-prometheus
+metrics:
+  enableScraping: false
+  port: 8080

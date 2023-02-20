@@ -15,8 +15,6 @@
 package validator
 
 import (
-	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
-
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,6 +22,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
 const (
