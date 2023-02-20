@@ -10,6 +10,7 @@ metadata:
   labels:
     k8s-app: calico-node
     gardener.cloud/role: system-component
+    node.gardener.cloud/critical-component: "true"
   annotations:
     resources.gardener.cloud/preserve-resources: 'true'
 spec:
@@ -24,6 +25,7 @@ spec:
   template:
     metadata:
       labels:
+        node.gardener.cloud/critical-component: "true"
         networking.gardener.cloud/to-public-networks: allowed
         networking.gardener.cloud/to-apiserver: allowed
         networking.gardener.cloud/to-dns: allowed
