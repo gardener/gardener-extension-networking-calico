@@ -46,11 +46,14 @@ spec:
   providerConfig:
     apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
     kind: NetworkConfig
-    backend: bird
-    ipam:
-      type: host-local
-      cidr: usePodCIDR
-#   ipAutodetectionMethod: interface=eth0
-#   ipip: CrossSubnet
+    overlay:
+      enabled: false
+    snatToUpstreamDNS:
+      enabled: true
+#   ebpfDataplane:
+#     enabled: true
 #   typha:
 #     enabled: true
+#   ipam:
+#     type: host-local
+#     cidr: usePodCIDR

@@ -19,16 +19,8 @@ spec:
   providerConfig:
     apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
     kind: NetworkConfig
-    ipam:
-      type: host-local
-      cidr: usePodCIDR
-    ebpfDataplane:
+    overlay:
       enabled: false
-    ipv4:
-      mode: Always
-    backend: bird
-    typha:
-      enabled: true
 ```
 
 Please find [a concrete example](example/20-network.yaml) in the `example` folder. All the `Calico` specific configuration
