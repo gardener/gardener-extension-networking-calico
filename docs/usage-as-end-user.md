@@ -18,11 +18,10 @@ An example ebpf dataplane `NetworkingConfig` manifest:
 ```yaml
 apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
 kind: NetworkConfig
-ipv4:
-  mode: Never
 ebpfDataplane:
   enabled: true
-backend: bird
+overlay:
+  enabled: false
 ```
 
 To disable kube-proxy set the enabled field to false in the shoot manifest.
@@ -49,11 +48,10 @@ kind: NetworkConfig
 ipam:
   type: host-local
   cidr: usePodCIDR
-ipv4:
-  mode: Always
 vethMTU: 1440
-backend: bird
 typha:
+  enabled: true
+overlay:
   enabled: true
 ```
 
@@ -105,7 +103,8 @@ spec:
       ipam:
         type: host-local
       vethMTU: 1440
-      backend: bird
+      overlay:
+        enabled: true
       typha:
         enabled: false
   kubernetes:
