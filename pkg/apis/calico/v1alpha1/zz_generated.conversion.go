@@ -24,10 +24,9 @@ package v1alpha1
 import (
 	unsafe "unsafe"
 
+	calico "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-
-	calico "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
 )
 
 func init() {
