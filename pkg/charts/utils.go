@@ -151,7 +151,7 @@ func ComputeCalicoChartValues(
 	kubeProxyEnabled bool,
 	isPSPDisabled bool,
 	nonPrivileged bool,
-	nodeCIDR string,
+	nodeCIDR *string,
 ) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(config, kubeProxyEnabled, nonPrivileged)
 	if err != nil {
@@ -175,11 +175,14 @@ func ComputeCalicoChartValues(
 			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 		},
 		"global": map[string]string{
-			"podCIDR":  network.Spec.PodCIDR,
-			"nodeCIDR": nodeCIDR,
+			"podCIDR": network.Spec.PodCIDR,
 		},
 		"config":      calicoConfig,
 		"pspDisabled": isPSPDisabled,
+	}
+
+	if nodeCIDR != nil {
+		calicoChartValues["global"].(map[string]string)["nodeCIDR"] = *nodeCIDR
 	}
 
 	if config != nil && config.Overlay != nil {

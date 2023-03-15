@@ -31,6 +31,7 @@ spec:
   natOutgoing: true
   nodeSelector: all()
   vxlanMode: Never
+{{- if .Values.global.nodeCIDR }}
 ---
 apiVersion: crd.projectcalico.org/v1
 kind: IPPool
@@ -39,4 +40,5 @@ metadata:
 spec:
   cidr: "{{ .Values.global.nodeCIDR }}"
   disabled: true
+{{- end }}
 {{- end }}
