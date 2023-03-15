@@ -1,6 +1,6 @@
 global:
   podCIDR: ""
-  nodeCIDR: ""
+  #nodeCIDR: "" # Only set when available
   overlayEnabled: ""
   snatToUpstreamDNSEnabled: ""
 config:
