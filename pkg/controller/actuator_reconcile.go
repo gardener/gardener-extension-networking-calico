@@ -101,17 +101,19 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
 	}
 
-	if networkConfig.Overlay != nil && networkConfig.Overlay.Enabled {
-		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Always)))
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
-	}
-	if networkConfig.Overlay != nil && !networkConfig.Overlay.Enabled {
-		networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Never)))
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
+	if networkConfig != nil {
+		if networkConfig.Overlay != nil && networkConfig.Overlay.Enabled {
+			networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Always)))
+			networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
+		}
+		if networkConfig.Overlay != nil && !networkConfig.Overlay.Enabled {
+			networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Never)))
+			networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
+		}
 	}
 
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {
-		if networkConfig.EbpfDataplane == nil || (networkConfig.EbpfDataplane != nil && !networkConfig.EbpfDataplane.Enabled) {
+		if networkConfig == nil || networkConfig.EbpfDataplane == nil || (networkConfig.EbpfDataplane != nil && !networkConfig.EbpfDataplane.Enabled) {
 			return field.Forbidden(field.NewPath("spec", "kubernetes", "kubeProxy", "enabled"), "Disabling kube-proxy is forbidden in conjunction with calico without running in ebpf dataplane")
 		}
 	}
