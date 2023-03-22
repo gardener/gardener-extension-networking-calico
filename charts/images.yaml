@@ -1,7 +1,7 @@
 images:
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
-  repository: eu.gcr.io/gardener-project/3rd/projectcalico/calico
+  repository: eu.gcr.io/gardener-project/3rd/calico/node
   tag: v3.25.0
   targetVersion: ">= 1.21"
   labels:
@@ -15,7 +15,7 @@ images:
       availability_requirement: 'high'
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
-  repository: eu.gcr.io/gardener-project/3rd/projectcalico/calico
+  repository: eu.gcr.io/gardener-project/3rd/calico/node
   tag: v3.22.2
   targetVersion: "< 1.21"
   labels:
