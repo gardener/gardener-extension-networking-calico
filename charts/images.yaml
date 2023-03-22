@@ -1,7 +1,7 @@
 images:
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
-  repository: docker.io/calico/node
+  repository: eu.gcr.io/gardener-project/3rd/projectcalico/calico
   tag: v3.25.0
   targetVersion: ">= 1.21"
   labels:
@@ -15,7 +15,7 @@ images:
       availability_requirement: 'high'
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
-  repository: docker.io/calico/node
+  repository: eu.gcr.io/gardener-project/3rd/projectcalico/calico
   tag: v3.22.2
   targetVersion: "< 1.21"
   labels:
@@ -29,7 +29,7 @@ images:
       availability_requirement: 'high'
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
-  repository: docker.io/calico/cni
+  repository: eu.gcr.io/gardener-project/3rd/calico/cni
   tag: v3.25.0
   targetVersion: ">= 1.21"
   labels:
@@ -43,7 +43,7 @@ images:
       availability_requirement: 'high'
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
-  repository: docker.io/calico/cni
+  repository: eu.gcr.io/gardener-project/3rd/calico/cni
   tag: v3.22.2
   targetVersion: "< 1.21"
   labels:
@@ -57,7 +57,7 @@ images:
       availability_requirement: 'high'
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
-  repository: docker.io/calico/typha
+  repository: eu.gcr.io/gardener-project/3rd/calico/typha
   tag: v3.25.0
   targetVersion: ">= 1.21"
   labels:
@@ -75,7 +75,7 @@ images:
       availability_requirement: 'high'
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
-  repository: docker.io/calico/typha
+  repository: eu.gcr.io/gardener-project/3rd/calico/typha
   tag: v3.22.2
   targetVersion: "< 1.21"
   labels:
@@ -93,7 +93,7 @@ images:
       availability_requirement: 'high'
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
-  repository: docker.io/calico/kube-controllers
+  repository: eu.gcr.io/gardener-project/3rd/calico/kube-controllers
   tag: v3.25.0
   targetVersion: ">= 1.21"
   labels:
@@ -107,7 +107,7 @@ images:
       availability_requirement: 'low'
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
-  repository: docker.io/calico/kube-controllers
+  repository: eu.gcr.io/gardener-project/3rd/calico/kube-controllers
   tag: v3.22.2
   targetVersion: "< 1.21"
   labels:
@@ -121,7 +121,7 @@ images:
       availability_requirement: 'low'
 - name: calico-podtodaemon-flex
   sourceRepository: github.com/projectcalico/pod2daemon
-  repository: docker.io/calico/pod2daemon-flexvol
+  repository: eu.gcr.io/gardener-project/3rd/calico/pod2daemon-flexvol
   tag: v3.22.2
   # targetVersion is removed to avoid a panic in imagevector.findImage function.
   # targetVersion: "< 1.21"
