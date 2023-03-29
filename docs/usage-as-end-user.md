@@ -38,6 +38,31 @@ spec:
       enabled: false
 ```
 
+### Know limitations of the EBPF Dataplane
+
+Please note that the default settings for calico's ebpf dataplane may interfere with
+[accelerated networking in azure](https://learn.microsoft.com/en-us/azure/virtual-network/accelerated-networking-overview)
+rendering nodes with accelerated networking unusable in the network. The reason for this is that calico does not ignore
+the accelerated networking interface `enP...` as it should, but applies its ebpf programs to it. A simple mitigation for
+this is to adapt the `FelixConfiguration` `default` and ensure that the `bpfDataIfacePattern` does not include `enP...`.
+Per default `bpfDataIfacePattern` is not set. The default value for this option can be found
+[here](https://github.com/projectcalico/calico/blob/3f7fe4d290541bbdd73c97bdc89a29a29855a48a/felix/config/config_params.go#L180).
+For example, you could apply the following change:
+
+```
+$ kubectl edit felixconfiguration default
+...
+apiVersion: crd.projectcalico.org/v1
+kind: FelixConfiguration
+metadata:
+  ...
+  name: default
+  ...
+spec:
+  bpfDataIfacePattern: ^((en|wl|ww|sl|ib)[opsx].*|(eth|wlan|wwan).*|tunl0$|vxlan.calico$|wireguard.cali$|wg-v6.cali$)
+  ...
+```
+
 ## Example `NetworkingConfig` manifest
 
 An example `NetworkingConfig` for the Calico extension looks as follows:
