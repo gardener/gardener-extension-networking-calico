@@ -15,7 +15,7 @@ if [[ ! -d "$repo_root/gardener" ]]; then
 fi
 
 cd "$repo_root/gardener"
-git checkout 20b05ad20e6f426e65e7bd904879a77a94576b02 # g/g v1.66.1
+git checkout 1f94c1e5b4b9e7cdf40d2e314dc74fea54a0d293 # g/g v1.67.1
 make kind-up
 trap '{
   cd "$repo_root/gardener"
