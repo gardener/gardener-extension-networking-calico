@@ -7,7 +7,6 @@ kind: ClusterRole
 metadata:
   name: calico-node
 rules:
-  {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
   # Used for creating service account tokens to be used by the CNI plugin
   - apiGroups: [""]
     resources:
@@ -16,7 +15,6 @@ rules:
       - calico-node
     verbs:
       - create
-  {{- end }}
   # The CNI plugin needs to get pods, nodes, and namespaces.
   - apiGroups: [""]
     resources:
@@ -154,9 +152,7 @@ rules:
       - ipamconfigs
     verbs:
       - get
-{{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
       - create
-{{- end }}
   # Block affinities must also be watchable by confd for route aggregation.
   - apiGroups: ["crd.projectcalico.org"]
     resources:

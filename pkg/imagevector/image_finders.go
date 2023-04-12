@@ -47,11 +47,6 @@ func CalicoKubeControllersImage(kubernetesVersion string) string {
 	return findImage(calico.KubeControllersImageName, kubernetesVersion)
 }
 
-// CalicoFlexVolumeDriverImage returns the Calico flexvol image.
-func CalicoFlexVolumeDriverImage(kubernetesVersion string) string {
-	return findImage(calico.PodToDaemonFlexVolumeDriverImageName, kubernetesVersion)
-}
-
 // ClusterProportionalAutoscalerImage returns the Calico cluster-proportional-autoscaler image.
 func ClusterProportionalAutoscalerImage(kubernetesVersion string) string {
 	return findImage(calico.CalicoClusterProportionalAutoscalerImageName, kubernetesVersion)
