@@ -16,9 +16,11 @@ fi
 
 cd "$repo_root/gardener"
 git checkout 1f94c1e5b4b9e7cdf40d2e314dc74fea54a0d293 # g/g v1.67.1
+source "$repo_root/gardener/hack/ci-common.sh"
 make kind-up
 trap '{
   cd "$repo_root/gardener"
+  export_artifacts "gardener-local"
   make kind-down
 }' EXIT
 export KUBECONFIG=$repo_root/gardener/example/gardener-local/kind/local/kubeconfig
