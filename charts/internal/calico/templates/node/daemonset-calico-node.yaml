@@ -103,7 +103,6 @@ spec:
         securityContext:
           privileged: true
       {{- if .Values.config.felix.bpf.enabled }}
-      {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
       # This init container mounts the necessary filesystems needed by the BPF data plane
       # i.e. bpf at /sys/fs/bpf and cgroup2 at /run/calico/cgroup. Calico-node initialisation is executed
       # in best effort fashion, i.e. no failure for errors, to not disrupt pod creation in iptable mode.
@@ -126,18 +125,6 @@ spec:
           - mountPath: /nodeproc
             name: nodeproc
             readOnly: true
-        securityContext:
-          privileged: true
-      {{- end }}
-      {{- end }}
-      {{- if semverCompare "< 1.21" .Capabilities.KubeVersion.GitVersion }}
-        # Adds a Flex Volume Driver that creates a per-pod Unix Domain Socket to allow Dikastes
-        # to communicate with Felix over the Policy Sync API.
-      - name: flexvol-driver
-        image: {{ index .Values.images "calico-podtodaemon-flex" }}
-        volumeMounts:
-          - name: flexvol-driver-host
-            mountPath: /host/driver
         securityContext:
           privileged: true
       {{- end }}
@@ -252,11 +239,9 @@ spec:
             # Enable or Disable VXLAN on the default IP pool.
             - name: CALICO_IPV4POOL_VXLAN
               value: "Never"
-            {{- if semverCompare "> 1.20" .Capabilities.KubeVersion.GitVersion }}
             # Enable or Disable VXLAN on the default IPv6 IP pool.
             - name: CALICO_IPV6POOL_VXLAN
               value: "Never"
-            {{- end }}
             # Set MTU for tunnel device used if ipip is enabled
             - name: FELIX_IPINIPMTU
               valueFrom:
@@ -392,13 +377,8 @@ spec:
             {{- if .Values.config.felix.bpf.enabled }}
             # For eBPF mode, we need to be able to mount the BPF filesystem at /sys/fs/bpf so we mount in the
             # parent directory.
-            {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
             - name: bpffs
               mountPath: /sys/fs/bpf
-            {{- else }}
-            - name: sysfs
-              mountPath: /sys/fs/
-            {{- end }}
             {{- end }}
             - name: cni-log-dir
               mountPath: /var/log/calico/cni
@@ -431,15 +411,10 @@ spec:
             path: /run/xtables.lock
             type: FileOrCreate
         {{- if .Values.config.felix.bpf.enabled }}
-        {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
         - name: sys-fs
-        {{- else }}
-        - name: sysfs
-        {{- end }}
           hostPath:
             path: /sys/fs/
             type: DirectoryOrCreate
-        {{- if semverCompare ">= 1.21-0" .Capabilities.KubeVersion.GitVersion }}
         - name: bpffs
           hostPath:
             path: /sys/fs/bpf
@@ -448,7 +423,6 @@ spec:
         - name: nodeproc
           hostPath:
             path: /proc
-        {{- end }}
         {{- end }}
         # Used to install CNI.
         - name: cni-bin-dir
@@ -466,11 +440,3 @@ spec:
           hostPath:
             type: DirectoryOrCreate
             path: /var/run/nodeagent
-        {{- if semverCompare "< 1.21" .Capabilities.KubeVersion.GitVersion }}
-        # Used to install Flex Volume Driver
-        # NOTE: the default path is changed to /var/lib/kubelet/volumeplugins since CoreOS does not allow write access on the default dir /usr/libexec
-        - name: flexvol-driver-host
-          hostPath:
-            type: DirectoryOrCreate
-            path: /var/lib/kubelet/volumeplugins/nodeagent~uds
-        {{- end }}

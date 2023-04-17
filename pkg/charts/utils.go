@@ -170,7 +170,6 @@ func ComputeCalicoChartValues(
 			calico.TyphaImageName:                                 imagevector.CalicoTyphaImage(kubernetesVersion),
 			calico.KubeControllersImageName:                       imagevector.CalicoKubeControllersImage(kubernetesVersion),
 			calico.NodeImageName:                                  imagevector.CalicoNodeImage(kubernetesVersion),
-			calico.PodToDaemonFlexVolumeDriverImageName:           imagevector.CalicoFlexVolumeDriverImage(kubernetesVersion),
 			calico.CalicoClusterProportionalAutoscalerImageName:   imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
 			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 		},
