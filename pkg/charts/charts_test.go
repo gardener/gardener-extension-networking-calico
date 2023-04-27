@@ -42,21 +42,21 @@ var (
 
 var _ = Describe("Chart package test", func() {
 	var (
-		kubernetesVersion                               = "1.23.0"
-		podCIDR                                         = calicov1alpha1.CIDR("12.0.0.0/8")
-		nodeCIDR                                        = "10.250.0.0/8"
-		usePodCidr                                      = calicov1alpha1.CIDR("usePodCidr")
-		crossSubnet                                     = calicov1alpha1.CrossSubnet
-		always                                          = calicov1alpha1.Always
-		never                                           = calicov1alpha1.Never
-		invalid             calicov1alpha1.IPv4PoolMode = "invalid"
-		autodetectionMethod                             = "interface=eth1"
-		backendNone                                     = calicov1alpha1.None
-		backendVXLan                                    = calicov1alpha1.VXLan
-		backendBird                                     = calicov1alpha1.Bird
-		backendInvalid                                  = calicov1alpha1.Backend("invalid")
-		poolIPIP                                        = calicov1alpha1.PoolIPIP
-		poolVXlan                                       = calicov1alpha1.PoolVXLan
+		kubernetesVersion                           = "1.23.0"
+		podCIDR                                     = calicov1alpha1.CIDR("12.0.0.0/8")
+		nodeCIDR                                    = "10.250.0.0/8"
+		usePodCidr                                  = calicov1alpha1.CIDR("usePodCidr")
+		crossSubnet                                 = calicov1alpha1.CrossSubnet
+		always                                      = calicov1alpha1.Always
+		never                                       = calicov1alpha1.Never
+		invalid             calicov1alpha1.PoolMode = "invalid"
+		autodetectionMethod                         = "interface=eth1"
+		backendNone                                 = calicov1alpha1.None
+		backendVXLan                                = calicov1alpha1.VXLan
+		backendBird                                 = calicov1alpha1.Bird
+		backendInvalid                              = calicov1alpha1.Backend("invalid")
+		poolIPIP                                    = calicov1alpha1.PoolIPIP
+		poolVXlan                                   = calicov1alpha1.PoolVXLan
 
 		network                       *extensionsv1alpha1.Network
 		networkConfigNil              *calicov1alpha1.NetworkConfig

@@ -63,9 +63,9 @@ type felixBPFKubeProxyIptablesCleanup struct {
 }
 
 type ipv4 struct {
-	Pool                calicov1alpha1.IPv4Pool     `json:"pool"`
-	Mode                calicov1alpha1.IPv4PoolMode `json:"mode"`
-	AutoDetectionMethod *string                     `json:"autoDetectionMethod"`
+	Pool                calicov1alpha1.Pool     `json:"pool"`
+	Mode                calicov1alpha1.PoolMode `json:"mode"`
+	AutoDetectionMethod *string                 `json:"autoDetectionMethod"`
 }
 
 type ipam struct {

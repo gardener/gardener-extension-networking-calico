@@ -26,34 +26,47 @@ const (
 	VXLan Backend = "vxlan"
 )
 
-type IPv4PoolMode string
+type PoolMode string
 
 const (
-	Always      IPv4PoolMode = "Always"
-	Never       IPv4PoolMode = "Never"
-	CrossSubnet IPv4PoolMode = "CrossSubnet"
-	Off         IPv4PoolMode = "Off"
+	Always      PoolMode = "Always"
+	Never       PoolMode = "Never"
+	CrossSubnet PoolMode = "CrossSubnet"
+	Off         PoolMode = "Off"
 )
 
 type CIDR string
 
-type IPv4Pool string
+type Pool string
 
 const (
-	PoolIPIP  IPv4Pool = "ipip"
-	PoolVXLan IPv4Pool = "vxlan"
+	PoolIPIP  Pool = "ipip"
+	PoolVXLan Pool = "vxlan"
 )
 
 // IPv4 contains configuration for calico ipv4 specific settings
 type IPv4 struct {
 	// Pool configures the type of ip pool for the tunnel interface.
 	// https://docs.projectcalico.org/v3.8/reference/node/configuration#environment-variables
-	Pool *IPv4Pool
+	Pool *Pool
 	// Mode is the mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
 	// ipip pools accept all pool mode values values
 	// vxlan pools accept only Always and Never (unchecked)
-	Mode *IPv4PoolMode
+	Mode *PoolMode
 	// AutoDetectionMethod is the method to use to autodetect the IPv4 address for this host. This is only used when the IPv4 address is being autodetected.
+	// https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods
+	AutoDetectionMethod *string
+}
+
+// IPv6 contains configuration for calico ipv6 specific settings
+type IPv6 struct {
+	// Pool configures the type of ip pool for the tunnel interface
+	// https://docs.tigera.io/calico/latest/reference/configure-calico-node#configuring-the-default-ip-pools
+	Pool *Pool
+	// Mode is the mode for the IPv6 Pool (e.g. Always, Never, CrossSubnet)
+	// vxlan pools accept only Always and Never (unchecked)
+	Mode *PoolMode
+	// AutoDetectionMethod is the method to use to autodetect the IPv6 address for this host. This is only used when the IPv6 address is being autodetected.
 	// https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods
 	AutoDetectionMethod *string
 }
@@ -69,6 +82,8 @@ type NetworkConfig struct {
 	IPAM *IPAM
 	// IPv4 contains configuration for calico ipv4 specific settings
 	IPv4 *IPv4
+	// IPv6 contains configuration for calico ipv4 specific settings
+	IPv6 *IPv6
 	// Typha settings to use for calico-typha component
 	Typha *Typha
 	// VethMTU settings used to configure calico port mtu
@@ -87,7 +102,7 @@ type NetworkConfig struct {
 	// IPIP is the IPIP Mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
 	// It was moved into the IPv4 struct, kept for backwards compatibility.
 	// Will be removed in a future Gardener release.
-	IPIP *IPv4PoolMode
+	IPIP *PoolMode
 	// DEPRECATED.
 	// IPAutoDetectionMethod is the method to use to autodetect the IPv4 address for this host. This is only used when the IPv4 address is being autodetected.
 	// It was moved into the IPv4 struct, kept for backwards compatibility.
