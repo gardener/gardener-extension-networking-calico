@@ -23,8 +23,11 @@ import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	"github.com/gardener/gardener/pkg/apis/core/install"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
+	"github.com/gardener/gardener/pkg/logger"
 	"github.com/spf13/cobra"
 	componentbaseconfig "k8s.io/component-base/config"
+	"k8s.io/component-base/version"
+	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -34,7 +37,8 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
-var log = logf.Log.WithName("gardener-extension-admission-calico")
+// Name is a const for the name of this component.
+const Name = "gardener-extension-admission-calico"
 
 // NewControllerManagerCommand creates a new command for running a Calico controller.
 func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
@@ -58,6 +62,16 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 		Use: fmt.Sprintf("admission-%s", calico.Name),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			verflag.PrintAndExitIfRequested()
+
+			log, err := logger.NewZapLogger(logger.InfoLevel, logger.FormatJSON)
+			if err != nil {
+				return fmt.Errorf("error instantiating zap logger: %w", err)
+			}
+			logf.SetLogger(log)
+
+			log.Info("Starting "+Name, "version", version.Get())
+
 			if err := aggOption.Complete(); err != nil {
 				return fmt.Errorf("error completing options: %w", err)
 			}
