@@ -3,7 +3,7 @@ Gardener can be used with or without the overlay network.
 
 Starting versions:
 - [provider-gcp@v1.25.0](https://github.com/gardener/gardener-extension-provider-gcp/releases/tag/v1.25.0)
-- [provider-alicloud@v1.43.0](https://github.com/gardener/gardener-extension-provider-alicloud/tag/v1.43.0)
+- [provider-alicloud@v1.43.0](https://github.com/gardener/gardener-extension-provider-alicloud/releases/tag/v1.43.0)
 - [provider-aws@v1.38.2](https://github.com/gardener/gardener-extension-provider-aws/releases/tag/v1.38.2)
 - [provider-openstack@v1.30.0](https://github.com/gardener/gardener-extension-provider-openstack/releases/tag/v1.30.0)
 
