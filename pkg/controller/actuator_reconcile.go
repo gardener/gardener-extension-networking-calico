@@ -90,7 +90,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	if cluster.Shoot.Spec.Networking.Nodes != nil && len(*cluster.Shoot.Spec.Networking.Nodes) > 0 {
+	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Nodes != nil && len(*cluster.Shoot.Spec.Networking.Nodes) > 0 {
 		autodetectionMode := fmt.Sprintf("cidr=%s", *cluster.Shoot.Spec.Networking.Nodes)
 		if networkConfig == nil {
 			networkConfig = &calicov1alpha1.NetworkConfig{}
