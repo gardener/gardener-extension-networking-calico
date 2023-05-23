@@ -78,7 +78,6 @@ func (s *shoot) Validate(ctx context.Context, new, old client.Object) error {
 }
 
 func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
-
 	networkConfig, err := s.decodeNetworkingConfig(shoot.Spec.Networking.ProviderConfig)
 	if err != nil {
 		return err

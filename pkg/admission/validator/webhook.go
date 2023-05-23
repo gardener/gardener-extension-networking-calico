@@ -17,8 +17,8 @@ package validator
 import (
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -41,15 +41,15 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Provider:   calico.Name,
 		Name:       Name,
 		Path:       "/webhooks/validate",
-		Predicates: []predicate.Predicate{createCalicoPredicate()},
+		Predicates: []predicate.Predicate{CalicoPredicate()},
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
 			NewShootValidator(): {{Obj: &core.Shoot{}}},
 		},
 	})
 }
 
-func createCalicoPredicate() predicate.Funcs {
-	f := func(obj client.Object) bool {
+func CalicoPredicate() predicate.Funcs {
+	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
 		if obj == nil {
 			return false
 		}
@@ -59,21 +59,6 @@ func createCalicoPredicate() predicate.Funcs {
 			return false
 		}
 
-		return shoot.Spec.Networking.Type == calico.ReleaseName
-	}
-
-	return predicate.Funcs{
-		CreateFunc: func(event event.CreateEvent) bool {
-			return f(event.Object)
-		},
-		UpdateFunc: func(event event.UpdateEvent) bool {
-			return f(event.ObjectNew)
-		},
-		GenericFunc: func(event event.GenericEvent) bool {
-			return f(event.Object)
-		},
-		DeleteFunc: func(event event.DeleteEvent) bool {
-			return f(event.Object)
-		},
-	}
+		return shoot.Spec.Networking != nil && pointer.StringEqual(shoot.Spec.Networking.Type, pointer.String(calico.ReleaseName))
+	})
 }
