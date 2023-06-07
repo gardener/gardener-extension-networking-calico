@@ -1,7 +1,7 @@
 images:
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
-  repository: eu.gcr.io/gardener-project/3rd/calico/node
+  repository: quay.io/calico/node
   tag: v3.25.1
   labels:
   - name: 'gardener.cloud/cve-categorisation'
@@ -14,7 +14,7 @@ images:
       availability_requirement: 'high'
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
-  repository: eu.gcr.io/gardener-project/3rd/calico/cni
+  repository: quay.io/calico/cni
   tag: v3.25.1
   labels:
   - name: 'gardener.cloud/cve-categorisation'
@@ -27,7 +27,7 @@ images:
       availability_requirement: 'high'
 - name: calico-typha
   sourceRepository: github.com/projectcalico/typha
-  repository: eu.gcr.io/gardener-project/3rd/calico/typha
+  repository: quay.io/calico/typha
   tag: v3.25.1
   labels:
   - name: cloud.gardener.cnudie/dso/scanning-hints/binary_id/v1
@@ -44,7 +44,7 @@ images:
       availability_requirement: 'high'
 - name: calico-kube-controllers
   sourceRepository: github.com/projectcalico/kube-controllers
-  repository: eu.gcr.io/gardener-project/3rd/calico/kube-controllers
+  repository: quay.io/calico/kube-controllers
   tag: v3.25.1
   labels:
   - name: 'gardener.cloud/cve-categorisation'
