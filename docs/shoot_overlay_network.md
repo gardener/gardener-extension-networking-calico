@@ -79,5 +79,3 @@ Unfortunately, the change will be rolled out slowly (one calico-node at a time).
 
 ## AWS implementation
 On AWS, it is not possible to use the cloud-controller-manager for managing the routes as it does not support multiple route tables, which Gardener creates. Therefore, a custom controller is created to manage the routes.
-
-Also, the removal of the overlay network is only possible with Kubernetes >= 1.22. This is due to the machine-controller-manager only setting the source/destination flag accordingly for these Kubernetes versions.

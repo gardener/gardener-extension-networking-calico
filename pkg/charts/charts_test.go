@@ -41,7 +41,7 @@ var (
 
 var _ = Describe("Chart package test", func() {
 	var (
-		kubernetesVersion                               = "1.21.0"
+		kubernetesVersion                               = "1.23.0"
 		podCIDR                                         = calicov1alpha1.CIDR("12.0.0.0/8")
 		nodeCIDR                                        = "10.250.0.0/8"
 		usePodCidr                                      = calicov1alpha1.CIDR("usePodCidr")
