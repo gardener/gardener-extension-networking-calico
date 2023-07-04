@@ -293,7 +293,7 @@ spec:
             - name: FELIX_CHAININSERTMODE
               value: "Append"
             {{- end }}
-            # Enable automatic management of kubeconfig used by CNI (required due to limited lifetime of service account tokens, default in starting with kubernetes v1.21, BoundServiceAccountTokenVolume feature)
+            # Enable automatic management of kubeconfig used by CNI (required due to limited lifetime of service account tokens, BoundServiceAccountTokenVolume feature)
             - name: CALICO_MANAGE_CNI
               value: "true"
           securityContext:
