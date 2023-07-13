@@ -141,15 +141,15 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			healthCheckCtrlOpts.Completed().Apply(&healthcheck.AddOptions.Controller)
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 
-			if err := calicocontroller.AddToManager(mgr); err != nil {
+			if err := calicocontroller.AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add controllers to manager: %w", err)
 			}
 
-			if err := healthcheck.AddToManager(mgr); err != nil {
+			if err := healthcheck.AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add health check controller to manager: %w", err)
 			}
 
-			if err := heartbeat.AddToManager(mgr); err != nil {
+			if err := heartbeat.AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add healtbeat controller to manager: %w", err)
 			}
 
