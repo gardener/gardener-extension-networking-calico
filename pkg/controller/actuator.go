@@ -15,14 +15,13 @@
 package controller
 
 import (
-	"fmt"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/network"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 )
@@ -44,24 +43,11 @@ type actuator struct {
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Network resources.
-func NewActuator(chartRendererFactory extensionscontroller.ChartRendererFactory) network.Actuator {
+func NewActuator(mgr manager.Manager, chartApplier gardenerkubernetes.ChartApplier, chartRendererFactory extensionscontroller.ChartRendererFactory) network.Actuator {
 	return &actuator{
+		client:               mgr.GetClient(),
+		restConfig:           mgr.GetConfig(),
+		chartApplier:         chartApplier,
 		chartRendererFactory: chartRendererFactory,
 	}
-}
-
-func (a *actuator) InjectClient(client client.Client) error {
-	a.client = client
-	return nil
-}
-
-func (a *actuator) InjectConfig(config *rest.Config) error {
-	a.restConfig = config
-
-	var err error
-	a.chartApplier, err = gardenerkubernetes.NewChartApplierForConfig(config)
-	if err != nil {
-		return fmt.Errorf("could not create ChartApplier: %w", err)
-	}
-	return nil
 }
