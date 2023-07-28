@@ -14,7 +14,7 @@ require (
 	golang.org/x/tools v0.7.0
 	k8s.io/api v0.26.3
 	k8s.io/apimachinery v0.26.3
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v0.26.3
 	k8s.io/code-generator v0.26.3
 	k8s.io/component-base v0.26.3
 	k8s.io/helm v2.16.1+incompatible
@@ -128,5 +128,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace k8s.io/client-go => k8s.io/client-go v0.26.3
