@@ -40,5 +40,6 @@ metadata:
 spec:
   cidr: "{{ .Values.global.nodeCIDR }}"
   disabled: true
+  disableBGPExport: true
 {{- end }}
 {{- end }}
