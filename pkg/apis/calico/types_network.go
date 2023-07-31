@@ -79,6 +79,9 @@ type NetworkConfig struct {
 	Overlay *Overlay
 	// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server (default: enabled)
 	SnatToUpstreamDNS *SnatToUpstreamDNS
+	// AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+	// +optional
+	AutoScaling *AutoScaling
 
 	// DEPRECATED.
 	// IPIP is the IPIP Mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
@@ -132,4 +135,20 @@ type Overlay struct {
 // SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server
 type SnatToUpstreamDNS struct {
 	Enabled bool
+}
+
+// AutoscalingMode is a type alias for the autoscaling mode string.
+type AutoscalingMode string
+
+const (
+	// AutoscalingModeClusterProportional is a constant for cluster-proportional autoscaling mode.
+	AutoscalingModeClusterProportional AutoscalingMode = "cluster-proportional"
+	// AutoscalingModeVPA is a constant for vertical pod autoscaling mode.
+	AutoscalingModeVPA AutoscalingMode = "vpa"
+)
+
+// AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+type AutoScaling struct {
+	// Mode defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+	Mode AutoscalingMode
 }

@@ -1,4 +1,4 @@
-{{- if .Values.vpa.enabled }}
+{{- if .Values.vpa.node }}
 apiVersion: "autoscaling.k8s.io/v1"
 kind: VerticalPodAutoscaler
 metadata:
@@ -10,7 +10,7 @@ spec:
     kind: DaemonSet
     name: calico-node
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "Auto"
   resourcePolicy:
     containerPolicies:
     - containerName: "*"
