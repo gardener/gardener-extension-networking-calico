@@ -243,6 +243,7 @@ func Convert_calico_NetworkStatus_To_v1alpha1_NetworkStatus(in *calico.NetworkSt
 
 func autoConvert_v1alpha1_Overlay_To_calico_Overlay(in *Overlay, out *calico.Overlay, s conversion.Scope) error {
 	out.Enabled = in.Enabled
+	out.CreatePodRoutes = (*bool)(unsafe.Pointer(in.CreatePodRoutes))
 	return nil
 }
 
@@ -253,6 +254,7 @@ func Convert_v1alpha1_Overlay_To_calico_Overlay(in *Overlay, out *calico.Overlay
 
 func autoConvert_calico_Overlay_To_v1alpha1_Overlay(in *calico.Overlay, out *Overlay, s conversion.Scope) error {
 	out.Enabled = in.Enabled
+	out.CreatePodRoutes = (*bool)(unsafe.Pointer(in.CreatePodRoutes))
 	return nil
 }
 
