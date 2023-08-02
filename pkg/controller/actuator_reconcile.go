@@ -108,10 +108,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 		if networkConfig.Overlay != nil && !networkConfig.Overlay.Enabled {
 			networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Never)))
-			networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
-		}
-		if networkConfig.Overlay != nil && networkConfig.Overlay.CreatePodRoutes != nil {
-			if *networkConfig.Overlay.CreatePodRoutes {
+			if networkConfig.Overlay.CreatePodRoutes != nil && *networkConfig.Overlay.CreatePodRoutes {
 				networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
 			} else {
 				networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
