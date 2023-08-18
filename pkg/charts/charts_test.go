@@ -21,9 +21,9 @@ import (
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	mockchartrenderer "github.com/gardener/gardener/pkg/chartrenderer/mock"
 	"github.com/gardener/gardener/pkg/utils"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"go.uber.org/mock/gomock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/manifest"
 
