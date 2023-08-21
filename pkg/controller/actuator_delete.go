@@ -21,7 +21,6 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
-	"github.com/gardener/gardener/pkg/utils/managedresources/builder"
 	"github.com/go-logr/logr"
 )
 
@@ -33,16 +32,7 @@ func (a *actuator) Delete(ctx context.Context, _ logr.Logger, network *extension
 	}
 
 	// Then delete the managed resource along with its secrets
-	if err := builder.
-		NewSecret(a.client).
-		WithNamespacedName(network.Namespace, CalicoConfigSecretName).
-		Delete(ctx); err != nil {
-		return err
-	}
-	if err := builder.
-		NewManagedResource(a.client).
-		WithNamespacedName(network.Namespace, CalicoConfigSecretName).
-		Delete(ctx); err != nil {
+	if err := managedresources.Delete(ctx, a.client, network.Namespace, CalicoConfigSecretName, true); err != nil {
 		return err
 	}
 
