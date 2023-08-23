@@ -27,10 +27,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/manifest"
 
+	"github.com/gardener/gardener-extension-networking-calico/charts"
+	"github.com/gardener/gardener-extension-networking-calico/imagevector"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/imagevector"
+	chartspkg "github.com/gardener/gardener-extension-networking-calico/pkg/charts"
 )
 
 var (
@@ -185,7 +186,7 @@ var _ = Describe("Chart package test", func() {
 		func(config func() *calicov1alpha1.NetworkConfig, configResult func() *calicov1alpha1.NetworkConfig, wantsVPA bool,
 			kubeProxyEnabled bool, isPSPDisabled bool, mtu string, ipinip bool, bpf bool, pool string,
 			modeFunc func() string, detectionMethodFunc func() *string, nodesFunc func() *string, additionalGlobalOptions map[string]string) {
-			values, err := charts.ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, isPSPDisabled, false, nodesFunc())
+			values, err := chartspkg.ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, isPSPDisabled, false, nodesFunc())
 			Expect(err).To(BeNil())
 			expected := map[string]interface{}{
 				"images": map[string]interface{}{
@@ -299,7 +300,7 @@ var _ = Describe("Chart package test", func() {
 	Describe("#ComputeCalicoChartValues", func() {
 		DescribeTable("should correctly compute calico chart values with non-privileged mode enabled",
 			func(config func() *calicov1alpha1.NetworkConfig, expectedResult bool) {
-				values, err := charts.ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, false, true, &nodeCIDR)
+				values, err := chartspkg.ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, false, true, &nodeCIDR)
 				Expect(err).To(BeNil())
 
 				actual, err := utils.GetFromValuesMap(values, "config", "nonPrivileged")
@@ -312,7 +313,7 @@ var _ = Describe("Chart package test", func() {
 		)
 
 		It("should error on invalid config value", func() {
-			_, err := charts.ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, false, false, &nodeCIDR)
+			_, err := chartspkg.ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, false, false, &nodeCIDR)
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 	})
@@ -334,14 +335,14 @@ var _ = Describe("Chart package test", func() {
 		})
 		DescribeTable("Render Calico charts correctly",
 			func(nodes *string) {
-				mockChartRenderer.EXPECT().Render(calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, gomock.Any()).Return(&chartrenderer.RenderedChart{
+				mockChartRenderer.EXPECT().RenderEmbeddedFS(charts.InternalChart, calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, gomock.Any()).Return(&chartrenderer.RenderedChart{
 					ChartName: "test",
 					Manifests: []manifest.Manifest{
-						mkManifest(charts.CalicoConfigKey),
+						mkManifest(chartspkg.CalicoConfigKey),
 					},
 				}, nil)
 
-				_, err := charts.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, false, false, nodes)
+				_, err := chartspkg.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, false, false, nodes)
 				Expect(err).NotTo(HaveOccurred())
 
 			},
