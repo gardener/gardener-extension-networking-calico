@@ -17,14 +17,14 @@ package controller
 import (
 	"context"
 	"fmt"
+	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
-	"github.com/gardener/gardener/pkg/utils/managedresources/builder"
+	"github.com/gardener/gardener/pkg/utils/managedresources"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -39,23 +39,9 @@ import (
 )
 
 const (
-	// CalicoConfigSecretName is the name of the secret used for the managed resource of networking calico
-	CalicoConfigSecretName = "extension-networking-calico-config"
+	// CalicoConfigManagedResourceName is the name of the managed resource of networking calico
+	CalicoConfigManagedResourceName = "extension-networking-calico-config"
 )
-
-func withLocalObjectRefs(refs ...string) []corev1.LocalObjectReference {
-	var localObjectRefs []corev1.LocalObjectReference
-	for _, ref := range refs {
-		localObjectRefs = append(localObjectRefs, corev1.LocalObjectReference{Name: ref})
-	}
-	return localObjectRefs
-}
-
-func calicoSecret(cl client.Client, calicoConfig []byte, namespace string) (*builder.Secret, []corev1.LocalObjectReference) {
-	return builder.NewSecret(cl).
-		WithKeyValues(map[string][]byte{charts.CalicoConfigKey: calicoConfig}).
-		WithNamespacedName(namespace, CalicoConfigSecretName), withLocalObjectRefs(CalicoConfigSecretName)
-}
 
 func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
 	calicoControlPlaneMonitoringChart := &chart.Chart{
@@ -148,17 +134,14 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		return err
 	}
 
-	secret, secretRefs := calicoSecret(a.client, calicoChart, network.Namespace)
-	if err := secret.Reconcile(ctx); err != nil {
+	data := map[string][]byte{charts.CalicoConfigKey: calicoChart}
+	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, "extension-networking-calico", false, data); err != nil {
 		return err
 	}
 
-	if err := builder.
-		NewManagedResource(a.client).
-		WithNamespacedName(network.Namespace, CalicoConfigSecretName).
-		WithSecretRefs(secretRefs).
-		WithInjectedLabels(map[string]string{constants.ShootNoCleanup: "true"}).
-		Reconcile(ctx); err != nil {
+	timeoutCtx, cancelCtx := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancelCtx()
+	if err := managedresources.WaitUntilHealthy(timeoutCtx, a.client, network.Namespace, CalicoConfigManagedResourceName); err != nil {
 		return err
 	}
 

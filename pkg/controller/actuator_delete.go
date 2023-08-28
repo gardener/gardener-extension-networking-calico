@@ -32,11 +32,11 @@ func (a *actuator) Delete(ctx context.Context, _ logr.Logger, network *extension
 	}
 
 	// Then delete the managed resource along with its secrets
-	if err := managedresources.Delete(ctx, a.client, network.Namespace, CalicoConfigSecretName, true); err != nil {
+	if err := managedresources.Delete(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, true); err != nil {
 		return err
 	}
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
-	return managedresources.WaitUntilDeleted(timeoutCtx, a.client, network.Namespace, CalicoConfigSecretName)
+	return managedresources.WaitUntilDeleted(timeoutCtx, a.client, network.Namespace, CalicoConfigManagedResourceName)
 }
