@@ -1,7 +1,7 @@
 {{- if .Values.config.typha.enabled }}
 ---
 # This manifest creates a Deployment of Typha to back the above service.
-apiVersion: {{ include "deploymentversion" . }}
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   # We changed the name of the default deployment name from "calico-typha" to "calico-typha-deploy" because

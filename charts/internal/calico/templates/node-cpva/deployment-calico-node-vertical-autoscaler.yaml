@@ -1,6 +1,6 @@
 ---
 kind: Deployment
-apiVersion: {{ include "deploymentversion" . }}
+apiVersion: apps/v1
 metadata:
   name: calico-node-vertical-autoscaler
   namespace: kube-system

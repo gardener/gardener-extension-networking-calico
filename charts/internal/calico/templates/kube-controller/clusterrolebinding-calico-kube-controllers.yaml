@@ -1,7 +1,7 @@
 {{- if .Values.config.kubeControllers.enabled }}
 ---
 kind: ClusterRoleBinding
-apiVersion: {{ include "rbacversion" . }}
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: calico-kube-controllers
 roleRef:
