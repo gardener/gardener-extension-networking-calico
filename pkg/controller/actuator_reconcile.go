@@ -17,7 +17,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
@@ -136,12 +135,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 	data := map[string][]byte{charts.CalicoConfigKey: calicoChart}
 	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, "extension-networking-calico", false, data); err != nil {
-		return err
-	}
-
-	timeoutCtx, cancelCtx := context.WithTimeout(ctx, 2*time.Minute)
-	defer cancelCtx()
-	if err := managedresources.WaitUntilHealthy(timeoutCtx, a.client, network.Namespace, CalicoConfigManagedResourceName); err != nil {
 		return err
 	}
 
