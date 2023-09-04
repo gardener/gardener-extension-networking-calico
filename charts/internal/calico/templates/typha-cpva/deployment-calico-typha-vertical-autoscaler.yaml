@@ -1,6 +1,6 @@
 {{- if .Values.config.typha.enabled }}
 ---
-apiVersion: {{ include "deploymentversion" . }}
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: calico-typha-vertical-autoscaler

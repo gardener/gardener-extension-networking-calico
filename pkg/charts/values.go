@@ -19,6 +19,7 @@ import (
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/gardener/gardener-extension-networking-calico/charts"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
@@ -41,7 +42,7 @@ func RenderCalicoChart(
 	if err != nil {
 		return nil, err
 	}
-	release, err := renderer.Render(calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, values)
+	release, err := renderer.RenderEmbeddedFS(charts.InternalChart, calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, values)
 	if err != nil {
 		return nil, err
 	}

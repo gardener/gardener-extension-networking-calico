@@ -14,7 +14,11 @@
 
 package calico
 
-import "path/filepath"
+import (
+	"path/filepath"
+
+	"github.com/gardener/gardener-extension-networking-calico/charts"
+)
 
 const (
 	Name = "networking-calico"
@@ -37,12 +41,10 @@ const (
 var (
 	// ChartsPath is the path to the charts
 	ChartsPath = filepath.Join("charts")
-	// InternalChartsPath is the path to the internal charts
-	InternalChartsPath = filepath.Join(ChartsPath, "internal")
 
 	// CalicoChartPath path for internal Calico Chart
-	CalicoChartPath = filepath.Join(InternalChartsPath, "calico")
+	CalicoChartPath = filepath.Join(charts.InternalChartsPath, "calico")
 
 	// CalicoMonitoringChartPath  path for internal Calico monitoring chart
-	CalicoMonitoringChartPath = filepath.Join(InternalChartsPath, "calico-monitoring")
+	CalicoMonitoringChartPath = filepath.Join(ChartsPath, charts.InternalChartsPath, "calico-monitoring")
 )
