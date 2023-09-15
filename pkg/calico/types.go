@@ -46,5 +46,5 @@ var (
 	CalicoChartPath = filepath.Join(charts.InternalChartsPath, "calico")
 
 	// CalicoMonitoringChartPath  path for internal Calico monitoring chart
-	CalicoMonitoringChartPath = filepath.Join(ChartsPath, charts.InternalChartsPath, "calico-monitoring")
+	CalicoMonitoringChartPath = filepath.Join(charts.InternalChartsPath, "calico-monitoring")
 )

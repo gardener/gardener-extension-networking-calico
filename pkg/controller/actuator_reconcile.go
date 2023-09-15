@@ -30,10 +30,11 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/gardener/gardener-extension-networking-calico/charts"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/charts"
+	chartspkg "github.com/gardener/gardener-extension-networking-calico/pkg/charts"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
 )
 
@@ -44,8 +45,9 @@ const (
 
 func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
 	calicoControlPlaneMonitoringChart := &chart.Chart{
-		Name: calico.MonitoringName,
-		Path: calico.CalicoMonitoringChartPath,
+		Name:       calico.MonitoringName,
+		EmbeddedFS: &charts.InternalChart,
+		Path:       calico.CalicoMonitoringChartPath,
 		Objects: []*chart.Object{
 			{
 				Type: &corev1.ConfigMap{},
@@ -118,7 +120,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		return fmt.Errorf("could not create chart renderer for shoot '%s': %w", network.Namespace, err)
 	}
 
-	calicoChart, err := charts.RenderCalicoChart(
+	calicoChart, err := chartspkg.RenderCalicoChart(
 		chartRenderer,
 		network,
 		networkConfig,
@@ -133,7 +135,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		return err
 	}
 
-	data := map[string][]byte{charts.CalicoConfigKey: calicoChart}
+	data := map[string][]byte{chartspkg.CalicoConfigKey: calicoChart}
 	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, "extension-networking-calico", false, data); err != nil {
 		return err
 	}

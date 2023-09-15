@@ -12,7 +12,6 @@ RUN make install EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 FROM gcr.io/distroless/static-debian11:nonroot AS gardener-extension-networking-calico
 WORKDIR /
 
-COPY charts /charts
 COPY --from=builder /go/bin/gardener-extension-networking-calico /gardener-extension-networking-calico
 ENTRYPOINT ["/gardener-extension-networking-calico"]
 
