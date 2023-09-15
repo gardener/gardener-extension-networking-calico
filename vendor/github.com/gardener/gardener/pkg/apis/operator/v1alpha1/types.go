@@ -35,6 +35,7 @@ import (
 // +kubebuilder:printcolumn:name="Runtime",type=string,JSONPath=`.status.conditions[?(@.type=="RuntimeComponentsHealthy")].status`,description="Indicates whether the components related to the runtime cluster are healthy."
 // +kubebuilder:printcolumn:name="Virtual",type=string,JSONPath=`.status.conditions[?(@.type=="VirtualComponentsHealthy")].status`,description="Indicates whether the components related to the virtual cluster are healthy."
 // +kubebuilder:printcolumn:name="API Server",type=string,JSONPath=`.status.conditions[?(@.type=="VirtualGardenAPIServerAvailable")].status`,description="Indicates whether the API server of the virtual cluster is available."
+// +kubebuilder:printcolumn:name="Observability",type=string,JSONPath=`.status.conditions[?(@.type=="ObservabilityComponentsHealthy")].status`,description="Indicates whether the observability components related to the runtime cluster are healthy."
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`,description="creation timestamp"
 
 // Garden describes a list of gardens.
@@ -568,6 +569,9 @@ type CredentialsRotation struct {
 	// ETCDEncryptionKey contains information about the ETCD encryption key credential rotation.
 	// +optional
 	ETCDEncryptionKey *gardencorev1beta1.ETCDEncryptionKeyRotation `json:"etcdEncryptionKey,omitempty"`
+	// Observability contains information about the observability credential rotation.
+	// +optional
+	Observability *gardencorev1beta1.ObservabilityRotation `json:"observability,omitempty"`
 }
 
 const (
@@ -577,6 +581,8 @@ const (
 	VirtualComponentsHealthy gardencorev1beta1.ConditionType = "VirtualComponentsHealthy"
 	// VirtualGardenAPIServerAvailable is a constant for a condition type indicating that the virtual garden's API server is available.
 	VirtualGardenAPIServerAvailable gardencorev1beta1.ConditionType = "VirtualGardenAPIServerAvailable"
+	// ObservabilityComponentsHealthy is a constant for a condition type indicating the health of observability components.
+	ObservabilityComponentsHealthy gardencorev1beta1.ConditionType = "ObservabilityComponentsHealthy"
 )
 
 // AvailableOperationAnnotations is the set of available operation annotations for Garden resources.
@@ -588,6 +594,7 @@ var AvailableOperationAnnotations = sets.New(
 	v1beta1constants.OperationRotateServiceAccountKeyComplete,
 	v1beta1constants.OperationRotateETCDEncryptionKeyStart,
 	v1beta1constants.OperationRotateETCDEncryptionKeyComplete,
+	v1beta1constants.OperationRotateObservabilityCredentials,
 	v1beta1constants.OperationRotateCredentialsStart,
 	v1beta1constants.OperationRotateCredentialsComplete,
 )
