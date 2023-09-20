@@ -201,7 +201,6 @@ func ComputeCalicoChartValues(
 		calicoChartValues["vpa"].(map[string]interface{})["node"] = strconv.FormatBool(true)
 		calicoChartValues["vpa"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
 	}
-	
 	return calicoChartValues, nil
 }
 

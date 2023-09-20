@@ -13,11 +13,18 @@ spec:
     updateMode: "Auto"
   resourcePolicy:
     containerPolicies:
-    - containerName: "*"
+    - containerName: calico-node
       minAllowed:
-        memory: 100Mi
+        memory: 50Mi
       maxAllowed:
-        cpu: 4
-        memory: 10G
+        memory: 2800Mi
+      controlledValues: RequestsOnly
+    - containerName: "add-snat-rule-to-upstream-dns"
+      minAllowed:
+        cpu: 10m
+        memory: 50Mi
+      maxAllowed:
+        cpu: 1
+        memory: 1G
       controlledValues: RequestsOnly
 {{- end }}
