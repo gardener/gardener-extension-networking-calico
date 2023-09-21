@@ -63,6 +63,19 @@ spec:
   ...
 ```
 
+## AutoScaling
+
+AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+
+An example AutoScaling `NetworkingConfig` manifest:
+
+```yaml
+apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
+kind: NetworkConfig
+autoScaling:
+  mode: "vpa"
+```
+
 ## Example `NetworkingConfig` manifest
 
 An example `NetworkingConfig` for the Calico extension looks as follows:
