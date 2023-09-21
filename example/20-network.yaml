@@ -57,3 +57,5 @@ spec:
 #   ipam:
 #     type: host-local
 #     cidr: usePodCIDR
+#   autoScaling:
+#     mode: "vpa"

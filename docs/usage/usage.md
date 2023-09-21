@@ -78,6 +78,8 @@ typha:
   enabled: true
 overlay:
   enabled: true
+autoScaling:
+  mode: "vpa"
 ```
 
 ## Example `Shoot` manifest
