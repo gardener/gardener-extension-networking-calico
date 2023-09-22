@@ -3,16 +3,18 @@
 apiVersion: {{ include "deploymentversion" . }}
 kind: Deployment
 metadata:
+  annotations:
+    resources.gardener.cloud/delete-on-invalid-update: "true"
   name: calico-typha-vertical-autoscaler
   namespace: kube-system
   labels:
-    k8s-app: calico-typha-autoscaler
+    k8s-app: calico-typha-vertical-autoscaler
 spec:
   revisionHistoryLimit: 5
   replicas: 1
   selector:
     matchLabels:
-      k8s-app: calico-typha-autoscaler
+      k8s-app: calico-typha-vertical-autoscaler
   template:
     metadata:
       annotations:
@@ -22,7 +24,7 @@ spec:
         networking.gardener.cloud/to-apiserver: allowed
         networking.gardener.cloud/to-dns: allowed
         origin: gardener
-        k8s-app: calico-typha-autoscaler
+        k8s-app: calico-typha-vertical-autoscaler
     spec:
       priorityClassName: gardener-shoot-system-800
       # Make sure to not use the coredns for DNS resolution.
