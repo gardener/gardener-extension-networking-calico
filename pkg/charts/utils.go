@@ -232,11 +232,12 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
 	}
 
-	if config.IPAM != nil {
-		if config.IPAM.Type != "" {
-			c.IPAM.IPAMType = config.IPAM.Type
-		}
-		if config.IPAM.Type == hostLocal && config.IPAM.CIDR != nil {
+	if config.IPAM != nil && config.IPAM.Type != "" {
+		c.IPAM.IPAMType = config.IPAM.Type
+	}
+
+	if c.IPAM.IPAMType == hostLocal {
+		if config.IPAM != nil && config.IPAM.CIDR != nil {
 			c.IPAM.Subnet = string(*config.IPAM.CIDR)
 		}
 	}
