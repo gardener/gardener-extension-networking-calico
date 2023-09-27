@@ -35,7 +35,9 @@ data:
           "nodename": "__KUBERNETES_NODE_NAME__",
           "mtu": __CNI_MTU__,
           "ipam": {
-            "type": "{{ .Values.config.ipam.type }}"
+            "type": "{{ .Values.config.ipam.type }}",
+            "assign_ipv4": "{{ .Values.config.ipam.assign_ipv4 }}",
+            "assign_ipv6": "{{ .Values.config.ipam.assign_ipv6 }}"
         {{- if .Values.config.ipam.subnet }},
             "subnet": "{{ .Values.config.ipam.subnet }}"
         {{- end }}
