@@ -206,8 +206,19 @@ func ComputeCalicoChartValues(
 
 func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool) (*calicoConfig, error) {
 	c := newCalicoConfig()
+	if !kubeProxyEnabled {
+		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
+	}
+
+	// will be overridden to false if config.EbpfDataplane.Enabled==true
+	c.NonPrivileged = nonPrivileged
+
+	return mergeCalicoValuesWithConfig(&c, config)
+}
+
+func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.NetworkConfig) (*calicoConfig, error) {
 	if config == nil {
-		return &c, nil
+		return c, nil
 	}
 
 	if config.Backend != nil {
@@ -226,10 +237,7 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 
 	if config.EbpfDataplane != nil && config.EbpfDataplane.Enabled {
 		c.Felix.BPF.Enabled = true
-	}
-
-	if !kubeProxyEnabled {
-		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
+		c.NonPrivileged = false
 	}
 
 	if config.IPAM != nil && config.IPAM.Type != "" {
@@ -286,10 +294,5 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 		c.VethMTU = *config.VethMTU
 	}
 
-	c.NonPrivileged = nonPrivileged
-	if config.EbpfDataplane != nil && config.EbpfDataplane.Enabled {
-		c.NonPrivileged = false
-	}
-
-	return &c, nil
+	return c, nil
 }
