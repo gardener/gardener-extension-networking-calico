@@ -246,6 +246,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 			AutoDetectionMethod: nil,
 			NATOutgoing:         true,
 		}
+		c.Felix.IPInIP.Enabled = false
 	}
 
 	if !kubeProxyEnabled {
