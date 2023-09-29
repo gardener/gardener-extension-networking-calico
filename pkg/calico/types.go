@@ -39,9 +39,6 @@ const (
 )
 
 var (
-	// ChartsPath is the path to the charts
-	ChartsPath = filepath.Join("charts")
-
 	// CalicoChartPath path for internal Calico Chart
 	CalicoChartPath = filepath.Join(charts.InternalChartsPath, "calico")
 
