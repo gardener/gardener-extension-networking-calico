@@ -65,7 +65,12 @@ spec:
 
 ## AutoScaling
 
-AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+Autoscaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+
+The cluster-proportional autoscaling mode is preferable when conditions require minimimal disturbances and vpa mode for improved cluster resource utilization. 
+
+Please note VPA must be enabled on the shoot as a pre-requisite to enabling vpa mode.
+
 
 An example AutoScaling `NetworkingConfig` manifest:
 
