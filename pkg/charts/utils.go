@@ -197,6 +197,10 @@ func ComputeCalicoChartValues(
 		calicoChartValues["global"].(map[string]string)["snatToUpstreamDNSEnabled"] = strconv.FormatBool(snatToUpstreamDNS)
 	}
 
+	if config != nil && config.AutoScaling != nil && config.AutoScaling.Mode == calicov1alpha1.AutoscalingModeVPA && wantsVPA {
+		calicoChartValues["vpa"].(map[string]interface{})["node"] = strconv.FormatBool(true)
+		calicoChartValues["vpa"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+	}
 	return calicoChartValues, nil
 }
 

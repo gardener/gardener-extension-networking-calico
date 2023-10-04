@@ -1,3 +1,4 @@
+{{- if not .Values.vpa.node }}
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -58,3 +59,4 @@ spec:
           configMap:
             name: calico-node-vertical-autoscaler
       serviceAccountName: calico-node-cpva
+{{- end }}

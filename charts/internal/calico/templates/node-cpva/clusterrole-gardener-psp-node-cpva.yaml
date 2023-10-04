@@ -1,4 +1,5 @@
 {{- if not .Values.pspDisabled }}
+{{- if not .Values.vpa.node }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -14,4 +15,5 @@ rules:
       - podsecuritypolicies
     verbs:
       - use
+{{- end }}
 {{- end }}

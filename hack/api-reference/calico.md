@@ -154,6 +154,20 @@ SnatToUpstreamDNS
 </tr>
 <tr>
 <td>
+<code>autoScaling</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">
+AutoScaling
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>ipip</code></br>
 <em>
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.IPv4PoolMode">
@@ -186,6 +200,47 @@ Will be removed in a future Gardener release.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+<p>AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>mode</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.AutoscalingMode">
+AutoscalingMode
+</a>
+</em>
+</td>
+<td>
+<p>Mode defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.AutoscalingMode">AutoscalingMode
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling</a>)
+</p>
+<p>
+<p>AutoscalingMode is a type alias for the autoscaling mode string.</p>
+</p>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Backend">Backend
 (<code>string</code> alias)</p></h3>
 <p>
