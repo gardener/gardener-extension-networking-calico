@@ -389,7 +389,6 @@ PoolMode
 <em>(Optional)</em>
 <p>Mode is the mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
 ipip pools accept all pool mode values values
-TODO: VXLAN also supports CrossSubnet for VXLAN. Why is this not supported?
 vxlan pools accept only Always and Never (unchecked)</p>
 </td>
 </tr>
