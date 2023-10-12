@@ -27,6 +27,7 @@ const (
 )
 
 type PoolMode string
+type IPv4PoolMode = PoolMode
 
 const (
 	Always      PoolMode = "Always"
@@ -38,6 +39,7 @@ const (
 type CIDR string
 
 type Pool string
+type IPv4Pool = Pool
 
 const (
 	PoolIPIP  Pool = "ipip"
