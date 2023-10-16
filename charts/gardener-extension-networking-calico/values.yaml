@@ -36,9 +36,6 @@ controller:
     renewIntervalSeconds: 30 
   ignoreOperationAnnotation: false
 
-leaderElection:
-  resourceLock: leases
-
 config:
   clientConnection:
     acceptContentTypes: application/json
