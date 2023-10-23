@@ -46,7 +46,7 @@ const (
 func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
 	calicoControlPlaneMonitoringChart := &chart.Chart{
 		Name:       calico.MonitoringName,
-		EmbeddedFS: &charts.InternalChart,
+		EmbeddedFS: charts.InternalChart,
 		Path:       calico.CalicoMonitoringChartPath,
 		Objects: []*chart.Object{
 			{
