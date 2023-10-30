@@ -19,6 +19,7 @@ import (
 	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	v1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 	"github.com/go-logr/logr"
@@ -36,9 +37,13 @@ func (a *actuator) Delete(ctx context.Context, _ logr.Logger, network *extension
 		return err
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
-	defer cancel()
-	return managedresources.WaitUntilDeleted(timeoutCtx, a.client, network.Namespace, CalicoConfigManagedResourceName)
+	if cluster != nil && !v1beta1helper.ShootNeedsForceDeletion(cluster.Shoot) {
+		timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+		defer cancel()
+		return managedresources.WaitUntilDeleted(timeoutCtx, a.client, network.Namespace, CalicoConfigManagedResourceName)
+	}
+
+	return nil
 }
 
 // ForceDelete implements Network.Actuator.
