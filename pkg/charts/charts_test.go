@@ -455,7 +455,7 @@ var _ = Describe("Chart package test", func() {
 
 				Expect(values["config"]).To(And(
 					HaveKeyWithValue("ipam", Equal(map[string]interface{}{
-						"type":        "host-local",
+						"type":        "calico-ipam",
 						"subnet":      "usePodCidrIPv6",
 						"assign_ipv4": false,
 						"assign_ipv6": true,
@@ -491,7 +491,7 @@ var _ = Describe("Chart package test", func() {
 
 				Expect(values["config"]).To(And(
 					HaveKeyWithValue("ipam", Equal(map[string]interface{}{
-						"type":        "host-local",
+						"type":        "calico-ipam",
 						"subnet":      "usePodCidrIPv6",
 						"assign_ipv4": false,
 						"assign_ipv6": true,
