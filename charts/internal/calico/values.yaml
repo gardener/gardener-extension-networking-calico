@@ -13,14 +13,23 @@ config:
   ipam:
     type: "host-local"
     # subnet: "usePodCidr"
+    assign_ipv4: true
+    assign_ipv6: false
   kubeControllers:
     enabled: true
   typha:
     enabled: true
   ipv4:
+    enabled: true
     pool: ipip # or vxlan
     mode: "Always"
     autoDetectionMethod: "first-found"
+  ipv6:
+    enabled: false
+    pool: vxlan
+    mode: "Never"
+    autoDetectionMethod: "first-found"
+    natOutgoing: true
   felix:
     ipinip:
       enabled: "true"

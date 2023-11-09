@@ -62,7 +62,8 @@ func defaultShoot(generateName string) *gardencorev1beta1.Shoot {
 				KubeAPIServer: &gardencorev1beta1.KubeAPIServerConfig{},
 			},
 			Networking: &gardencorev1beta1.Networking{
-				Type: pointer.String("calico"),
+				Type:       pointer.String("calico"),
+				IPFamilies: []gardencorev1beta1.IPFamily{gardencorev1beta1.IPFamilyIPv4},
 			},
 			Provider: gardencorev1beta1.Provider{
 				Type: "local",

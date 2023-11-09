@@ -42,21 +42,21 @@ var (
 
 var _ = Describe("Chart package test", func() {
 	var (
-		kubernetesVersion                               = "1.23.0"
-		podCIDR                                         = calicov1alpha1.CIDR("12.0.0.0/8")
-		nodeCIDR                                        = "10.250.0.0/8"
-		usePodCidr                                      = calicov1alpha1.CIDR("usePodCidr")
-		crossSubnet                                     = calicov1alpha1.CrossSubnet
-		always                                          = calicov1alpha1.Always
-		never                                           = calicov1alpha1.Never
-		invalid             calicov1alpha1.IPv4PoolMode = "invalid"
-		autodetectionMethod                             = "interface=eth1"
-		backendNone                                     = calicov1alpha1.None
-		backendVXLan                                    = calicov1alpha1.VXLan
-		backendBird                                     = calicov1alpha1.Bird
-		backendInvalid                                  = calicov1alpha1.Backend("invalid")
-		poolIPIP                                        = calicov1alpha1.PoolIPIP
-		poolVXlan                                       = calicov1alpha1.PoolVXLan
+		kubernetesVersion                           = "1.23.0"
+		podCIDR                                     = calicov1alpha1.CIDR("12.0.0.0/8")
+		nodeCIDR                                    = "10.250.0.0/8"
+		usePodCidr                                  = calicov1alpha1.CIDR("usePodCidr")
+		crossSubnet                                 = calicov1alpha1.CrossSubnet
+		always                                      = calicov1alpha1.Always
+		never                                       = calicov1alpha1.Never
+		invalid             calicov1alpha1.PoolMode = "invalid"
+		autodetectionMethod                         = "interface=eth1"
+		backendNone                                 = calicov1alpha1.None
+		backendVXLan                                = calicov1alpha1.VXLan
+		backendBird                                 = calicov1alpha1.Bird
+		backendInvalid                              = calicov1alpha1.Backend("invalid")
+		poolIPIP                                    = calicov1alpha1.PoolIPIP
+		poolVXlan                                   = calicov1alpha1.PoolVXLan
 
 		network                       *extensionsv1alpha1.Network
 		networkConfigNil              *calicov1alpha1.NetworkConfig
@@ -90,6 +90,7 @@ var _ = Describe("Chart package test", func() {
 			Spec: extensionsv1alpha1.NetworkSpec{
 				ServiceCIDR: "10.0.0.0/8",
 				PodCIDR:     string(podCIDR),
+				IPFamilies:  []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
 			},
 		}
 		networkConfigNil = nil
@@ -206,8 +207,10 @@ var _ = Describe("Chart package test", func() {
 				"config": map[string]interface{}{
 					"backend": string(*configResult().Backend),
 					"ipam": map[string]interface{}{
-						"type":   configResult().IPAM.Type,
-						"subnet": string(*configResult().IPAM.CIDR),
+						"assign_ipv4": true,
+						"assign_ipv6": false,
+						"type":        configResult().IPAM.Type,
+						"subnet":      string(*configResult().IPAM.CIDR),
 					},
 					"typha": map[string]interface{}{
 						"enabled": trueVar,
@@ -234,9 +237,17 @@ var _ = Describe("Chart package test", func() {
 						},
 					},
 					"ipv4": map[string]interface{}{
+						"enabled":             true,
 						"pool":                pool,
 						"mode":                modeFunc(),
 						"autoDetectionMethod": nil,
+					},
+					"ipv6": map[string]interface{}{
+						"enabled":             false,
+						"pool":                "",
+						"mode":                "",
+						"autoDetectionMethod": nil,
+						"natOutgoing":         false,
 					},
 				},
 				"pspDisabled": isPSPDisabled,
@@ -298,6 +309,7 @@ var _ = Describe("Chart package test", func() {
 	)
 
 	Describe("#ComputeCalicoChartValues", func() {
+		var podCIDR = "12.0.0.0/8"
 		DescribeTable("should correctly compute calico chart values with non-privileged mode enabled",
 			func(config func() *calicov1alpha1.NetworkConfig, expectedResult bool) {
 				values, err := chartspkg.ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, false, true, &nodeCIDR)
@@ -315,6 +327,190 @@ var _ = Describe("Chart package test", func() {
 		It("should error on invalid config value", func() {
 			_, err := chartspkg.ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, false, false, &nodeCIDR)
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
+		})
+
+		Context("IPv4", func() {
+			BeforeEach(func() {
+				network = &extensionsv1alpha1.Network{
+					Spec: extensionsv1alpha1.NetworkSpec{
+						IPFamilies: []extensionsv1alpha1.IPFamily{
+							extensionsv1alpha1.IPFamilyIPv4,
+						},
+						PodCIDR: podCIDR,
+					},
+				}
+			})
+			It("should correctly configure for IPv4 networks", func() {
+				values, err := chartspkg.ComputeCalicoChartValues(
+					network,
+					nil, "", false, false, false, false, nil,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(And(
+					HaveKeyWithValue("ipam", Equal(map[string]interface{}{
+						"type":        "host-local",
+						"subnet":      "usePodCidr",
+						"assign_ipv4": true,
+						"assign_ipv6": false,
+					})),
+					HaveKeyWithValue("ipv4", Equal(map[string]interface{}{
+						"enabled":             true,
+						"pool":                "ipip",
+						"mode":                "Always",
+						"autoDetectionMethod": nil,
+					})),
+					HaveKeyWithValue("ipv6",
+						HaveKeyWithValue("enabled", false),
+					),
+				))
+				Expect(values["global"]).To(
+					HaveKeyWithValue("podCIDR", podCIDR),
+				)
+			})
+			It("should use overrides from the config", func() {
+				config := &calicov1alpha1.NetworkConfig{
+					IPv4: &calicov1alpha1.IPv4{
+						Pool:                pointer(calicov1alpha1.PoolVXLan),
+						Mode:                pointer(calicov1alpha1.CrossSubnet),
+						AutoDetectionMethod: pointer("first-found"),
+					},
+				}
+				values, err := chartspkg.ComputeCalicoChartValues(
+					network, config,
+					"", false, false, false, false, nil,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(And(
+					HaveKeyWithValue("ipam", Equal(map[string]interface{}{
+						"type":        "host-local",
+						"subnet":      "usePodCidr",
+						"assign_ipv4": true,
+						"assign_ipv6": false,
+					})),
+					HaveKeyWithValue("ipv4", Equal(map[string]interface{}{
+						"enabled":             true,
+						"pool":                "vxlan",
+						"mode":                "CrossSubnet",
+						"autoDetectionMethod": "first-found",
+					})),
+					HaveKeyWithValue("ipv6",
+						HaveKeyWithValue("enabled", false),
+					),
+				))
+				Expect(values["global"]).To(
+					HaveKeyWithValue("podCIDR", podCIDR),
+				)
+			})
+			It("should use (deprecated) IPIP overrides", func() {
+				config := &calicov1alpha1.NetworkConfig{
+					IPIP: pointer(calicov1alpha1.Off),
+				}
+				values, err := chartspkg.ComputeCalicoChartValues(
+					network, config,
+					"", false, false, false, false, nil,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(And(
+					HaveKeyWithValue("ipam", Equal(map[string]interface{}{
+						"type":        "host-local",
+						"subnet":      "usePodCidr",
+						"assign_ipv4": true,
+						"assign_ipv6": false,
+					})),
+					HaveKeyWithValue("ipv4", Equal(map[string]interface{}{
+						"enabled":             true,
+						"pool":                "ipip",
+						"mode":                "Off",
+						"autoDetectionMethod": nil,
+					})),
+					HaveKeyWithValue("ipv6",
+						HaveKeyWithValue("enabled", false),
+					),
+				))
+				Expect(values["global"]).To(
+					HaveKeyWithValue("podCIDR", podCIDR),
+				)
+			})
+		})
+		Context("IPv6", func() {
+			BeforeEach(func() {
+				network = &extensionsv1alpha1.Network{
+					Spec: extensionsv1alpha1.NetworkSpec{
+						IPFamilies: []extensionsv1alpha1.IPFamily{
+							extensionsv1alpha1.IPFamilyIPv6,
+						},
+						PodCIDR: podCIDR,
+					},
+				}
+			})
+			It("should correctly configure for IPv6 networks", func() {
+				values, err := chartspkg.ComputeCalicoChartValues(
+					network,
+					nil, "", false, false, false, false, nil,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(And(
+					HaveKeyWithValue("ipam", Equal(map[string]interface{}{
+						"type":        "calico-ipam",
+						"subnet":      "usePodCidrIPv6",
+						"assign_ipv4": false,
+						"assign_ipv6": true,
+					})),
+					HaveKeyWithValue("ipv4",
+						HaveKeyWithValue("enabled", false),
+					),
+					HaveKeyWithValue("ipv6", Equal(map[string]interface{}{
+						"enabled":             true,
+						"pool":                "vxlan",
+						"mode":                "Never",
+						"autoDetectionMethod": nil,
+						"natOutgoing":         true,
+					})),
+				))
+				Expect(values["global"]).To(
+					HaveKeyWithValue("podCIDR", "12.0.0.0/8"),
+				)
+			})
+			It("should use overrides from the config", func() {
+				config := &calicov1alpha1.NetworkConfig{
+					IPv6: &calicov1alpha1.IPv6{
+						Pool:                pointer(calicov1alpha1.PoolVXLan),
+						Mode:                pointer(calicov1alpha1.CrossSubnet),
+						AutoDetectionMethod: pointer("first-found"),
+					},
+				}
+				values, err := chartspkg.ComputeCalicoChartValues(
+					network, config,
+					"", false, false, false, false, nil,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(And(
+					HaveKeyWithValue("ipam", Equal(map[string]interface{}{
+						"type":        "calico-ipam",
+						"subnet":      "usePodCidrIPv6",
+						"assign_ipv4": false,
+						"assign_ipv6": true,
+					})),
+					HaveKeyWithValue("ipv4",
+						HaveKeyWithValue("enabled", false),
+					),
+					HaveKeyWithValue("ipv6", Equal(map[string]interface{}{
+						"enabled":             true,
+						"pool":                "vxlan",
+						"mode":                "CrossSubnet",
+						"autoDetectionMethod": "first-found",
+						"natOutgoing":         true,
+					})),
+				))
+				Expect(values["global"]).To(
+					HaveKeyWithValue("podCIDR", "12.0.0.0/8"),
+				)
+			})
 		})
 	})
 
@@ -352,3 +548,7 @@ var _ = Describe("Chart package test", func() {
 		)
 	})
 })
+
+func pointer[T any](v T) *T {
+	return &v
+}

@@ -228,20 +228,51 @@ spec:
             # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
               value: "k8s,bgp"
+            - name: IP
+            {{- if .Values.config.ipv4.enabled }}
+              value: "autodetect"
+            {{- else }}
+              value: "none"
+            {{- end }}
+            {{- if .Values.config.ipv4.enabled }}
+            - name: "CALICO_IPV4POOL_{{ .Values.config.ipv4.pool | upper }}"
+              value: "{{ .Values.config.ipv4.mode }}"
+            # The default IPv4 pool to create on startup if none exists. Pod IPs will be
+            # chosen from this range. Changing this value after installation will have
+            # no effect. This should fall within `--cluster-cidr`.
+            - name: CALICO_IPV4POOL_CIDR
+              value: "{{ .Values.global.podCIDR }}"
             # Auto-detect the BGP IP address.
             {{- if .Values.config.ipv4.autoDetectionMethod }}
             # On metal the ip is bound to the lo interface (routing to the host).
             - name: IP_AUTODETECTION_METHOD
               value: "{{ .Values.config.ipv4.autoDetectionMethod }}"
             {{- end }}
-            - name: IP
+            {{- end }}
+            {{- if .Values.config.ipv6.enabled }}
+            - name: IP6
               value: "autodetect"
-            # Enable or Disable VXLAN on the default IP pool.
-            - name: CALICO_IPV4POOL_VXLAN
-              value: "Never"
-            # Enable or Disable VXLAN on the default IPv6 IP pool.
-            - name: CALICO_IPV6POOL_VXLAN
-              value: "Never"
+            - name: "CALICO_IPV6POOL_{{ .Values.config.ipv6.pool | upper }}"
+              value: "{{ .Values.config.ipv6.mode }}"
+            # The default IPv6 pool to create on startup if none exists. Pod IPs will be
+            # chosen from this range. Changing this value after installation will have
+            # no effect. This should fall within `--cluster-cidr`.
+            - name: CALICO_IPV6POOL_CIDR
+              value: "{{ .Values.global.podCIDR }}"
+            # Auto-detect the BGP IP address.
+            {{- if .Values.config.ipv6.autoDetectionMethod }}
+            # On metal the ip is bound to the lo interface (routing to the host).
+            - name: IP6_AUTODETECTION_METHOD
+              value: "{{ .Values.config.ipv6.autoDetectionMethod }}"
+            {{- end }}
+            - name: CALICO_IPV6POOL_NAT_OUTGOING
+              value: "{{ .Values.config.ipv6.natOutgoing }}"
+            - name: CALICO_ROUTER_ID
+              value: "hash"
+            {{- end }}
+            # Configure IPv6 on Kubernetes.
+            - name: FELIX_IPV6SUPPORT
+              value: "{{ .Values.config.ipv6.enabled }}"
             # Set MTU for tunnel device used if ipip is enabled
             - name: FELIX_IPINIPMTU
               valueFrom:
@@ -260,24 +291,14 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: veth_mtu
-            # The default IPv4 pool to create on startup if none exists. Pod IPs will be
-            # chosen from this range. Changing this value after installation will have
-            # no effect. This should fall within `--cluster-cidr`.
-            - name: CALICO_IPV4POOL_CIDR
-              value: "{{ .Values.global.podCIDR }}"
             # Disable file logging so `kubectl logs` works.
             - name: CALICO_DISABLE_FILE_LOGGING
               value: "true"
             # Set Felix endpoint to host default action to ACCEPT.
             - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
               value: "ACCEPT"
-            # Disable IPv6 on Kubernetes.
-            - name: FELIX_IPV6SUPPORT
-              value: "false"
             - name: FELIX_IPINIPENABLED
               value: "{{ .Values.config.felix.ipinip.enabled }}"
-            - name: "CALICO_IPV4POOL_{{ .Values.config.ipv4.pool | upper }}"
-              value: "{{ .Values.config.ipv4.mode }}"
             # Enable eBPF dataplane mode.
             - name: FELIX_BPFENABLED
               value: "{{ .Values.config.felix.bpf.enabled }}"

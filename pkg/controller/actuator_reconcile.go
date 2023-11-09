@@ -26,6 +26,7 @@ import (
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -69,6 +70,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		networkConfig *calicov1alpha1.NetworkConfig
 		err           error
 	)
+	ipFamilies := sets.New[extensionsv1alpha1.IPFamily](network.Spec.IPFamilies...)
 
 	if network.Spec.ProviderConfig != nil {
 		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
@@ -82,19 +84,38 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		if networkConfig == nil {
 			networkConfig = &calicov1alpha1.NetworkConfig{}
 		}
-		if networkConfig.IPv4 == nil {
-			networkConfig.IPv4 = &calicov1alpha1.IPv4{}
+
+		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
+			if networkConfig.IPv4 == nil {
+				networkConfig.IPv4 = &calicov1alpha1.IPv4{}
+			}
+			networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
 		}
-		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
+
+		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+			if networkConfig.IPv6 == nil {
+				networkConfig.IPv6 = &calicov1alpha1.IPv6{}
+			}
+			networkConfig.IPv6.AutoDetectionMethod = &autodetectionMode
+		}
 	}
 
-	if networkConfig != nil {
-		if networkConfig.Overlay != nil && networkConfig.Overlay.Enabled {
-			networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Always)))
+	if networkConfig != nil && networkConfig.Overlay != nil {
+		if networkConfig.Overlay.Enabled {
+			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
+				networkConfig.IPv4.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(calicov1alpha1.Always)))
+			}
+			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+				networkConfig.IPv6.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(calicov1alpha1.Always)))
+			}
 			networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
-		}
-		if networkConfig.Overlay != nil && !networkConfig.Overlay.Enabled {
-			networkConfig.IPv4.Mode = (*calicov1alpha1.IPv4PoolMode)(pointer.String(string(calicov1alpha1.Never)))
+		} else {
+			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
+				networkConfig.IPv4.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(calicov1alpha1.Never)))
+			}
+			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+				networkConfig.IPv6.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(calicov1alpha1.Never)))
+			}
 			if networkConfig.Overlay.CreatePodRoutes != nil && *networkConfig.Overlay.CreatePodRoutes {
 				networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
 			} else {

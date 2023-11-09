@@ -20,6 +20,7 @@ import (
 	"strconv"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/gardener/gardener-extension-networking-calico/imagevector"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
@@ -27,15 +28,18 @@ import (
 )
 
 const (
-	hostLocal  = "host-local"
-	usePodCIDR = "usePodCidr"
-	defaultMTU = "1440"
+	hostLocal    = "host-local"
+	calicoIPAM   = "calico-ipam"
+	usePodCIDR   = "usePodCidr"
+	usePodCIDRv6 = "usePodCidrIPv6"
+	defaultMTU   = "1440"
 )
 
 type calicoConfig struct {
 	Backend         calicov1alpha1.Backend `json:"backend"`
 	Felix           felix                  `json:"felix"`
 	IPv4            ipv4                   `json:"ipv4"`
+	IPv6            ipv6                   `json:"ipv6"`
 	IPAM            ipam                   `json:"ipam"`
 	Typha           typha                  `json:"typha"`
 	KubeControllers kubeControllers        `json:"kubeControllers"`
@@ -63,14 +67,25 @@ type felixBPFKubeProxyIptablesCleanup struct {
 }
 
 type ipv4 struct {
-	Pool                calicov1alpha1.IPv4Pool     `json:"pool"`
-	Mode                calicov1alpha1.IPv4PoolMode `json:"mode"`
-	AutoDetectionMethod *string                     `json:"autoDetectionMethod"`
+	Enabled             bool                    `json:"enabled"`
+	Pool                calicov1alpha1.Pool     `json:"pool"`
+	Mode                calicov1alpha1.PoolMode `json:"mode"`
+	AutoDetectionMethod *string                 `json:"autoDetectionMethod"`
+}
+
+type ipv6 struct {
+	Enabled             bool                    `json:"enabled"`
+	Pool                calicov1alpha1.Pool     `json:"pool"`
+	Mode                calicov1alpha1.PoolMode `json:"mode"`
+	AutoDetectionMethod *string                 `json:"autoDetectionMethod"`
+	NATOutgoing         bool                    `json:"natOutgoing"`
 }
 
 type ipam struct {
-	IPAMType string `json:"type"`
-	Subnet   string `json:"subnet"`
+	IPAMType   string `json:"type"`
+	Subnet     string `json:"subnet"`
+	AssignIPv4 bool   `json:"assign_ipv4"`
+	AssignIPv6 bool   `json:"assign_ipv6"`
 }
 
 type kubeControllers struct {
@@ -102,14 +117,10 @@ var defaultCalicoConfig = calicoConfig{
 			Enabled: false,
 		},
 	},
-	IPv4: ipv4{
-		Pool:                calicov1alpha1.PoolIPIP,
-		Mode:                calicov1alpha1.Always,
-		AutoDetectionMethod: nil,
-	},
 	IPAM: ipam{
-		IPAMType: hostLocal,
-		Subnet:   usePodCIDR,
+		IPAMType:   hostLocal,
+		AssignIPv4: false,
+		AssignIPv6: false,
 	},
 	Typha: typha{
 		Enabled: true,
@@ -153,7 +164,7 @@ func ComputeCalicoChartValues(
 	nonPrivileged bool,
 	nodeCIDR *string,
 ) (map[string]interface{}, error) {
-	typedConfig, err := generateChartValues(config, kubeProxyEnabled, nonPrivileged)
+	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, nonPrivileged)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
 	}
@@ -204,10 +215,57 @@ func ComputeCalicoChartValues(
 	return calicoChartValues, nil
 }
 
-func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool) (*calicoConfig, error) {
+func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool) (*calicoConfig, error) {
+	// by default assume IPv4 (dual-stack is not supported, yet)
+	ipFamilies := sets.New[extensionsv1alpha1.IPFamily](network.Spec.IPFamilies...)
+	isIPv4 := true
+	isIPv6 := false
+	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+		isIPv4 = false
+		isIPv6 = true
+	}
+
 	c := newCalicoConfig()
+	if isIPv4 {
+		c.IPAM.AssignIPv4 = true
+		c.IPAM.Subnet = usePodCIDR
+		c.IPv4 = ipv4{
+			Enabled:             true,
+			Pool:                calicov1alpha1.PoolIPIP,
+			Mode:                calicov1alpha1.Always,
+			AutoDetectionMethod: nil,
+		}
+	}
+
+	if isIPv6 {
+		c.IPAM.AssignIPv6 = true
+		c.IPAM.Subnet = usePodCIDRv6
+		// NOTE: calico guide (https://docs.tigera.io/calico/latest/networking/ipam/ipv6#enable-ipv6-only) requires ipam
+		// type to be calico-ipam for single IPv6 or dual-stack clusters.
+		c.IPAM.IPAMType = calicoIPAM
+		c.IPv6 = ipv6{
+			Enabled:             true,
+			Pool:                calicov1alpha1.PoolVXLan,
+			Mode:                calicov1alpha1.Never,
+			AutoDetectionMethod: nil,
+			NATOutgoing:         true,
+		}
+		c.Felix.IPInIP.Enabled = false
+	}
+
+	if !kubeProxyEnabled {
+		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
+	}
+
+	// will be overridden to false if config.EbpfDataplane.Enabled==true
+	c.NonPrivileged = nonPrivileged
+
+	return mergeCalicoValuesWithConfig(&c, config, isIPv4, isIPv6)
+}
+
+func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.NetworkConfig, isIPv4, isIPv6 bool) (*calicoConfig, error) {
 	if config == nil {
-		return &c, nil
+		return c, nil
 	}
 
 	if config.Backend != nil {
@@ -226,22 +284,24 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 
 	if config.EbpfDataplane != nil && config.EbpfDataplane.Enabled {
 		c.Felix.BPF.Enabled = true
+		c.NonPrivileged = false
 	}
 
-	if !kubeProxyEnabled {
-		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
+	if config.IPAM != nil && config.IPAM.Type != "" {
+		c.IPAM.IPAMType = config.IPAM.Type
 	}
 
-	if config.IPAM != nil {
-		if config.IPAM.Type != "" {
-			c.IPAM.IPAMType = config.IPAM.Type
-		}
-		if config.IPAM.Type == hostLocal && config.IPAM.CIDR != nil {
+	if c.IPAM.IPAMType == hostLocal {
+		if config.IPAM != nil && config.IPAM.CIDR != nil {
 			c.IPAM.Subnet = string(*config.IPAM.CIDR)
 		}
 	}
 
 	if config.IPv4 != nil {
+		if !isIPv4 {
+			return nil, fmt.Errorf("IPv4 configuration must not be specified if Shoot doesn't use IPv4 networking")
+		}
+
 		if config.IPv4.Pool != nil {
 			switch *config.IPv4.Pool {
 			case calicov1alpha1.PoolIPIP, calicov1alpha1.PoolVXLan:
@@ -265,6 +325,9 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 		// fallback to deprecated configuration fields
 		// will be removed in a future Gardener release
 		if config.IPIP != nil {
+			if !isIPv4 {
+				return nil, fmt.Errorf("IPv4 configuration must not be specified if Shoot doesn't use IPv4 networking")
+			}
 			switch *config.IPIP {
 			case calicov1alpha1.Always, calicov1alpha1.Never, calicov1alpha1.Off, calicov1alpha1.CrossSubnet:
 				c.IPv4.Mode = *config.IPIP
@@ -277,6 +340,32 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 		}
 	}
 
+	if config.IPv6 != nil {
+		if !isIPv6 {
+			return nil, fmt.Errorf("IPv6 configuration must not be specified if Shoot doesn't use IPv6 networking")
+		}
+
+		if config.IPv6.Pool != nil {
+			switch *config.IPv6.Pool {
+			case calicov1alpha1.PoolVXLan:
+				c.IPv6.Pool = *config.IPv6.Pool
+			default:
+				return nil, fmt.Errorf("unsupported value for ipv6 pool: %s", *config.IPv6.Pool)
+			}
+		}
+		if config.IPv6.Mode != nil {
+			switch *config.IPv6.Mode {
+			case calicov1alpha1.Always, calicov1alpha1.Never, calicov1alpha1.CrossSubnet:
+				c.IPv6.Mode = *config.IPv6.Mode
+			default:
+				return nil, fmt.Errorf("unsupported value for ipv6 mode: %s", *config.IPv6.Mode)
+			}
+		}
+		if config.IPv6.AutoDetectionMethod != nil {
+			c.IPv6.AutoDetectionMethod = config.IPv6.AutoDetectionMethod
+		}
+	}
+
 	if config.Typha != nil {
 		c.Typha.Enabled = config.Typha.Enabled
 	}
@@ -285,10 +374,5 @@ func generateChartValues(config *calicov1alpha1.NetworkConfig, kubeProxyEnabled 
 		c.VethMTU = *config.VethMTU
 	}
 
-	c.NonPrivileged = nonPrivileged
-	if config.EbpfDataplane != nil && config.EbpfDataplane.Enabled {
-		c.NonPrivileged = false
-	}
-
-	return &c, nil
+	return c, nil
 }
