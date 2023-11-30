@@ -30,7 +30,7 @@ cd $repo_root
 
 version=$(git rev-parse HEAD)
 make docker-images
-docker tag eu.gcr.io/gardener-project/gardener/extensions/networking-calico:latest networking-calico-local:$version
+docker tag europe-docker.pkg.dev/gardener-project/public/gardener/extensions/networking-calico:latest networking-calico-local:$version
 kind load docker-image networking-calico-local:$version --name gardener-local
 
 mkdir -p $repo_root/tmp
