@@ -1,7 +1,5 @@
 gardener-extension-networking-calico:
-  template: 'default'
   base_definition:
-    repo: ~
     traits:
       component_descriptor:
         component_labels:
@@ -19,7 +17,6 @@ gardener-extension-networking-calico:
         - linux/arm64
         dockerimages:
           gardener-extension-networking-calico:
-            registry: 'gcr-readwrite'
             image: 'eu.gcr.io/gardener-project/gardener/extensions/networking-calico'
             dockerfile: 'Dockerfile'
             target: gardener-extension-networking-calico
@@ -33,7 +30,6 @@ gardener-extension-networking-calico:
                 integrity_requirement: 'high'
                 availability_requirement: 'high'
           gardener-extension-admission-calico:
-            registry: 'gcr-readwrite'
             image: 'eu.gcr.io/gardener-project/gardener/extensions/admission-calico'
             dockerfile: 'Dockerfile'
             target: gardener-extension-admission-calico
