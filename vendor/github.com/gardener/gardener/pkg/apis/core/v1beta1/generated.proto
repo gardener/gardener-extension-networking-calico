@@ -288,7 +288,7 @@ message CARotation {
 
 // CRI contains information about the Container Runtimes.
 message CRI {
-  // The name of the CRI library. Supported values are `docker` and `containerd`.
+  // The name of the CRI library. Supported values are `containerd`.
   optional string name = 1;
 
   // ContainerRuntimes is the list of the required container runtimes supported for a worker pool.
@@ -553,7 +553,7 @@ message ControllerRegistrationDeployment {
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector seedSelector = 4;
 
-  // DeploymentRefs holds references to `ControllerDeployments`. Only one element is support now.
+  // DeploymentRefs holds references to `ControllerDeployments`. Only one element is supported currently.
   // +optional
   repeated DeploymentRef deploymentRefs = 5;
 }
@@ -1564,6 +1564,13 @@ message MachineImage {
   // +patchMergeKey=version
   // +patchStrategy=merge
   repeated MachineImageVersion versions = 2;
+
+  // UpdateStrategy is the update strategy to use for the machine image. Possible values are:
+  //  - patch: update to the latest patch version of the current minor version.
+  //  - minor: update to the latest minor and patch version.
+  //  - major: always update to the overall latest version (default).
+  // +optional
+  optional string updateStrategy = 3;
 }
 
 // MachineImageVersion is an expirable version with list of supported container runtimes and interfaces
@@ -2222,16 +2229,6 @@ message SeedSelector {
 
 // SeedSettingDependencyWatchdog controls the dependency-watchdog settings for the seed.
 message SeedSettingDependencyWatchdog {
-  // Endpoint controls the endpoint settings for the dependency-watchdog for the seed.
-  // Deprecated: This field is deprecated and will be removed in a future version of Gardener. Use `Weeder` instead.
-  // +optional
-  optional SeedSettingDependencyWatchdogEndpoint endpoint = 1;
-
-  // Probe controls the probe settings for the dependency-watchdog for the seed.
-  // Deprecated: This field is deprecated and will be removed in a future version of Gardener. Use `Prober` instead.
-  // +optional
-  optional SeedSettingDependencyWatchdogProbe probe = 2;
-
   // Weeder controls the weeder settings for the dependency-watchdog for the seed.
   // +optional
   optional SeedSettingDependencyWatchdogWeeder weeder = 3;
@@ -2239,24 +2236,6 @@ message SeedSettingDependencyWatchdog {
   // Prober controls the prober settings for the dependency-watchdog for the seed.
   // +optional
   optional SeedSettingDependencyWatchdogProber prober = 4;
-}
-
-// SeedSettingDependencyWatchdogEndpoint controls the endpoint settings for the dependency-watchdog for the seed.
-// Deprecated: This type is deprecated and will be removed in a future version of Gardener. Use type `SeedSettingDependencyWatchdogWeeder` instead.
-message SeedSettingDependencyWatchdogEndpoint {
-  // Enabled controls whether the endpoint controller of the dependency-watchdog should be enabled. This controller
-  // helps to alleviate the delay where control plane components remain unavailable by finding the respective pods in
-  // CrashLoopBackoff status and restarting them once their dependants become ready and available again.
-  optional bool enabled = 1;
-}
-
-// SeedSettingDependencyWatchdogProbe controls the probe settings for the dependency-watchdog for the seed.
-// Deprecated: This type is deprecated and will be removed in a future version of Gardener. Use type `SeedSettingDependencyWatchdogProber` instead.
-message SeedSettingDependencyWatchdogProbe {
-  // Enabled controls whether the probe controller of the dependency-watchdog should be enabled. This controller
-  // scales down the kube-controller-manager, machine-controller-manager and cluster-autoscaler of shoot clusters in case their respective kube-apiserver is not
-  // reachable via its external ingress in order to avoid melt-down situations.
-  optional bool enabled = 1;
 }
 
 // SeedSettingDependencyWatchdogProber controls the prober settings for the dependency-watchdog for the seed.
