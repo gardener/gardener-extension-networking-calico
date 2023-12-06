@@ -1,9 +1,8 @@
 gardener-extension-networking-calico:
-  template: 'default'
   base_definition:
-    repo: ~
     traits:
       component_descriptor:
+        ocm_repository: europe-docker.pkg.dev/gardener-project/snapshots
         component_labels:
         - name: 'cloud.gardener.cnudie/responsibles'
           value:
@@ -19,8 +18,9 @@ gardener-extension-networking-calico:
         - linux/arm64
         dockerimages:
           gardener-extension-networking-calico:
-            registry: 'gcr-readwrite'
-            image: 'eu.gcr.io/gardener-project/gardener/extensions/networking-calico'
+            image: 'europe-docker.pkg.dev/gardener-project/snapshots/gardener/extensions/networking-calico'
+            extra_push_targets: # may be dropped after all users updated to new registry
+              - eu.gcr.io/gardener-project/gardener/extensions/networking-calico
             dockerfile: 'Dockerfile'
             target: gardener-extension-networking-calico
             resource_labels:
@@ -33,8 +33,9 @@ gardener-extension-networking-calico:
                 integrity_requirement: 'high'
                 availability_requirement: 'high'
           gardener-extension-admission-calico:
-            registry: 'gcr-readwrite'
-            image: 'eu.gcr.io/gardener-project/gardener/extensions/admission-calico'
+            image: 'europe-docker.pkg.dev/gardener-project/snapshots/gardener/extensions/admission-calico'
+            extra_push_targets: # may be dropped after all users updated to new registry
+              - eu.gcr.io/gardener-project/gardener/extensions/admission-calico
             dockerfile: 'Dockerfile'
             target: gardener-extension-admission-calico
             resource_labels:
@@ -49,6 +50,9 @@ gardener-extension-networking-calico:
   jobs:
     head-update:
       traits:
+        component_descriptor:
+          ocm_repository_mappings:
+            - repository: europe-docker.pkg.dev/gardener-project/releases
         draft_release: ~
         options:
           public_build_logs: true
@@ -61,6 +65,8 @@ gardener-extension-networking-calico:
       traits:
         version:
           preprocess: 'finalize'
+        component_descriptor:
+          ocm_repository: europe-docker.pkg.dev/gardener-project/releases
         release:
           nextversion: 'bump_minor'
           next_version_callback: '.ci/prepare_release'
@@ -74,6 +80,8 @@ gardener-extension-networking-calico:
         publish:
           dockerimages:
             gardener-extension-networking-calico:
+              image: europe-docker.pkg.dev/gardener-project/releases/gardener/extensions/networking-calico
               tag_as_latest: true
             gardener-extension-admission-calico:
+              image: europe-docker.pkg.dev/gardener-project/releases/gardener/extensions/admission-calico
               tag_as_latest: true
