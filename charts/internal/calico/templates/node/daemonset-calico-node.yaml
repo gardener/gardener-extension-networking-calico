@@ -176,7 +176,25 @@ spec:
           command:
           - /bin/sh
           - -c
-          - "while true; do sleep 15; for i in $(cat /etc/resolv.conf | grep nameserver | sed -n -e 's/^.*nameserver //p' ); do iptables -t nat -C POSTROUTING -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment \"calico masquerade non-cluster\" -j MASQUERADE 2>/dev/null || iptables -t nat -I POSTROUTING 1 -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment \"calico masquerade non-cluster\" -j MASQUERADE; done; sleep 45; done"
+          - |
+            nft_kubelet_rules=$( (iptables-nft-save -t mangle; ip6tables-nft-save -t mangle ) 2>/dev/null | grep -E '^:(KUBE-IPTABLES-HINT|KUBE-KUBELET-CANARY)')
+            if [ -n "$nft_kubelet_rules" ]; then
+              backend="nft"
+            else 
+              backend="legacy"
+            fi
+            sleep 15
+            while true; do
+              for i in $(cat /etc/resolv.conf | grep nameserver | sed -n -e 's/^.*nameserver //p' ); do
+                iptables-$backend -t nat -C POSTROUTING -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE 2>/dev/null \
+                || iptables-$backend -t nat -I POSTROUTING 1 -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE
+              done
+              sleep 60
+            done
+          volumeMounts:
+            - mountPath: /run/xtables.lock
+              name: xtables-lock
+              readOnly: false
         {{- end }}
         - name: calico-node
           image: {{ index .Values.images "calico-node" }}
