@@ -160,7 +160,6 @@ func ComputeCalicoChartValues(
 	kubernetesVersion string,
 	wantsVPA bool,
 	kubeProxyEnabled bool,
-	isPSPDisabled bool,
 	nonPrivileged bool,
 	nodeCIDR *string,
 ) (map[string]interface{}, error) {
@@ -187,8 +186,7 @@ func ComputeCalicoChartValues(
 		"global": map[string]string{
 			"podCIDR": network.Spec.PodCIDR,
 		},
-		"config":      calicoConfig,
-		"pspDisabled": isPSPDisabled,
+		"config": calicoConfig,
 	}
 
 	if nodeCIDR != nil {

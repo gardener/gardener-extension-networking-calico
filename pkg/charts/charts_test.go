@@ -185,9 +185,9 @@ var _ = Describe("Chart package test", func() {
 
 	DescribeTable("#ComputeCalicoChartValues",
 		func(config func() *calicov1alpha1.NetworkConfig, configResult func() *calicov1alpha1.NetworkConfig, wantsVPA bool,
-			kubeProxyEnabled bool, isPSPDisabled bool, mtu string, ipinip bool, bpf bool, pool string,
+			kubeProxyEnabled bool, mtu string, ipinip bool, bpf bool, pool string,
 			modeFunc func() string, detectionMethodFunc func() *string, nodesFunc func() *string, additionalGlobalOptions map[string]string) {
-			values, err := chartspkg.ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, isPSPDisabled, false, nodesFunc())
+			values, err := chartspkg.ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, false, nodesFunc())
 			Expect(err).To(BeNil())
 			expected := map[string]interface{}{
 				"images": map[string]interface{}{
@@ -250,7 +250,6 @@ var _ = Describe("Chart package test", func() {
 						"natOutgoing":         false,
 					},
 				},
-				"pspDisabled": isPSPDisabled,
 			}
 			if detectionMethodFunc() != nil {
 				expected["config"].(map[string]interface{})["ipv4"].(map[string]interface{})["autoDetectionMethod"] = *detectionMethodFunc()
@@ -263,47 +262,47 @@ var _ = Describe("Chart package test", func() {
 
 		Entry("empty network config should properly render calico chart values",
 			networkConfigNilFunc, networkConfigNilValuesFunc,
-			false, true, true, defaultMtu, true, false, string(poolIPIP),
+			false, true, defaultMtu, true, false, string(poolIPIP),
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("empty network config should properly render calico chart values even without node cidr",
 			networkConfigNilFunc, networkConfigNilValuesFunc,
-			false, true, true, defaultMtu, true, false, string(poolIPIP),
+			false, true, defaultMtu, true, false, string(poolIPIP),
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return nil }, nil),
 		Entry("should disable felix ip in ip and set pool mode to never when setting backend to none",
 			networkConfigBackendNoneFunc, networkConfigBackendNoneFunc,
-			false, true, false, defaultMtu, false, false, string(poolIPIP),
+			false, true, defaultMtu, false, false, string(poolIPIP),
 			func() string { return string(never) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values",
 			networkConfigAllFunc, networkConfigAllFunc,
-			true, true, false, defaultMtu, true, false, string(poolVXlan),
+			true, true, defaultMtu, true, false, string(poolVXlan),
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with mtu",
 			networkConfigAllMTUFunc, networkConfigAllMTUFunc,
-			false, true, false, mtuVar, true, false, string(poolVXlan),
+			false, true, mtuVar, true, false, string(poolVXlan),
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with ebpf dataplane enabled and kube-proxy disabled",
 			networkConfigAllEBPFDataplaneFunc, networkConfigAllEBPFDataplaneFunc,
-			false, false, false, defaultMtu, true, true, string(poolVXlan),
+			false, false, defaultMtu, true, true, string(poolVXlan),
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with overlay disabled",
 			networkConfigOverlayDisabledFunc, networkConfigOverlayDisabledFunc,
-			true, true, false, defaultMtu, false, false, string(poolIPIP),
+			true, true, defaultMtu, false, false, string(poolIPIP),
 			func() string { return string(*networkConfigOverlayDisabled.IPv4.Mode) }, func() *string { return networkConfigOverlayDisabled.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR, "overlayEnabled": "false", "snatToUpstreamDNSEnabled": "true"}),
 		Entry("should correctly compute all of the calico chart values with overlay disabled, but no node cidr",
 			networkConfigOverlayDisabledFunc, networkConfigOverlayDisabledFunc,
-			true, true, false, defaultMtu, false, false, string(poolIPIP),
+			true, true, defaultMtu, false, false, string(poolIPIP),
 			func() string { return string(*networkConfigOverlayDisabled.IPv4.Mode) }, func() *string { return networkConfigOverlayDisabled.IPv4.AutoDetectionMethod },
 			func() *string { return nil }, map[string]string{"overlayEnabled": "false", "snatToUpstreamDNSEnabled": "true"}),
 		Entry("should respect deprecated fields in order to keep backwards compatibility",
 			networkConfigDeprecatedFunc, networkConfigDeprecatedFunc,
-			true, true, false, defaultMtu, true, false, string(poolIPIP),
+			true, true, defaultMtu, true, false, string(poolIPIP),
 			func() string { return string(*networkConfigDeprecated.IPIP) }, func() *string { return networkConfigDeprecated.IPAutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 	)
@@ -312,7 +311,7 @@ var _ = Describe("Chart package test", func() {
 		var podCIDR = "12.0.0.0/8"
 		DescribeTable("should correctly compute calico chart values with non-privileged mode enabled",
 			func(config func() *calicov1alpha1.NetworkConfig, expectedResult bool) {
-				values, err := chartspkg.ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, false, true, &nodeCIDR)
+				values, err := chartspkg.ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, true, &nodeCIDR)
 				Expect(err).To(BeNil())
 
 				actual, err := utils.GetFromValuesMap(values, "config", "nonPrivileged")
@@ -325,7 +324,7 @@ var _ = Describe("Chart package test", func() {
 		)
 
 		It("should error on invalid config value", func() {
-			_, err := chartspkg.ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, false, false, &nodeCIDR)
+			_, err := chartspkg.ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, false, &nodeCIDR)
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 
@@ -343,7 +342,7 @@ var _ = Describe("Chart package test", func() {
 			It("should correctly configure for IPv4 networks", func() {
 				values, err := chartspkg.ComputeCalicoChartValues(
 					network,
-					nil, "", false, false, false, false, nil,
+					nil, "", false, false, false, nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -378,7 +377,7 @@ var _ = Describe("Chart package test", func() {
 				}
 				values, err := chartspkg.ComputeCalicoChartValues(
 					network, config,
-					"", false, false, false, false, nil,
+					"", false, false, false, nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -409,7 +408,7 @@ var _ = Describe("Chart package test", func() {
 				}
 				values, err := chartspkg.ComputeCalicoChartValues(
 					network, config,
-					"", false, false, false, false, nil,
+					"", false, false, false, nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -449,7 +448,7 @@ var _ = Describe("Chart package test", func() {
 			It("should correctly configure for IPv6 networks", func() {
 				values, err := chartspkg.ComputeCalicoChartValues(
 					network,
-					nil, "", false, false, false, false, nil,
+					nil, "", false, false, false, nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -485,7 +484,7 @@ var _ = Describe("Chart package test", func() {
 				}
 				values, err := chartspkg.ComputeCalicoChartValues(
 					network, config,
-					"", false, false, false, false, nil,
+					"", false, false, false, nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -538,7 +537,7 @@ var _ = Describe("Chart package test", func() {
 					},
 				}, nil)
 
-				_, err := chartspkg.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, false, false, nodes)
+				_, err := chartspkg.RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, false, nodes)
 				Expect(err).NotTo(HaveOccurred())
 
 			},
