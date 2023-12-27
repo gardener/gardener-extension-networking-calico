@@ -13,4 +13,7 @@
    selector:
      matchLabels:
        k8s-app: calico-typha
+{{- if semverCompare ">= 1.26-0" .Capabilities.KubeVersion.Version }}
+  unhealthyPodEvictionPolicy: AlwaysAllow
+{{- end }}
 {{- end }}
