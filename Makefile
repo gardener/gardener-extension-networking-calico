@@ -31,6 +31,16 @@ ifneq ($(strip $(shell git status --porcelain 2>/dev/null)),)
 	EFFECTIVE_VERSION := $(EFFECTIVE_VERSION)-dirty
 endif
 
+WEBHOOK_CONFIG_PORT	:= 8443
+WEBHOOK_CONFIG_MODE	:= url
+WEBHOOK_CONFIG_URL	:= host.docker.internal:$(WEBHOOK_CONFIG_PORT)
+EXTENSION_NAMESPACE	:=
+
+WEBHOOK_PARAM := --webhook-config-url=$(WEBHOOK_CONFIG_URL)
+ifeq ($(WEBHOOK_CONFIG_MODE), service)
+  WEBHOOK_PARAM := --webhook-config-namespace=$(EXTENSION_NAMESPACE)
+endif
+
 #########################################
 # Tools                                 #
 #########################################
@@ -58,8 +68,10 @@ start-admission:
 		-ldflags $(LD_FLAGS) \
 		./cmd/$(EXTENSION_PREFIX)-$(ADMISSION_NAME) \
 		--webhook-config-server-host=0.0.0.0 \
-		--webhook-config-server-port=9443 \
-		--webhook-config-cert-dir=./example/admission-calico-certs
+		--webhook-config-server-port=$(WEBHOOK_CONFIG_PORT) \
+		--webhook-config-mode=$(WEBHOOK_CONFIG_MODE) \
+		$(WEBHOOK_PARAM)
+
 
 #################################################################
 # Rules related to binary build, Docker image build and release #
