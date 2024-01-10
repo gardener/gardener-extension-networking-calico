@@ -17,6 +17,7 @@ package validator
 import (
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -45,9 +46,14 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
 			NewShootValidator(mgr): {{Obj: &core.Shoot{}}},
 		},
+		Target: extensionswebhook.TargetSeed,
+		ObjectSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{"networking.extensions.gardener.cloud/calico": "true"},
+		},
 	})
 }
 
+// CalicoPredicate returns a predicate that checks the calico networking type in the shoot spec.
 func CalicoPredicate() predicate.Funcs {
 	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
 		if obj == nil {
