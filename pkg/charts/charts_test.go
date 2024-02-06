@@ -24,8 +24,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
+	releaseutil "helm.sh/helm/v3/pkg/releaseutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/helm/pkg/manifest"
 
 	"github.com/gardener/gardener-extension-networking-calico/charts"
 	"github.com/gardener/gardener-extension-networking-calico/imagevector"
@@ -519,21 +519,21 @@ var _ = Describe("Chart package test", func() {
 			ctrl                *gomock.Controller
 			mockChartRenderer   *mockchartrenderer.MockInterface
 			testManifestContent string
-			mkManifest          func(name string) manifest.Manifest
+			mkManifest          func(name string) releaseutil.Manifest
 		)
 		BeforeEach(func() {
 			ctrl = gomock.NewController(GinkgoT())
 			mockChartRenderer = mockchartrenderer.NewMockInterface(ctrl)
 			testManifestContent = "test-content"
-			mkManifest = func(name string) manifest.Manifest {
-				return manifest.Manifest{Name: fmt.Sprintf("test/templates/%s", name), Content: testManifestContent}
+			mkManifest = func(name string) releaseutil.Manifest {
+				return releaseutil.Manifest{Name: fmt.Sprintf("test/templates/%s", name), Content: testManifestContent}
 			}
 		})
 		DescribeTable("Render Calico charts correctly",
 			func(nodes *string) {
 				mockChartRenderer.EXPECT().RenderEmbeddedFS(charts.InternalChart, calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, gomock.Any()).Return(&chartrenderer.RenderedChart{
 					ChartName: "test",
-					Manifests: []manifest.Manifest{
+					Manifests: []releaseutil.Manifest{
 						mkManifest(chartspkg.CalicoConfigKey),
 					},
 				}, nil)
