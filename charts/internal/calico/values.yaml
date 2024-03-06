@@ -50,5 +50,3 @@ vpa:
   enabled: false
   node: false
   typha: false
-
-pspDisabled: false

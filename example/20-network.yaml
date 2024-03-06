@@ -28,7 +28,7 @@ spec:
       dns:
         domain: foo.bar.example.com
       kubernetes:
-        version: 1.24.8
+        version: 1.28.3
     status:
       lastOperation:
         state: Succeeded
