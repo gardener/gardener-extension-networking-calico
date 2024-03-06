@@ -1,6 +1,9 @@
 module github.com/gardener/gardener-extension-networking-calico
 
-go 1.21
+go 1.22.0
+
+toolchain go1.22.1
+
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/gardener/gardener v1.90.0
