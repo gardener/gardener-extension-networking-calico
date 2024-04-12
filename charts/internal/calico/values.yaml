@@ -24,12 +24,14 @@ config:
     pool: ipip # or vxlan
     mode: "Always"
     autoDetectionMethod: "first-found"
+    wireguard: false
   ipv6:
     enabled: false
     pool: vxlan
     mode: "Never"
     autoDetectionMethod: "first-found"
     natOutgoing: true
+    wireguard: false
   felix:
     ipinip:
       enabled: "true"

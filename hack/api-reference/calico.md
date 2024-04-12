@@ -212,6 +212,17 @@ It was moved into the IPv4 struct, kept for backwards compatibility.
 Will be removed in a future Gardener release.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>wireguard</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>WireguardEncryption is the option to enable node to node wireguard encryption</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling

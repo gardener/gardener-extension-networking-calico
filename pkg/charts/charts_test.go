@@ -58,6 +58,7 @@ var _ = Describe("Chart package test", func() {
 		networkConfigDeprecated       *calicov1alpha1.NetworkConfig
 		networkConfigInvalid          *calicov1alpha1.NetworkConfig
 		networkConfigOverlayDisabled  *calicov1alpha1.NetworkConfig
+		networkConfigWireguard        *calicov1alpha1.NetworkConfig
 
 		networkConfigNilFunc              = func() *calicov1alpha1.NetworkConfig { return networkConfigNil }
 		networkConfigNilValuesFunc        = func() *calicov1alpha1.NetworkConfig { return networkConfigNilValues }
@@ -67,6 +68,7 @@ var _ = Describe("Chart package test", func() {
 		networkConfigAllEBPFDataplaneFunc = func() *calicov1alpha1.NetworkConfig { return networkConfigAllEBPFDataplane }
 		networkConfigDeprecatedFunc       = func() *calicov1alpha1.NetworkConfig { return networkConfigDeprecated }
 		networkConfigOverlayDisabledFunc  = func() *calicov1alpha1.NetworkConfig { return networkConfigOverlayDisabled }
+		networkConfigWireguardFunc        = func() *calicov1alpha1.NetworkConfig { return networkConfigWireguard }
 
 		objectMeta = metav1.ObjectMeta{
 			Name:      "foo",
@@ -171,6 +173,14 @@ var _ = Describe("Chart package test", func() {
 			},
 			IPAutoDetectionMethod: &autodetectionMethod,
 		}
+		networkConfigWireguard = &calicov1alpha1.NetworkConfig{
+			Backend: &backendBird,
+			IPAM: &calicov1alpha1.IPAM{
+				CIDR: &podCIDR,
+				Type: "host-local",
+			},
+			WireguardEncryption: true,
+		}
 	})
 
 	DescribeTable("#ComputeCalicoChartValues",
@@ -231,6 +241,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                pool,
 						"mode":                modeFunc(),
 						"autoDetectionMethod": nil,
+						"wireguard":           configResult().WireguardEncryption,
 					},
 					"ipv6": map[string]interface{}{
 						"enabled":             false,
@@ -238,6 +249,7 @@ var _ = Describe("Chart package test", func() {
 						"mode":                "",
 						"autoDetectionMethod": nil,
 						"natOutgoing":         false,
+						"wireguard":           configResult().WireguardEncryption,
 					},
 				},
 			}
@@ -295,6 +307,11 @@ var _ = Describe("Chart package test", func() {
 			true, true, defaultMtu, true, false, string(poolIPIP),
 			func() string { return string(*networkConfigDeprecated.IPIP) }, func() *string { return networkConfigDeprecated.IPAutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
+		Entry("should correctly compute all of the calico chart values with wireguard enabled",
+			networkConfigWireguardFunc, networkConfigWireguardFunc,
+			false, true, defaultMtu, true, false, string(poolIPIP),
+			func() string { return string(always) }, func() *string { return nil },
+			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 	)
 
 	Describe("#ComputeCalicoChartValues", func() {
@@ -348,6 +365,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                "ipip",
 						"mode":                "Always",
 						"autoDetectionMethod": nil,
+						"wireguard":           false,
 					})),
 					HaveKeyWithValue("ipv6",
 						HaveKeyWithValue("enabled", false),
@@ -383,6 +401,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                "vxlan",
 						"mode":                "CrossSubnet",
 						"autoDetectionMethod": "first-found",
+						"wireguard":           false,
 					})),
 					HaveKeyWithValue("ipv6",
 						HaveKeyWithValue("enabled", false),
@@ -414,6 +433,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                "ipip",
 						"mode":                "Off",
 						"autoDetectionMethod": nil,
+						"wireguard":           false,
 					})),
 					HaveKeyWithValue("ipv6",
 						HaveKeyWithValue("enabled", false),
@@ -458,6 +478,7 @@ var _ = Describe("Chart package test", func() {
 						"mode":                "Never",
 						"autoDetectionMethod": nil,
 						"natOutgoing":         true,
+						"wireguard":           false,
 					})),
 				))
 				Expect(values["global"]).To(
@@ -494,6 +515,7 @@ var _ = Describe("Chart package test", func() {
 						"mode":                "CrossSubnet",
 						"autoDetectionMethod": "first-found",
 						"natOutgoing":         true,
+						"wireguard":           false,
 					})),
 				))
 				Expect(values["global"]).To(
