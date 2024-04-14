@@ -260,6 +260,9 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 
 	c.IPv4.Wireguard = config.WireguardEncryption
 	c.IPv6.Wireguard = config.WireguardEncryption
+	if config.WireguardEncryption {
+		c.IPv6.NATOutgoing = true
+	}
 
 	if config.Backend != nil {
 		switch *config.Backend {

@@ -248,7 +248,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                "",
 						"mode":                "",
 						"autoDetectionMethod": nil,
-						"natOutgoing":         false,
+						"natOutgoing":         configResult().WireguardEncryption,
 						"wireguard":           configResult().WireguardEncryption,
 					},
 				},
