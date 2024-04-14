@@ -214,7 +214,7 @@ Will be removed in a future Gardener release.</p>
 </tr>
 <tr>
 <td>
-<code>wireguard</code></br>
+<code>wireguardEncryption</code></br>
 <em>
 bool
 </em>
