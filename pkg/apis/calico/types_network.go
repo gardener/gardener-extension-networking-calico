@@ -100,6 +100,9 @@ type NetworkConfig struct {
 	// It was moved into the IPv4 struct, kept for backwards compatibility.
 	// Will be removed in a future Gardener release.
 	IPAutoDetectionMethod *string
+
+	// WireguardEncryption is the option to enable node to node wireguard encryption
+	WireguardEncryption bool
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

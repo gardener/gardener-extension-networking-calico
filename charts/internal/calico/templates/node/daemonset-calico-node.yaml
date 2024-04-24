@@ -332,6 +332,14 @@ spec:
             - name: FELIX_CHAININSERTMODE
               value: "Append"
             {{- end }}
+            {{- if .Values.config.ipv4.wireguard }}
+            - name: FELIX_WIREGUARDENABLED
+              value: "true"
+            {{- end }}
+            {{- if .Values.config.ipv6.wireguard }}
+            - name: FELIX_WIREGUARDENABLEDV6
+              value: "true"
+            {{- end }}
             # Enable automatic management of kubeconfig used by CNI (required due to limited lifetime of service account tokens, BoundServiceAccountTokenVolume feature)
             - name: CALICO_MANAGE_CNI
               value: "true"

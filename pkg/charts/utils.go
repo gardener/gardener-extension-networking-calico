@@ -61,6 +61,7 @@ type ipv4 struct {
 	Pool                calicov1alpha1.Pool     `json:"pool"`
 	Mode                calicov1alpha1.PoolMode `json:"mode"`
 	AutoDetectionMethod *string                 `json:"autoDetectionMethod"`
+	Wireguard           bool                    `json:"wireguard"`
 }
 
 type ipv6 struct {
@@ -69,6 +70,7 @@ type ipv6 struct {
 	Mode                calicov1alpha1.PoolMode `json:"mode"`
 	AutoDetectionMethod *string                 `json:"autoDetectionMethod"`
 	NATOutgoing         bool                    `json:"natOutgoing"`
+	Wireguard           bool                    `json:"wireguard"`
 }
 
 type ipam struct {
@@ -254,6 +256,12 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.NetworkConfig, isIPv4, isIPv6 bool) (*calicoConfig, error) {
 	if config == nil {
 		return c, nil
+	}
+
+	c.IPv4.Wireguard = config.WireguardEncryption
+	c.IPv6.Wireguard = config.WireguardEncryption
+	if config.WireguardEncryption {
+		c.IPv6.NATOutgoing = true
 	}
 
 	if config.Backend != nil {

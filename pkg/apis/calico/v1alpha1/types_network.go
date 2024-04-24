@@ -119,6 +119,9 @@ type NetworkConfig struct {
 	// Will be removed in a future Gardener release.
 	// +optional
 	IPAutoDetectionMethod *string `json:"ipAutodetectionMethod,omitempty"`
+
+	// WireguardEncryption is the option to enable node to node wireguard encryption
+	WireguardEncryption bool `json:"wireguardEncryption,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

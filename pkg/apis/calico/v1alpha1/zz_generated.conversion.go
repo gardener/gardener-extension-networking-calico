@@ -250,6 +250,7 @@ func autoConvert_v1alpha1_NetworkConfig_To_calico_NetworkConfig(in *NetworkConfi
 	out.AutoScaling = (*calico.AutoScaling)(unsafe.Pointer(in.AutoScaling))
 	out.IPIP = (*calico.PoolMode)(unsafe.Pointer(in.IPIP))
 	out.IPAutoDetectionMethod = (*string)(unsafe.Pointer(in.IPAutoDetectionMethod))
+	out.WireguardEncryption = in.WireguardEncryption
 	return nil
 }
 
@@ -271,6 +272,7 @@ func autoConvert_calico_NetworkConfig_To_v1alpha1_NetworkConfig(in *calico.Netwo
 	out.AutoScaling = (*AutoScaling)(unsafe.Pointer(in.AutoScaling))
 	out.IPIP = (*PoolMode)(unsafe.Pointer(in.IPIP))
 	out.IPAutoDetectionMethod = (*string)(unsafe.Pointer(in.IPAutoDetectionMethod))
+	out.WireguardEncryption = in.WireguardEncryption
 	return nil
 }
 
