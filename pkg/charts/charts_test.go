@@ -27,7 +27,7 @@ import (
 var (
 	trueVar    = true
 	mtuVar     = "1430"
-	defaultMtu = "1440"
+	defaultMtu = "0"
 )
 
 var _ = Describe("Chart package test", func() {

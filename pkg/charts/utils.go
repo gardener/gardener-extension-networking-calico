@@ -22,7 +22,7 @@ const (
 	calicoIPAM   = "calico-ipam"
 	usePodCIDR   = "usePodCidr"
 	usePodCIDRv6 = "usePodCidrIPv6"
-	defaultMTU   = "1440"
+	defaultMTU   = "0"
 )
 
 type calicoConfig struct {
