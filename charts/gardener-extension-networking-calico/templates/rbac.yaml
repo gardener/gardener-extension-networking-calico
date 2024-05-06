@@ -62,6 +62,7 @@ rules:
   - rbac.authorization.k8s.io
   - admissionregistration.k8s.io
   - apiextensions.k8s.io
+  - monitoring.coreos.com
   resources:
   - namespaces
   - events
@@ -81,6 +82,8 @@ rules:
   - pods/log
   - mutatingwebhookconfigurations
   - customresourcedefinitions
+  - scrapeconfigs
+  - statefulsets # TODO(rfranzke): Remove this after August 2024.
   verbs:
   - "*"
 ---

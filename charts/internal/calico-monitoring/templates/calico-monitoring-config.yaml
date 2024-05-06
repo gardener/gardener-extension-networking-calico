@@ -1,3 +1,4 @@
+{{- if not .Values.gep19Monitoring }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -89,3 +90,4 @@ data:
 
     calico-typha-dashboard.json: |-
     {{- .Files.Get "calico-typha-dashboard.json" | nindent 6 }}
+{{- end }}
