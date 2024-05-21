@@ -15,7 +15,7 @@ images:
 - name: calico-cni
   sourceRepository: github.com/projectcalico/cni-plugin
   repository: quay.io/calico/cni
-  tag: v3.27.0
+  tag: v3.27.3
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
