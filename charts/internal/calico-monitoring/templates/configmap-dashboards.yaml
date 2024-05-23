@@ -1,0 +1,15 @@
+{{- if .Values.gep19Monitoring }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calico-dashboards
+  namespace: {{ .Release.Namespace }}
+  labels:
+    dashboard.monitoring.gardener.cloud/shoot: "true"
+data:
+  calico-felix-dashboard.json: |-
+  {{- .Files.Get "calico-felix-dashboard.json" | nindent 4 }}
+
+  calico-typha-dashboard.json: |-
+  {{- .Files.Get "calico-typha-dashboard.json" | nindent 4 }}
+{{- end }}
