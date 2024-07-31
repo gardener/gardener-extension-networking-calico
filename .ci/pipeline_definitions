@@ -1,4 +1,25 @@
 gardener-extension-networking-calico:
+  templates: 
+    helmcharts:
+    - &networking-calico
+      name: networking-calico
+      dir: charts/gardener-extension-networking-calico
+      registry: europe-docker.pkg.dev/gardener-project/snapshots/charts/gardener/extensions
+      mappings:
+      - ref: ocm-resource:gardener-extension-networking-calico.repository
+        attribute: image.repository
+      - ref: ocm-resource:gardener-extension-networking-calico.tag
+        attribute: image.tag
+    - &admission-calico
+      name: admission-calico
+      dir: charts/gardener-extension-admission-calico
+      registry: europe-docker.pkg.dev/gardener-project/snapshots/charts/gardener/extensions
+      mappings:
+      - ref: ocm-resource:gardener-extension-admission-calico.repository
+        attribute: global.image.repository
+      - ref: ocm-resource:gardener-extension-admission-calico.tag
+        attribute: global.image.tag
+
   base_definition:
     traits:
       component_descriptor:
@@ -56,11 +77,19 @@ gardener-extension-networking-calico:
         draft_release: ~
         options:
           public_build_logs: true
+        publish:
+          helmcharts:
+          - *networking-calico
+          - *admission-calico
     pull-request:
       traits:
         pull-request: ~
         options:
           public_build_logs: true
+        publish:
+          helmcharts:
+          - *networking-calico
+          - *admission-calico
     release:
       traits:
         version:
@@ -85,3 +114,8 @@ gardener-extension-networking-calico:
             gardener-extension-admission-calico:
               image: europe-docker.pkg.dev/gardener-project/releases/gardener/extensions/admission-calico
               tag_as_latest: true
+          helmcharts:
+          - <<: *networking-calico
+            registry: europe-docker.pkg.dev/gardener-project/releases/charts/gardener/extensions
+          - <<: *admission-calico
+            registry: europe-docker.pkg.dev/gardener-project/releases/charts/gardener/extensions
