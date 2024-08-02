@@ -10,9 +10,18 @@ gardener-extension-networking-calico:
         attribute: image.repository
       - ref: ocm-resource:gardener-extension-networking-calico.tag
         attribute: image.tag
-    - &admission-calico
-      name: admission-calico
-      dir: charts/gardener-extension-admission-calico
+    - &admission-calico-application
+      name: admission-calico-application
+      dir: charts/gardener-extension-admission-calico/charts/application
+      registry: europe-docker.pkg.dev/gardener-project/snapshots/charts/gardener/extensions
+      mappings:
+      - ref: ocm-resource:gardener-extension-admission-calico.repository
+        attribute: global.image.repository
+      - ref: ocm-resource:gardener-extension-admission-calico.tag
+        attribute: global.image.tag
+    - &admission-calico-runtime
+      name: admission-calico-runtime
+      dir: charts/gardener-extension-admission-calico/charts/runtime
       registry: europe-docker.pkg.dev/gardener-project/snapshots/charts/gardener/extensions
       mappings:
       - ref: ocm-resource:gardener-extension-admission-calico.repository
@@ -80,7 +89,8 @@ gardener-extension-networking-calico:
         publish:
           helmcharts:
           - *networking-calico
-          - *admission-calico
+          - *admission-calico-application
+          - *admission-calico-runtime
     pull-request:
       traits:
         pull-request: ~
@@ -89,7 +99,8 @@ gardener-extension-networking-calico:
         publish:
           helmcharts:
           - *networking-calico
-          - *admission-calico
+          - *admission-calico-application
+          - *admission-calico-runtime
     release:
       traits:
         version:
@@ -117,5 +128,7 @@ gardener-extension-networking-calico:
           helmcharts:
           - <<: *networking-calico
             registry: europe-docker.pkg.dev/gardener-project/releases/charts/gardener/extensions
-          - <<: *admission-calico
+          - <<: *admission-calico-application
+            registry: europe-docker.pkg.dev/gardener-project/releases/charts/gardener/extensions
+          - <<: *admission-calico-runtime
             registry: europe-docker.pkg.dev/gardener-project/releases/charts/gardener/extensions
