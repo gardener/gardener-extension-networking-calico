@@ -11,8 +11,10 @@ metadata:
     k8s-app: calico-node
     gardener.cloud/role: system-component
     node.gardener.cloud/critical-component: "true"
+  {{- if not .Values.autoscaling.staticRequests }}
   annotations:
     resources.gardener.cloud/preserve-resources: 'true'
+  {{- end }}
 spec:
   revisionHistoryLimit: 5
   selector:
@@ -358,8 +360,8 @@ spec:
             {{- end }}
           resources:
             requests:
-              cpu: 250m
-              memory: 100Mi
+              cpu: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.node.cpu }}{{ .Values.autoscaling.resourceRequests.node.cpu }}{{ else }}250m{{ end }}
+              memory: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.node.memory }}{{ .Values.autoscaling.resourceRequests.node.memory }}{{ else }}100Mi{{ end }}
             limits:
               memory: 2800Mi
           lifecycle:

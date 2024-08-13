@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/gardener/gardener-extension-networking-calico/imagevector"
@@ -164,8 +165,8 @@ func ComputeCalicoChartValues(
 		return nil, fmt.Errorf("could not convert calico config: %v", err)
 	}
 	calicoChartValues := map[string]interface{}{
-		"vpa": map[string]interface{}{
-			"enabled": wantsVPA,
+		"autoscaling": map[string]interface{}{
+			"kubeControllers": wantsVPA,
 		},
 		"images": map[string]interface{}{
 			calico.CNIImageName:                                   imagevector.CalicoCNIImage(kubernetesVersion),
@@ -199,8 +200,11 @@ func ComputeCalicoChartValues(
 	}
 
 	if config != nil && config.AutoScaling != nil && config.AutoScaling.Mode == calicov1alpha1.AutoscalingModeVPA && wantsVPA {
-		calicoChartValues["vpa"].(map[string]interface{})["node"] = strconv.FormatBool(true)
-		calicoChartValues["vpa"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+		calicoChartValues["autoscaling"].(map[string]interface{})["node"] = strconv.FormatBool(true)
+		calicoChartValues["autoscaling"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+	} else if config != nil && config.AutoScaling != nil && config.AutoScaling.Mode == calicov1alpha1.AutoscalingModeStatic {
+		calicoChartValues["autoscaling"].(map[string]interface{})["staticRequests"] = strconv.FormatBool(true)
+		calicoChartValues["autoscaling"].(map[string]interface{})["resourceRequests"] = calculateResourceRequests(config.AutoScaling.Resources)
 	}
 	return calicoChartValues, nil
 }
@@ -371,4 +375,27 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 	}
 
 	return c, nil
+}
+
+func calculateResourceRequests(resources *calicov1alpha1.StaticResources) map[string]interface{} {
+	if resources == nil {
+		return map[string]interface{}{}
+	}
+	resourceRequests := map[string]interface{}{}
+	addResourceRequestsFromConfig(resources.Node, "node", resourceRequests)
+	addResourceRequestsFromConfig(resources.Typha, "typha", resourceRequests)
+	return resourceRequests
+}
+
+func addResourceRequestsFromConfig(resources *corev1.ResourceList, name string, resourceRequests map[string]interface{}) {
+	if resources != nil {
+		nodeRequests := map[string]interface{}{}
+		if cpu, exists := (*resources)[corev1.ResourceCPU]; exists {
+			nodeRequests[corev1.ResourceCPU.String()] = cpu
+		}
+		if memory, exists := (*resources)[corev1.ResourceMemory]; exists {
+			nodeRequests[corev1.ResourceMemory.String()] = memory
+		}
+		resourceRequests[name] = nodeRequests
+	}
 }

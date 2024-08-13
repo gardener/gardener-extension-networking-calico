@@ -12,7 +12,9 @@ metadata:
   namespace: kube-system
   annotations:
     cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
+    {{- if not .Values.autoscaling.staticRequests }}
     resources.gardener.cloud/preserve-resources: 'true'
+    {{- end }}
   labels:
     k8s-app: calico-typha
     gardener.cloud/role: system-component
@@ -122,8 +124,8 @@ spec:
           #  value: "9093"
         resources:
           requests:
-            cpu: 200m
-            memory: 100Mi
+            cpu: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.typha.cpu }}{{ .Values.autoscaling.resourceRequests.typha.cpu }}{{ else }}200m{{ end }}
+            memory: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.typha.memory }}{{ .Values.autoscaling.resourceRequests.typha.memory }}{{ else }}100Mi{{ end }}
           limits:
             memory: 4000Mi
         livenessProbe:

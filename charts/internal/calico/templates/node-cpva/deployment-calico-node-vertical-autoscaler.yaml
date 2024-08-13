@@ -1,4 +1,4 @@
-{{- if not .Values.vpa.node }}
+{{- if not ( or .Values.autoscaling.node .Values.autoscaling.staticRequests ) }}
 ---
 kind: Deployment
 apiVersion: apps/v1

@@ -65,14 +65,13 @@ spec:
 
 ## AutoScaling
 
-Autoscaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+Autoscaling defines how the calico components are automatically scaled. It allows to use either static resource assignment, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
 
-The cluster-proportional autoscaling mode is preferable when conditions require minimimal disturbances and vpa mode for improved cluster resource utilization. 
+The cluster-proportional autoscaling mode is preferable when conditions require minimal disturbances and vpa mode for improved cluster resource utilization. Static resource assignments causes the least disruptions, but has no dynamics to handle changing demands. 
 
 Please note VPA must be enabled on the shoot as a pre-requisite to enabling vpa mode.
 
-
-An example AutoScaling `NetworkingConfig` manifest:
+An example `NetworkingConfig` manifest for vertical pod autoscaling:
 
 ```yaml
 apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
@@ -80,6 +79,25 @@ kind: NetworkConfig
 autoScaling:
   mode: "vpa"
 ```
+
+An example `NetworkingConfig` manifest for static resource assignment:
+
+```yaml
+apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
+kind: NetworkConfig
+autoScaling:
+  mode: "static"
+  resources:
+    node:
+      cpu: 100m
+      memory: 100Mi
+    typha:
+      cpu: 100m
+      memory: 100Mi
+```
+
+> ℹ️ Please note that it is only possible to (optionally) configure the resource requests for `calico-node` and `calico-typha` in static mode.
+> If the resource requests are chosen too low, it might impact the stability/performance of the cluster.
 
 ## Example `NetworkingConfig` manifest
 
