@@ -196,6 +196,64 @@ spec:
               name: xtables-lock
               readOnly: false
         {{- end }}
+        # Ensure that the NetworkUnavailable condition is set correctly after startup
+        # There may be a race between an old instance shutting down and a new instance starting up
+        {{- if ne .Values.config.backend "none" }}
+        - name: network-unavailable-condition-ensurer
+          image: {{ index .Values.images "calico-node" }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: false
+          env:
+            - name: CALICO_NETWORKING_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: calico_backend
+            - name: IP
+            {{- if .Values.config.ipv4.enabled }}
+              value: "autodetect"
+            {{- else }}
+              value: "none"
+            {{- end }}
+            {{- if .Values.config.ipv4.enabled }}
+            {{- if .Values.config.ipv4.autoDetectionMethod }}
+            - name: IP_AUTODETECTION_METHOD
+              value: "{{ .Values.config.ipv4.autoDetectionMethod }}"
+            {{- end }}
+            {{- end }}
+            {{- if .Values.config.ipv6.enabled }}
+            - name: IP6
+              value: "autodetect"
+            {{- if .Values.config.ipv6.autoDetectionMethod }}
+            - name: IP6_AUTODETECTION_METHOD
+              value: "{{ .Values.config.ipv6.autoDetectionMethod }}"
+            {{- end }}
+            {{- end }}
+            - name: NO_DEFAULT_POOLS
+              value: "true"
+            - name: NODENAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          resources:
+            requests:
+              cpu: 1m
+              memory: 20Mi
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting 30s for initialization to complete..."
+              sleep 30
+              echo "Ensuring NetworkUnavailable condition is set correctly..."
+              calico-node -startup
+              echo "Finished ensuring NetworkUnavailable condition is set correctly."
+              while true; do
+                echo "Sleeping for 1h..."
+                sleep 3600
+              done
+        {{- end }}
         - name: calico-node
           image: {{ index .Values.images "calico-node" }}
           envFrom:

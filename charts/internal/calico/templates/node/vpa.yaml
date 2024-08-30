@@ -27,4 +27,12 @@ spec:
         cpu: 1
         memory: 1G
       controlledValues: RequestsOnly
+    - containerName: "network-unavailable-condition-ensurer"
+      minAllowed:
+        cpu: 1m
+        memory: 20Mi
+      maxAllowed:
+        cpu: 10m
+        memory: 100Mi
+      controlledValues: RequestsOnly
 {{- end }}
