@@ -67,7 +67,7 @@ spec:
 
 Autoscaling defines how the calico components are automatically scaled. It allows to use either static resource assignment, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
 
-The cluster-proportional autoscaling mode is preferable when conditions require minimal disturbances and vpa mode for improved cluster resource utilization. Static resource assignments causes the least disruptions, but has no dynamics to handle changing demands. 
+The cluster-proportional autoscaling mode is preferable when conditions require minimal disturbances and vpa mode for improved cluster resource utilization. Static resource assignments causes no disruptions due to autoscaling, but has no dynamics to handle changing demands. 
 
 Please note VPA must be enabled on the shoot as a pre-requisite to enabling vpa mode.
 
@@ -96,8 +96,9 @@ autoScaling:
       memory: 100Mi
 ```
 
-> ℹ️ Please note that it is only possible to (optionally) configure the resource requests for `calico-node` and `calico-typha` in static mode.
+> ℹ️ Please note that in static mode, you have the option to configure the resource requests for calico-node and calico-typha. If not specified, default settings will be used.
 > If the resource requests are chosen too low, it might impact the stability/performance of the cluster.
+> Specifying the resource requests for any other autoscaling mode has no effect.
 
 ## Example `NetworkingConfig` manifest
 

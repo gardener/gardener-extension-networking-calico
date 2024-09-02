@@ -177,7 +177,7 @@ AutoScaling
 </td>
 <td>
 <em>(Optional)</em>
-<p>AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+<p>AutoScaling defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
 </td>
 </tr>
 <tr>
@@ -232,7 +232,7 @@ bool
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
 </p>
 <p>
-<p>AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+<p>AutoScaling defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
 </p>
 <table>
 <thead>
@@ -252,7 +252,7 @@ AutoscalingMode
 </em>
 </td>
 <td>
-<p>Mode defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+<p>Mode defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
 </td>
 </tr>
 <tr>

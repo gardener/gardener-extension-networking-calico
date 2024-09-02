@@ -87,7 +87,7 @@ type NetworkConfig struct {
 	Overlay *Overlay
 	// SnatToUpstreamDNS enables the masquerading of packets to the upstream dns server (default: enabled)
 	SnatToUpstreamDNS *SnatToUpstreamDNS
-	// AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+	// AutoScaling defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
 	// +optional
 	AutoScaling *AutoScaling
 
@@ -160,9 +160,9 @@ const (
 	AutoscalingModeStatic AutoscalingMode = "static"
 )
 
-// AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+// AutoScaling defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
 type AutoScaling struct {
-	// Mode defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
+	// Mode defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
 	Mode AutoscalingMode
 	// Resources optionally defines the amount of resources to statically allocate for the calico components.
 	Resources *StaticResources
