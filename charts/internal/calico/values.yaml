@@ -48,7 +48,15 @@ images:
   calico-cpva: "image-repository:image-tag"
   calico-cpa: "image-repository:image-tag"
 
-vpa:
-  enabled: false
+autoscaling:
+  kubeControllers: false
   node: false
   typha: false
+  staticRequests: false
+  resourceRequests:
+    node: {}
+      #cpu: 250m     # Only set when available
+      #memory: 100Mi # Only set when available
+    typha: {}
+      #cpu: 200m     # Only set when available
+      #memory: 100Mi # Only set when available

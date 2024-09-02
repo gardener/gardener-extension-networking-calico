@@ -201,8 +201,8 @@ var _ = Describe("Chart package test", func() {
 				"global": map[string]string{
 					"podCIDR": network.Spec.PodCIDR,
 				},
-				"vpa": map[string]interface{}{
-					"enabled": wantsVPA,
+				"autoscaling": map[string]interface{}{
+					"kubeControllers": wantsVPA,
 				},
 				"config": map[string]interface{}{
 					"backend": string(*configResult().Backend),

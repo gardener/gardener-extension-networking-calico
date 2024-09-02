@@ -1,5 +1,5 @@
 {{- if .Values.config.kubeControllers.enabled }}
-{{- if .Values.vpa.enabled }}
+{{- if .Values.autoscaling.kubeControllers }}
 apiVersion: "autoscaling.k8s.io/v1"
 kind: VerticalPodAutoscaler
 metadata:

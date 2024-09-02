@@ -177,7 +177,7 @@ AutoScaling
 </td>
 <td>
 <em>(Optional)</em>
-<p>AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+<p>AutoScaling defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
 </td>
 </tr>
 <tr>
@@ -232,7 +232,7 @@ bool
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
 </p>
 <p>
-<p>AutoScaling defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+<p>AutoScaling defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
 </p>
 <table>
 <thead>
@@ -252,7 +252,20 @@ AutoscalingMode
 </em>
 </td>
 <td>
-<p>Mode defines how the calico components are automatically scaled. It allows to use either vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+<p>Mode defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>resources</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.StaticResources">
+StaticResources
+</a>
+</em>
+</td>
+<td>
+<p>Resources optionally defines the amount of resources to statically allocate for the calico components.</p>
 </td>
 </tr>
 </tbody>
@@ -582,6 +595,51 @@ bool
 </em>
 </td>
 <td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.StaticResources">StaticResources
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling</a>)
+</p>
+<p>
+<p>StaticResources optionally defines the amount of resources to statically allocate for the calico components.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>node</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#resourcelist-v1-core">
+Kubernetes core/v1.ResourceList
+</a>
+</em>
+</td>
+<td>
+<p>Node optionally defines the amount of resources to statically allocate for the calico node component.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>typha</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#resourcelist-v1-core">
+Kubernetes core/v1.ResourceList
+</a>
+</em>
+</td>
+<td>
+<p>Node optionally defines the amount of resources to statically allocate for the calico typha component.</p>
 </td>
 </tr>
 </tbody>
