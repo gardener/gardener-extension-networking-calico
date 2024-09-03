@@ -6,7 +6,7 @@ toolchain go1.22.6
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
-	github.com/gardener/gardener v1.102.0
+	github.com/gardener/gardener v1.102.1
 	github.com/go-logr/logr v1.4.2
 	github.com/onsi/ginkgo/v2 v2.20.1
 	github.com/onsi/gomega v1.34.2
