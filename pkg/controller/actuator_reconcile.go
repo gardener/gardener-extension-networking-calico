@@ -93,23 +93,29 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
+	if networkConfig == nil {
+		networkConfig = &calicov1alpha1.NetworkConfig{}
+	}
+
+	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
+		if networkConfig.IPv4 == nil {
+			networkConfig.IPv4 = &calicov1alpha1.IPv4{}
+		}
+	}
+	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+		if networkConfig.IPv6 == nil {
+			networkConfig.IPv6 = &calicov1alpha1.IPv6{}
+		}
+	}
+
 	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Nodes != nil && len(*cluster.Shoot.Spec.Networking.Nodes) > 0 {
 		autodetectionMode := fmt.Sprintf("cidr=%s", *cluster.Shoot.Spec.Networking.Nodes)
-		if networkConfig == nil {
-			networkConfig = &calicov1alpha1.NetworkConfig{}
-		}
 
 		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
-			if networkConfig.IPv4 == nil {
-				networkConfig.IPv4 = &calicov1alpha1.IPv4{}
-			}
 			networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
 		}
 
 		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
-			if networkConfig.IPv6 == nil {
-				networkConfig.IPv6 = &calicov1alpha1.IPv6{}
-			}
 			networkConfig.IPv6.AutoDetectionMethod = &autodetectionMode
 		}
 	}
