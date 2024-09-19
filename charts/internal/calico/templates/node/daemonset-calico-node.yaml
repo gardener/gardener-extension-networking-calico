@@ -171,10 +171,6 @@ spec:
           env:
           - name: POD_CIDR
             value: {{ .Values.global.podCIDR }}
-          resources:
-            requests:
-              cpu: 10m
-              memory: 50Mi
           command:
           - /bin/sh
           - -c
@@ -238,10 +234,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-          resources:
-            requests:
-              cpu: 1m
-              memory: 20Mi
           command:
             - /bin/sh
             - -c
