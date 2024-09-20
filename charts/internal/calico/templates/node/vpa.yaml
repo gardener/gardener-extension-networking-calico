@@ -15,4 +15,8 @@ spec:
     containerPolicies:
     - containerName: calico-node
       controlledValues: RequestsOnly
+    - containerName: "add-snat-rule-to-upstream-dns"
+      mode: "Off"
+    - containerName: "network-unavailable-condition-ensurer"
+      mode: "Off"
 {{- end }}
