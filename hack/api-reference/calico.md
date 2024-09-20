@@ -431,6 +431,14 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.IPv4Pool">IPv4Pool
+</h3>
+<p>
+</p>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.IPv4PoolMode">IPv4PoolMode
+</h3>
+<p>
+</p>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.IPv6">IPv6
 </h3>
 <p>
