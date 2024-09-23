@@ -14,10 +14,5 @@ spec:
   resourcePolicy:
     containerPolicies:
     - containerName: "*"
-      minAllowed:
-        cpu: 100m
-        memory: 180Mi
-      maxAllowed:
-        memory: 4000Mi
       controlledValues: RequestsOnly
 {{- end }}
