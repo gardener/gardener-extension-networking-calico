@@ -234,9 +234,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 	if isIPv6 {
 		c.IPAM.AssignIPv6 = true
 		c.IPAM.Subnet = usePodCIDRv6
-		// NOTE: calico guide (https://docs.tigera.io/calico/latest/networking/ipam/ipv6#enable-ipv6-only) requires ipam
-		// type to be calico-ipam for single IPv6 or dual-stack clusters.
-		c.IPAM.IPAMType = calicoIPAM
+		c.IPAM.IPAMType = hostLocal
 		c.IPv6 = ipv6{
 			Enabled:             true,
 			Pool:                calicov1alpha1.PoolVXLan,
