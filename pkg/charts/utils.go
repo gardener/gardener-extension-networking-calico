@@ -212,12 +212,8 @@ func ComputeCalicoChartValues(
 func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool) (*calicoConfig, error) {
 	// by default assume IPv4 (dual-stack is not supported, yet)
 	ipFamilies := sets.New[extensionsv1alpha1.IPFamily](network.Spec.IPFamilies...)
-	isIPv4 := true
-	isIPv6 := false
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
-		isIPv4 = false
-		isIPv6 = true
-	}
+	isIPv4 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4)
+	isIPv6 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6)
 
 	c := newCalicoConfig()
 	if isIPv4 {
