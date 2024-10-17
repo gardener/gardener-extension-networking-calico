@@ -184,8 +184,13 @@ spec:
             sleep 15
             while true; do
               for i in $(cat /etc/resolv.conf | grep nameserver | sed -n -e 's/^.*nameserver //p' ); do
-                iptables-$backend -t nat -C POSTROUTING -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE 2>/dev/null \
-                || iptables-$backend -t nat -I POSTROUTING 1 -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE
+                if [[ $i =~ .*:.* ]] && [[ ${POD_CIDR} =~ .*:.* ]]; then
+                  ip6tables-$backend -t nat -C POSTROUTING -s ${POD_CIDR} -d $i/128 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE 2>/dev/null \
+                  || ip6tables-$backend -t nat -I POSTROUTING 1 -s ${POD_CIDR} -d $i/128 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE
+                elif [[ $i =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ ${POD_CIDR} =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+                  iptables-$backend -t nat -C POSTROUTING -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE 2>/dev/null \
+                  || iptables-$backend -t nat -I POSTROUTING 1 -s ${POD_CIDR} -d $i/32 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE
+                fi
               done
               sleep 60
             done
