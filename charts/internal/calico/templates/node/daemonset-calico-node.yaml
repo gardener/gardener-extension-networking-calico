@@ -333,7 +333,7 @@ spec:
             # chosen from this range. Changing this value after installation will have
             # no effect. This should fall within `--cluster-cidr`.
             - name: CALICO_IPV6POOL_CIDR
-              value: "{{ .Values.global.podCIDR }}"
+              value: "{{ .Values.global.podCIDRv6 }}"
             # Auto-detect the BGP IP address.
             {{- if .Values.config.ipv6.autoDetectionMethod }}
             # On metal the ip is bound to the lo interface (routing to the host).

@@ -7,6 +7,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"net"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
@@ -110,13 +111,24 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Nodes != nil && len(*cluster.Shoot.Spec.Networking.Nodes) > 0 {
 		autodetectionMode := fmt.Sprintf("cidr=%s", *cluster.Shoot.Spec.Networking.Nodes)
-
+		//for dualstack we should get shoot.Status.Networking.NodeCIDRs
 		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
 			networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
 		}
-
+		autodetectionModeV6 := autodetectionMode
+		if cluster.Shoot.Status.Networking != nil && cluster.Shoot.Status.Networking.Nodes != nil && len(cluster.Shoot.Status.Networking.Nodes) >0 {
+			for i, nodeCidr := range(cluster.Shoot.Status.Networking.Nodes){
+				_, cidr, err := net.ParseCIDR(nodeCidr)
+				if err != nil {
+					return err
+				}
+				if cidr.IP.To4() == nil {
+					autodetectionModeV6 = fmt.Sprintf("cidr=%s", cluster.Shoot.Status.Networking.Nodes[i])
+				}
+			}
+		}
 		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
-			networkConfig.IPv6.AutoDetectionMethod = &autodetectionMode
+			networkConfig.IPv6.AutoDetectionMethod = &autodetectionModeV6
 		}
 	}
 
@@ -161,6 +173,11 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		return fmt.Errorf("could not create chart renderer for shoot '%s': %w", network.Namespace, err)
 	}
 
+	var podCIDRs []string
+	if cluster.Shoot.Status.Networking != nil {
+		podCIDRs = cluster.Shoot.Status.Networking.Pods
+	}
+
 	calicoChart, err := chartspkg.RenderCalicoChart(
 		chartRenderer,
 		network,
@@ -170,6 +187,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		kubeProxyEnabled,
 		features.FeatureGate.Enabled(features.NonPrivilegedCalicoNode),
 		cluster.Shoot.Spec.Networking.Nodes,
+		podCIDRs,
 	)
 	if err != nil {
 		return err
