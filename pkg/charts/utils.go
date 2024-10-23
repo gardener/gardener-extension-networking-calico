@@ -76,10 +76,15 @@ type ipv6 struct {
 }
 
 type ipam struct {
-	IPAMType   string `json:"type"`
-	Subnet     string `json:"subnet"`
-	AssignIPv4 bool   `json:"assign_ipv4"`
-	AssignIPv6 bool   `json:"assign_ipv6"`
+	IPAMType   string        `json:"type"`
+	Subnet     string        `json:"subnet"`
+	Ranges     [][]ipamRange `json:"ranges"`
+	AssignIPv4 bool          `json:"assign_ipv4"`
+	AssignIPv6 bool          `json:"assign_ipv6"`
+}
+
+type ipamRange struct {
+	Subnet string `json:"subnet"`
 }
 
 type kubeControllers struct {
@@ -258,6 +263,15 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 			NATOutgoing:         true,
 		}
 		c.Felix.IPInIP.Enabled = false
+	}
+
+	if isIPv4 && isIPv6 {
+		c.IPAM.Subnet = "" // drop it for dualstack
+
+		c.IPAM.Ranges = append(c.IPAM.Ranges,
+			[]ipamRange{{Subnet: usePodCIDRv6}},
+			[]ipamRange{{Subnet: usePodCIDR}},
+		)
 	}
 
 	if !kubeProxyEnabled {
