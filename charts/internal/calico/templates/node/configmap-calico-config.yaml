@@ -36,11 +36,14 @@ data:
           "mtu": __CNI_MTU__,
           "ipam": {
             "type": "{{ .Values.config.ipam.type }}",
+            {{- with .Values.config.ipam.subnet }}
+            "subnet": "{{ . }}",
+            {{- end }}
+            {{- with .Values.config.ipam.ranges }}
+            "ranges": {{ . | toJson }},
+            {{- end }}
             "assign_ipv4": "{{ .Values.config.ipam.assign_ipv4 }}",
             "assign_ipv6": "{{ .Values.config.ipam.assign_ipv6 }}"
-        {{- if .Values.config.ipam.subnet }},
-            "subnet": "{{ .Values.config.ipam.subnet }}"
-        {{- end }}
           },
           "policy": {
             "type": "k8s"
