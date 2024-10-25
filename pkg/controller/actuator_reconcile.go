@@ -116,8 +116,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
 		}
 		autodetectionModeV6 := autodetectionMode
-		if cluster.Shoot.Status.Networking != nil && cluster.Shoot.Status.Networking.Nodes != nil && len(cluster.Shoot.Status.Networking.Nodes) >0 {
-			for i, nodeCidr := range(cluster.Shoot.Status.Networking.Nodes){
+		if cluster.Shoot.Status.Networking != nil && cluster.Shoot.Status.Networking.Nodes != nil && len(cluster.Shoot.Status.Networking.Nodes) > 0 {
+			for i, nodeCidr := range cluster.Shoot.Status.Networking.Nodes {
 				_, cidr, err := net.ParseCIDR(nodeCidr)
 				if err != nil {
 					return err
