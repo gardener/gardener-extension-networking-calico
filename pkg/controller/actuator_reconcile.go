@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
@@ -111,24 +112,19 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Nodes != nil && len(*cluster.Shoot.Spec.Networking.Nodes) > 0 {
 		autodetectionMode := fmt.Sprintf("cidr=%s", *cluster.Shoot.Spec.Networking.Nodes)
-		//for dualstack we should get shoot.Status.Networking.NodeCIDRs
-		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
-			networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
-		}
-		autodetectionModeV6 := autodetectionMode
+		setAutoDetectionMethod(networkConfig, ipFamilies, autodetectionMode)
+
 		if cluster.Shoot.Status.Networking != nil && cluster.Shoot.Status.Networking.Nodes != nil && len(cluster.Shoot.Status.Networking.Nodes) > 0 {
-			for i, nodeCidr := range cluster.Shoot.Status.Networking.Nodes {
-				_, cidr, err := net.ParseCIDR(nodeCidr)
-				if err != nil {
-					return err
-				}
-				if cidr.IP.To4() == nil {
-					autodetectionModeV6 = fmt.Sprintf("cidr=%s", cluster.Shoot.Status.Networking.Nodes[i])
-				}
+			ipv4Nodes, ipv6Nodes, err := segregateNodeCIDRs(cluster.Shoot.Status.Networking.Nodes)
+			if err != nil {
+				return err
 			}
-		}
-		if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
-			networkConfig.IPv6.AutoDetectionMethod = &autodetectionModeV6
+
+			autodetectionMode = updateAutoDetectionMode(ipv4Nodes)
+			setAutoDetectionMethod(networkConfig, ipFamilies, autodetectionMode)
+
+			autodetectionModeV6 := updateAutoDetectionMode(ipv6Nodes)
+			setAutoDetectionMethodV6(networkConfig, ipFamilies, autodetectionModeV6)
 		}
 	}
 
@@ -203,4 +199,39 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	}
 
 	return a.updateProviderStatus(ctx, network, networkConfig)
+}
+
+func setAutoDetectionMethod(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Set[extensionsv1alpha1.IPFamily], autodetectionMode string) {
+	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
+		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
+	}
+}
+
+func setAutoDetectionMethodV6(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Set[extensionsv1alpha1.IPFamily], autodetectionModeV6 string) {
+	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+		networkConfig.IPv6.AutoDetectionMethod = &autodetectionModeV6
+	}
+}
+
+func segregateNodeCIDRs(nodeCIDRs []string) ([]string, []string, error) {
+	var ipv4Nodes, ipv6Nodes []string
+	for _, nodeCidr := range nodeCIDRs {
+		_, cidr, err := net.ParseCIDR(nodeCidr)
+		if err != nil {
+			return nil, nil, err
+		}
+		if cidr.IP.To4() != nil {
+			ipv4Nodes = append(ipv4Nodes, nodeCidr)
+		} else {
+			ipv6Nodes = append(ipv6Nodes, nodeCidr)
+		}
+	}
+	return ipv4Nodes, ipv6Nodes, nil
+}
+
+func updateAutoDetectionMode(nodes []string) string {
+	if len(nodes) > 0 {
+		return fmt.Sprintf("cidr=%s", strings.Join(nodes, ","))
+	}
+	return ""
 }
