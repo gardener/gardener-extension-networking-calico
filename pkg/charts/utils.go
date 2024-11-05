@@ -7,6 +7,7 @@ package charts
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"strconv"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -75,10 +76,15 @@ type ipv6 struct {
 }
 
 type ipam struct {
-	IPAMType   string `json:"type"`
-	Subnet     string `json:"subnet"`
-	AssignIPv4 bool   `json:"assign_ipv4"`
-	AssignIPv6 bool   `json:"assign_ipv6"`
+	IPAMType   string        `json:"type"`
+	Subnet     string        `json:"subnet"`
+	Ranges     [][]ipamRange `json:"ranges"`
+	AssignIPv4 bool          `json:"assign_ipv4"`
+	AssignIPv6 bool          `json:"assign_ipv6"`
+}
+
+type ipamRange struct {
+	Subnet string `json:"subnet"`
 }
 
 type kubeControllers struct {
@@ -155,6 +161,7 @@ func ComputeCalicoChartValues(
 	kubeProxyEnabled bool,
 	nonPrivileged bool,
 	nodeCIDR *string,
+	podCIDRs []string,
 ) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, nonPrivileged)
 	if err != nil {
@@ -180,6 +187,16 @@ func ComputeCalicoChartValues(
 			"podCIDR": network.Spec.PodCIDR,
 		},
 		"config": calicoConfig,
+	}
+
+	for _, podCIDR := range podCIDRs {
+		_, cidr, err := net.ParseCIDR(podCIDR)
+		if err != nil {
+			return nil, err
+		}
+		if cidr.IP.To4() == nil {
+			calicoChartValues["global"].(map[string]string)["podCIDRv6"] = podCIDR
+		}
 	}
 
 	if nodeCIDR != nil {
@@ -210,14 +227,9 @@ func ComputeCalicoChartValues(
 }
 
 func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool) (*calicoConfig, error) {
-	// by default assume IPv4 (dual-stack is not supported, yet)
 	ipFamilies := sets.New[extensionsv1alpha1.IPFamily](network.Spec.IPFamilies...)
-	isIPv4 := true
-	isIPv6 := false
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
-		isIPv4 = false
-		isIPv6 = true
-	}
+	isIPv4 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4)
+	isIPv6 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6)
 
 	c := newCalicoConfig()
 	if isIPv4 {
@@ -243,6 +255,15 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 			NATOutgoing:         true,
 		}
 		c.Felix.IPInIP.Enabled = false
+	}
+
+	if isIPv4 && isIPv6 {
+		c.IPAM.Subnet = "" // drop it for dualstack
+
+		c.IPAM.Ranges = append(c.IPAM.Ranges,
+			[]ipamRange{{Subnet: usePodCIDRv6}},
+			[]ipamRange{{Subnet: usePodCIDR}},
+		)
 	}
 
 	if !kubeProxyEnabled {
