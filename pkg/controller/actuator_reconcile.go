@@ -128,8 +128,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	if networkConfig != nil && networkConfig.Overlay != nil {
-		if networkConfig.Overlay.Enabled {
+	if networkConfig != nil {
+		if networkConfig.Overlay != nil && networkConfig.Overlay.Enabled {
 			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
 				networkConfig.IPv4.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(calicov1alpha1.Always)))
 			}
@@ -144,7 +144,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
 				networkConfig.IPv6.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(calicov1alpha1.Never)))
 			}
-			if networkConfig.Overlay.CreatePodRoutes != nil && *networkConfig.Overlay.CreatePodRoutes {
+			if networkConfig.Overlay != nil && networkConfig.Overlay.CreatePodRoutes != nil && *networkConfig.Overlay.CreatePodRoutes {
 				networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
 			} else {
 				networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
