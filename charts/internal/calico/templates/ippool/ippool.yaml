@@ -45,3 +45,20 @@ spec:
 {{- end }}
 {{- end }}
 {{- end -}}
+{{- if .Values.config.ipv6.enabled -}}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: default-ipv6-ippool
+spec:
+  allowedUses:
+  - Workload
+  - Tunnel
+  blockSize: 122
+  cidr: "{{ .Values.global.podCIDR }}"
+  ipipMode: Never
+  natOutgoing: false
+  nodeSelector: all()
+  vxlanMode: Never
+{{- end -}}
