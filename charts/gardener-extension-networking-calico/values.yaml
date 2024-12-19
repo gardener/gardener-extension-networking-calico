@@ -45,6 +45,9 @@ config:
   featureGates: {}
     # NonPrivilegedCalicoNode: false
 
+hostNetwork: false
+tolerations: []
+
 gardener:
   version: ""
 
