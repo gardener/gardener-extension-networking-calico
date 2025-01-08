@@ -132,10 +132,11 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		if networkConfig.Overlay != nil {
 			if networkConfig.Overlay.Enabled {
 				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always)
-			} else {
-				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never)
 				if networkConfig.Overlay.CreatePodRoutes != nil && *networkConfig.Overlay.CreatePodRoutes {
 					networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
+				}
+				if networkConfig.VXLAN != nil && networkConfig.VXLAN.Enabled {
+					networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.VXLan)))
 				}
 			}
 		} else {

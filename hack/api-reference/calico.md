@@ -182,6 +182,19 @@ AutoScaling
 </tr>
 <tr>
 <td>
+<code>vxlan</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.VXLAN">
+VXLAN
+</a>
+</em>
+</td>
+<td>
+<p>VXLAN enables vxlan as overlay network</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>ipip</code></br>
 <em>
 <a href="#calico.networking.extensions.gardener.cloud/v1alpha1.PoolMode">
@@ -681,6 +694,35 @@ bool
 Note, typha is used to offload kubernetes API server,
 thus consider not to disable it for large clusters in terms of node count.
 More info can be found here <a href="https://docs.projectcalico.org/v3.9/reference/typha/">https://docs.projectcalico.org/v3.9/reference/typha/</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.VXLAN">VXLAN
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>Enabled enables vxlan as overlay network.</p>
 </td>
 </tr>
 </tbody>

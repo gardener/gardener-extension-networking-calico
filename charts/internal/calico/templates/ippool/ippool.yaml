@@ -11,10 +11,15 @@ spec:
   - Tunnel
   blockSize: 26
   cidr: "{{ .Values.global.podCIDR }}"
-  ipipMode: Always
   natOutgoing: true
   nodeSelector: all()
-  vxlanMode: Never
+{{- if eq .Values.global.vxlanEnabled "true" }}
+  ipipMode: "Never"
+  vxlanMode: "Always"
+{{- else }}
+  ipipMode: "Always"
+  vxlanMode: "Never"
+{{- end }}
 {{- end }}
 {{- if eq .Values.global.overlayEnabled "false" }}
 ---
@@ -28,10 +33,10 @@ spec:
   - Tunnel
   blockSize: 26
   cidr: "{{ .Values.global.podCIDR }}"
-  ipipMode: Never
+  ipipMode: "Never"
   natOutgoing: true
   nodeSelector: all()
-  vxlanMode: Never
+  vxlanMode: "Never"
 {{- if .Values.global.nodeCIDR }}
 ---
 apiVersion: crd.projectcalico.org/v1

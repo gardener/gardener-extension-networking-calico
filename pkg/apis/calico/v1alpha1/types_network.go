@@ -108,6 +108,9 @@ type NetworkConfig struct {
 	// +optional
 	AutoScaling *AutoScaling `json:"autoScaling,omitempty"`
 
+	// VXLAN enables vxlan as overlay network
+	VXLAN *VXLAN `json:"vxlan,omitempty"`
+
 	// DEPRECATED.
 	// IPIP is the IPIP Mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
 	// It was moved into the IPv4 struct, kept for backwards compatibility.
@@ -195,4 +198,9 @@ type StaticResources struct {
 	Node *corev1.ResourceList `json:"node,omitempty"`
 	// Node optionally defines the amount of resources to statically allocate for the calico typha component.
 	Typha *corev1.ResourceList `json:"typha,omitempty"`
+}
+
+type VXLAN struct {
+	// Enabled enables vxlan as overlay network.
+	Enabled bool `json:"enabled"`
 }

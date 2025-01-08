@@ -91,6 +91,9 @@ type NetworkConfig struct {
 	// +optional
 	AutoScaling *AutoScaling
 
+	// VXLAN enables vxlan as overlay network
+	VXLAN *VXLAN
+
 	// DEPRECATED.
 	// IPIP is the IPIP Mode for the IPv4 Pool (e.g. Always, Never, CrossSubnet)
 	// It was moved into the IPv4 struct, kept for backwards compatibility.
@@ -174,4 +177,9 @@ type StaticResources struct {
 	Node *corev1.ResourceList
 	// Node optionally defines the amount of resources to statically allocate for the calico typha component.
 	Typha *corev1.ResourceList
+}
+
+type VXLAN struct {
+	// Enabled enables vxlan as overlay network.
+	Enabled bool
 }
