@@ -12,7 +12,7 @@ The default configuration of shoot clusters is without overlay network.
 ## Understanding overlay network
 The Overlay networking permits the routing of packets between multiples pods located on multiple nodes, even if the pod and the node network are not the same.
 
-This is done through the encapsulation of pod packets in the node network so that the routing can be done as usual. We use `ipip` encapsulation with calico in case the overlay network is enabled. This (simply put) sends an IP packet as workload in another IP packet.
+This is done through the encapsulation of pod packets in the node network so that the routing can be done as usual. We use `ipip` encapsulation with calico as default in case the overlay network is enabled. This (simply put) sends an IP packet as workload in another IP packet.
 
 ![](./assets/Overlay-Network.drawio.png)
 
@@ -66,6 +66,28 @@ spec:
       kind: NetworkConfig
       overlay:
         enabled: false
+  ...
+```
+
+## Using VXLAN as overlay
+
+To enable the overlay network with VXLAN, add the following to the shoot's YAML:
+```yaml
+apiVersion: core.gardener.cloud/v1beta1
+kind: Shoot
+metadata:
+...
+spec:
+...
+  networking:
+    type: calico
+    providerConfig:
+      apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
+      kind: NetworkConfig
+      overlay:
+        enabled: true
+      vxlan:
+        enabled: true
   ...
 ```
 
