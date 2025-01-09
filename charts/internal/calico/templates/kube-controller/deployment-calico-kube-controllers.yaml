@@ -75,4 +75,5 @@ spec:
             timeoutSeconds: 10
           securityContext:
             readOnlyRootFilesystem: false
+            runAsNonRoot: true
 {{- end }}
