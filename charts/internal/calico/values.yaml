@@ -3,6 +3,7 @@ global:
   #nodeCIDR: "" # Only set when available
   overlayEnabled: ""
   snatToUpstreamDNSEnabled: ""
+  vxlanEnabled: ""
 config:
   veth_mtu: 1440
   backend: bird

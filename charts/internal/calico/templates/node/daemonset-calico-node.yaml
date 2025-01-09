@@ -372,8 +372,10 @@ spec:
             # Set Felix endpoint to host default action to ACCEPT.
             - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
               value: "ACCEPT"
+            {{- if not .Values.global.vxlanEnabled }}
             - name: FELIX_IPINIPENABLED
               value: "{{ .Values.config.felix.ipinip.enabled }}"
+            {{- end }}
             # Enable eBPF dataplane mode.
             - name: FELIX_BPFENABLED
               value: "{{ .Values.config.felix.bpf.enabled }}"
@@ -400,6 +402,12 @@ spec:
             # Enable automatic management of kubeconfig used by CNI (required due to limited lifetime of service account tokens, BoundServiceAccountTokenVolume feature)
             - name: CALICO_MANAGE_CNI
               value: "true"
+            {{- if .Values.global.vxlanEnabled }}
+            - name: CALICO_IPV4POOL_IPIP
+              value: "Never"
+            - name:  FELIX_VXLANENABLED
+              value: "true"
+            {{- end }}
           securityContext:
             {{- if not .Values.config.nonPrivileged }}
             privileged: true

@@ -205,6 +205,9 @@ func ComputeCalicoChartValues(
 
 	if config != nil && config.Overlay != nil {
 		calicoChartValues["global"].(map[string]string)["overlayEnabled"] = strconv.FormatBool(config.Overlay.Enabled)
+		if config.Overlay.Enabled && config.VXLAN != nil && config.VXLAN.Enabled {
+			calicoChartValues["global"].(map[string]string)["vxlanEnabled"] = strconv.FormatBool(config.VXLAN.Enabled)
+		}
 	}
 
 	if config != nil && config.Overlay != nil && !config.Overlay.Enabled {
@@ -319,6 +322,12 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 	if config.IPv4 != nil {
 		if !isIPv4 {
 			return nil, fmt.Errorf("IPv4 configuration must not be specified if Shoot doesn't use IPv4 networking")
+		}
+
+		if config.VXLAN != nil && config.VXLAN.Enabled {
+			c.IPv4.Pool = calicov1alpha1.PoolVXLan
+			c.IPv4.Mode = calicov1alpha1.Always
+			c.IPAM.IPAMType = calicoIPAM
 		}
 
 		if config.IPv4.Pool != nil {
