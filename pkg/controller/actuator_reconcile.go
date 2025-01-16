@@ -144,8 +144,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		} else {
 			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
 				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never)
-			} else {
-				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always)
 			}
 		}
 	}
