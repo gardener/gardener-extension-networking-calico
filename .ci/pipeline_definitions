@@ -16,18 +16,18 @@ gardener-extension-networking-calico:
       registry: europe-docker.pkg.dev/gardener-project/snapshots/charts/gardener/extensions
       mappings:
       - ref: ocm-resource:gardener-extension-admission-calico.repository
-        attribute: global.image.repository
+        attribute: image.repository
       - ref: ocm-resource:gardener-extension-admission-calico.tag
-        attribute: global.image.tag
+        attribute: image.tag
     - &admission-calico-runtime
       name: admission-calico-runtime
       dir: charts/gardener-extension-admission-calico/charts/runtime
       registry: europe-docker.pkg.dev/gardener-project/snapshots/charts/gardener/extensions
       mappings:
       - ref: ocm-resource:gardener-extension-admission-calico.repository
-        attribute: global.image.repository
+        attribute: image.repository
       - ref: ocm-resource:gardener-extension-admission-calico.tag
-        attribute: global.image.tag
+        attribute: image.tag
 
   base_definition:
     repo:
