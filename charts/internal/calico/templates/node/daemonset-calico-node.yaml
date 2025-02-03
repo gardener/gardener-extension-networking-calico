@@ -164,6 +164,7 @@ spec:
             privileged: true
             {{- else }}
             privileged: false
+            allowPrivilegeEscalation: false
             capabilities:
               add:
               - NET_ADMIN
