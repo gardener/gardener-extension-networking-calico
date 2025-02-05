@@ -27,8 +27,9 @@ func RenderCalicoChart(
 	nonPrivileged bool,
 	nodeCIDR *string,
 	podCidrs []string,
+	nodesMigrated bool,
 ) ([]byte, error) {
-	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, nonPrivileged, nodeCIDR, podCidrs)
+	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, nonPrivileged, nodeCIDR, podCidrs, nodesMigrated)
 	if err != nil {
 		return nil, err
 	}

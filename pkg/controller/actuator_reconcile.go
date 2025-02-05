@@ -95,6 +95,11 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
+	nodesMigrated := false
+	if cluster.Shoot.Annotations != nil && cluster.Shoot.Annotations["shoot.gardener.cloud/migrate-network"] != "true" {
+		nodesMigrated = true
+	}
+
 	if networkConfig == nil {
 		networkConfig = &calicov1alpha1.NetworkConfig{}
 	}
@@ -104,7 +109,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			networkConfig.IPv4 = &calicov1alpha1.IPv4{}
 		}
 	}
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) && nodesMigrated {
 		if networkConfig.IPv6 == nil {
 			networkConfig.IPv6 = &calicov1alpha1.IPv6{}
 		}
@@ -123,26 +128,28 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			autodetectionMode = updateAutoDetectionMode(ipv4Nodes)
 			setAutoDetectionMethod(networkConfig, ipFamilies, autodetectionMode)
 
-			autodetectionModeV6 := updateAutoDetectionMode(ipv6Nodes)
-			setAutoDetectionMethodV6(networkConfig, ipFamilies, autodetectionModeV6)
+			if nodesMigrated {
+				autodetectionModeV6 := updateAutoDetectionMode(ipv6Nodes)
+				setAutoDetectionMethodV6(networkConfig, ipFamilies, autodetectionModeV6)
+			}
 		}
 	}
 
 	if networkConfig != nil {
 		if networkConfig.Overlay != nil {
 			if networkConfig.Overlay.Enabled {
-				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always)
+				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always, nodesMigrated)
 			} else {
-				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never)
+				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never, nodesMigrated)
 				if networkConfig.Overlay.CreatePodRoutes != nil && *networkConfig.Overlay.CreatePodRoutes {
 					networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
 				}
 			}
 		} else {
 			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
-				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never)
+				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never, nodesMigrated)
 			} else {
-				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always)
+				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always, nodesMigrated)
 			}
 		}
 	}
@@ -179,6 +186,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		features.FeatureGate.Enabled(features.NonPrivilegedCalicoNode),
 		cluster.Shoot.Spec.Networking.Nodes,
 		podCIDRs,
+		nodesMigrated,
 	)
 	if err != nil {
 		return err
@@ -196,8 +204,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	return a.updateProviderStatus(ctx, network, networkConfig)
 }
 
-func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Set[extensionsv1alpha1.IPFamily], mode calicov1alpha1.PoolMode) {
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Set[extensionsv1alpha1.IPFamily], mode calicov1alpha1.PoolMode, migrated bool) {
+	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) && migrated {
 		networkConfig.IPv6.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(mode)))
 	} else {
 		networkConfig.IPv4.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(mode)))
