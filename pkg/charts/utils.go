@@ -255,7 +255,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 			Pool:                calicov1alpha1.PoolVXLan,
 			Mode:                calicov1alpha1.Never,
 			AutoDetectionMethod: nil,
-			NATOutgoing:         true,
+			NATOutgoing:         false,
 		}
 		c.Felix.IPInIP.Enabled = false
 	}
@@ -391,6 +391,9 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 		}
 		if config.IPv6.AutoDetectionMethod != nil {
 			c.IPv6.AutoDetectionMethod = config.IPv6.AutoDetectionMethod
+		}
+		if config.IPv6.SourceNATEnabled != nil {
+			c.IPv6.NATOutgoing = *config.IPv6.SourceNATEnabled
 		}
 	}
 

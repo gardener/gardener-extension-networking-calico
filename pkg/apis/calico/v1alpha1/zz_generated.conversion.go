@@ -240,6 +240,7 @@ func autoConvert_v1alpha1_IPv6_To_calico_IPv6(in *IPv6, out *calico.IPv6, s conv
 	out.Pool = (*calico.Pool)(unsafe.Pointer(in.Pool))
 	out.Mode = (*calico.PoolMode)(unsafe.Pointer(in.Mode))
 	out.AutoDetectionMethod = (*string)(unsafe.Pointer(in.AutoDetectionMethod))
+	out.SourceNATEnabled = (*bool)(unsafe.Pointer(in.SourceNATEnabled))
 	return nil
 }
 
@@ -252,6 +253,7 @@ func autoConvert_calico_IPv6_To_v1alpha1_IPv6(in *calico.IPv6, out *IPv6, s conv
 	out.Pool = (*Pool)(unsafe.Pointer(in.Pool))
 	out.Mode = (*PoolMode)(unsafe.Pointer(in.Mode))
 	out.AutoDetectionMethod = (*string)(unsafe.Pointer(in.AutoDetectionMethod))
+	out.SourceNATEnabled = (*bool)(unsafe.Pointer(in.SourceNATEnabled))
 	return nil
 }
 

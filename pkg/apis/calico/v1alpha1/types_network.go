@@ -69,6 +69,10 @@ type IPv6 struct {
 	// https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods
 	// +optional
 	AutoDetectionMethod *string `json:"autoDetectionMethod,omitempty"`
+	// SourceNATEnabled indicates whether the pod IP addresses should be masqueraded when targeting external destinations.
+	// Per default, source network address translation is disabled.
+	// +optional
+	SourceNATEnabled *bool `json:"sourceNATEnabled,omitempty"`
 }
 
 // +genclient
