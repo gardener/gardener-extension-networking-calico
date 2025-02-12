@@ -31,7 +31,7 @@ config:
     pool: vxlan
     mode: "Never"
     autoDetectionMethod: "first-found"
-    natOutgoing: true
+    natOutgoing: false
     wireguard: false
   felix:
     ipinip:

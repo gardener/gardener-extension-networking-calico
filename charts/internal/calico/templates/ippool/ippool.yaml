@@ -63,7 +63,7 @@ spec:
   blockSize: 122
   cidr: "{{ .Values.global.podCIDR }}"
   ipipMode: Never
-  natOutgoing: false
+  natOutgoing: {{ if .Values.config.ipv6.natOutgoing }}true{{ else }}false{{ end }}
   nodeSelector: all()
   vxlanMode: Never
 {{- end -}}
