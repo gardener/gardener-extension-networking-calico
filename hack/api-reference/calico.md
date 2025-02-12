@@ -513,6 +513,19 @@ string
 <a href="https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods">https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods</a></p>
 </td>
 </tr>
+<tr>
+<td>
+<code>sourceNATEnabled</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>SourceNATEnabled indicates whether the pod IP addresses should be masqueraded when targeting external destinations.
+Per default, source network address translation is disabled.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.NetworkStatus">NetworkStatus

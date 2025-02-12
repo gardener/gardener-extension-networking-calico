@@ -62,6 +62,9 @@ type IPv6 struct {
 	// AutoDetectionMethod is the method to use to autodetect the IPv6 address for this host. This is only used when the IPv6 address is being autodetected.
 	// https://docs.projectcalico.org/v3.8/reference/node/configuration#ip-autodetection-methods
 	AutoDetectionMethod *string
+	// SourceNATEnabled indicates whether the pod IP addresses should be masqueraded when targeting external destinations.
+	// Per default, source network address translation is disabled.
+	SourceNATEnabled *bool
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
