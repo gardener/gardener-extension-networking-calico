@@ -481,7 +481,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                "vxlan",
 						"mode":                "Never",
 						"autoDetectionMethod": nil,
-						"natOutgoing":         true,
+						"natOutgoing":         false,
 						"wireguard":           false,
 					})),
 				))
@@ -519,7 +519,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                "vxlan",
 						"mode":                "CrossSubnet",
 						"autoDetectionMethod": "first-found",
-						"natOutgoing":         true,
+						"natOutgoing":         false,
 						"wireguard":           false,
 					})),
 				))
@@ -563,7 +563,7 @@ var _ = Describe("Chart package test", func() {
 						"pool":                "vxlan",
 						"mode":                "Never",
 						"autoDetectionMethod": nil,
-						"natOutgoing":         true,
+						"natOutgoing":         false,
 						"wireguard":           false,
 					})),
 				))

@@ -122,6 +122,11 @@ func (in *IPv6) DeepCopyInto(out *IPv6) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.SourceNATEnabled != nil {
+		in, out := &in.SourceNATEnabled, &out.SourceNATEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
