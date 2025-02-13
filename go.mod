@@ -16,11 +16,11 @@ require (
 	go.uber.org/mock v0.5.0
 	golang.org/x/tools v0.29.0
 	helm.sh/helm/v3 v3.16.4
-	k8s.io/api v0.31.5
-	k8s.io/apimachinery v0.31.5
-	k8s.io/client-go v0.31.5
-	k8s.io/code-generator v0.31.5
-	k8s.io/component-base v0.31.5
+	k8s.io/api v0.31.6
+	k8s.io/apimachinery v0.31.6
+	k8s.io/client-go v0.31.6
+	k8s.io/code-generator v0.31.6
+	k8s.io/component-base v0.31.6
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
 	sigs.k8s.io/controller-runtime v0.19.5
 )
