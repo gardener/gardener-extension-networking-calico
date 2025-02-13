@@ -45,7 +45,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		return fmt.Errorf("could not create ChartApplier: %w", err)
 	}
 
-	return network.Add(ctx, mgr, network.AddArgs{
+	return network.Add(mgr, network.AddArgs{
 		Actuator:          NewActuator(mgr, chartApplier, extensioncontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot)),
 		ControllerOptions: opts.Controller,
 		Predicates:        network.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
