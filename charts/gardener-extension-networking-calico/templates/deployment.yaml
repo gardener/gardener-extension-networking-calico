@@ -22,7 +22,7 @@ spec:
         {{- if .Values.metrics.enableScraping }}
         prometheus.io/name: "{{ .Release.Name }}"
         prometheus.io/scrape: "true"
-        prometheus.io/port: "{{ .Values.metrics.port }}"
+        prometheus.io/port: "{{ tpl .Values.metrics.port . }}"
         {{- end }}
       labels:
         networking.gardener.cloud/to-runtime-apiserver: allowed
