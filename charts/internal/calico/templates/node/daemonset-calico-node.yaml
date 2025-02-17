@@ -138,6 +138,7 @@ spec:
         - name: NODE_USER_ID
           value: "999"
         securityContext:
+          allowPrivilegeEscalation: false
           runAsUser: 0
         volumeMounts:
         - mountPath: /var/run
@@ -208,6 +209,7 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: false
+            allowPrivilegeEscalation: false
           env:
             - name: CALICO_NETWORKING_BACKEND
               valueFrom:
@@ -416,6 +418,7 @@ spec:
             runAsUser: 999
             runAsGroup: 0
             privileged: false
+            allowPrivilegeEscalation: false
             capabilities:
               add:
               - NET_RAW
