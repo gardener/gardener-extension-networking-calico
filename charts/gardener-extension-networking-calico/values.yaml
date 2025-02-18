@@ -51,4 +51,7 @@ gardener:
 ## settings for metrics, e.g. scraping by seed-prometheus
 metrics:
   enableScraping: true
-  port: 8080
+  port: "{{ index .Values.usablePorts 0 }}"
+
+usablePorts:
+- 8080 # metrics
