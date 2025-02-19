@@ -46,6 +46,8 @@ spec:
             - --target=deployment/calico-typha-deploy
             - --logtostderr=true
             - --v=2
+          securityContext:
+            allowPrivilegeEscalation: false
           resources:
             requests:
               cpu: 10m

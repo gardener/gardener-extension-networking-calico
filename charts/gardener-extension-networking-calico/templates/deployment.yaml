@@ -44,6 +44,8 @@ spec:
         - --ignore-operation-annotation={{ .Values.controller.ignoreOperationAnnotation }}
         - --config-file=/etc/{{ include "name" . }}/config/config.yaml
         - --gardener-version={{ .Values.gardener.version }}
+        securityContext:
+          allowPrivilegeEscalation: false
         env:
         - name: LEADER_ELECTION_NAMESPACE
           valueFrom:

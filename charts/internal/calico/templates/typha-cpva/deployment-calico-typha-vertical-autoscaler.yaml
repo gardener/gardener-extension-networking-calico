@@ -49,6 +49,8 @@ spec:
             - --poll-period-seconds=30
             - --v=2
             - --config-file=/etc/config/typha-autoscaler
+          securityContext:
+            allowPrivilegeEscalation: false
           resources:
             requests:
               cpu: 10m
