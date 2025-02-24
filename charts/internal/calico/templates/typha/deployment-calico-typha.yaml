@@ -85,8 +85,6 @@ spec:
           name: metrics
           protocol: TCP
         {{-  end }}
-        securityContext:
-          allowPrivilegeEscalation: false
         env:
           {{- if eq .Values.config.ipam.type "host-local"}}
           - name: USE_POD_CIDR
