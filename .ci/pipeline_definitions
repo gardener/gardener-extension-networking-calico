@@ -59,8 +59,6 @@ gardener-extension-networking-calico:
         dockerimages:
           gardener-extension-networking-calico:
             image: 'europe-docker.pkg.dev/gardener-project/snapshots/gardener/extensions/networking-calico'
-            extra_push_targets: # may be dropped after all users updated to new registry
-              - eu.gcr.io/gardener-project/gardener/extensions/networking-calico
             dockerfile: 'Dockerfile'
             target: gardener-extension-networking-calico
             resource_labels:
@@ -74,8 +72,6 @@ gardener-extension-networking-calico:
                 availability_requirement: 'high'
           gardener-extension-admission-calico:
             image: 'europe-docker.pkg.dev/gardener-project/snapshots/gardener/extensions/admission-calico'
-            extra_push_targets: # may be dropped after all users updated to new registry
-              - eu.gcr.io/gardener-project/gardener/extensions/admission-calico
             dockerfile: 'Dockerfile'
             target: gardener-extension-admission-calico
             resource_labels:
