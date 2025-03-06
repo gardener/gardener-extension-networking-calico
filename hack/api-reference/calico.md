@@ -654,7 +654,7 @@ bool
 <td>
 <code>node</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#resourcelist-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcelist-v1-core">
 Kubernetes core/v1.ResourceList
 </a>
 </em>
@@ -667,7 +667,7 @@ Kubernetes core/v1.ResourceList
 <td>
 <code>typha</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#resourcelist-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcelist-v1-core">
 Kubernetes core/v1.ResourceList
 </a>
 </em>
