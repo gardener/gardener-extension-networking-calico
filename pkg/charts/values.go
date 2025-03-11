@@ -5,6 +5,7 @@
 package charts
 
 import (
+	"k8s.io/apimachinery/pkg/util/sets"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,9 +28,9 @@ func RenderCalicoChart(
 	nonPrivileged bool,
 	nodeCIDR *string,
 	podCidrs []string,
-	nodesMigrated bool,
+	ipFamilies sets.Set[extensionsv1alpha1.IPFamily],
 ) ([]byte, error) {
-	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, nonPrivileged, nodeCIDR, podCidrs, nodesMigrated)
+	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, nonPrivileged, nodeCIDR, podCidrs, ipFamilies)
 	if err != nil {
 		return nil, err
 	}

@@ -162,9 +162,9 @@ func ComputeCalicoChartValues(
 	nonPrivileged bool,
 	nodeCIDR *string,
 	podCIDRs []string,
-	nodesMigrated bool,
+	ipFamilies sets.Set[extensionsv1alpha1.IPFamily],
 ) (map[string]interface{}, error) {
-	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, nonPrivileged, nodesMigrated)
+	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, nonPrivileged, ipFamilies)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
 	}
@@ -227,8 +227,8 @@ func ComputeCalicoChartValues(
 	return calicoChartValues, nil
 }
 
-func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool, nodesMigrated bool) (*calicoConfig, error) {
-	ipFamilies := sets.New[extensionsv1alpha1.IPFamily](network.Spec.IPFamilies...)
+func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool, ipFamilies sets.Set[extensionsv1alpha1.IPFamily]) (*calicoConfig, error) {
+
 	isIPv4 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4)
 	isIPv6 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6)
 
@@ -244,7 +244,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 		}
 	}
 
-	if isIPv6 && nodesMigrated {
+	if isIPv6 {
 		c.IPAM.AssignIPv6 = true
 		c.IPAM.Subnet = usePodCIDRv6
 		c.IPAM.IPAMType = hostLocal
@@ -258,7 +258,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 		c.Felix.IPInIP.Enabled = false
 	}
 
-	if isIPv4 && isIPv6 && nodesMigrated {
+	if isIPv4 && isIPv6 {
 		c.IPAM.Subnet = "" // drop it for dualstack
 
 		c.IPAM.Ranges = append(c.IPAM.Ranges,
