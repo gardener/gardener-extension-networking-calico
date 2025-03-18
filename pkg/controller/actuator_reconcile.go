@@ -95,7 +95,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-
 	condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, "ToDualStackMigration")
 
 	if condition != nil && condition.Status != "DualStackNodesReady" {

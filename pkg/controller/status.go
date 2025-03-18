@@ -42,11 +42,11 @@ func (a *actuator) ComputeNetworkStatus(networkConfig *calicov1alpha1.NetworkCon
 		ipFamilies = append(ipFamilies, string(extensionsv1alpha1.IPFamilyIPv4))
 	}
 	if networkConfig.IPv6 != nil {
-		ipFamilies = append(ipFamilies,string(extensionsv1alpha1.IPFamilyIPv6))
+		ipFamilies = append(ipFamilies, string(extensionsv1alpha1.IPFamilyIPv6))
 	}
 	var (
 		status = &calicov1alpha1.NetworkStatus{
-			TypeMeta: StatusTypeMeta,
+			TypeMeta:   StatusTypeMeta,
 			IPFamilies: ipFamilies,
 		}
 	)
