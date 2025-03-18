@@ -295,6 +295,7 @@ func Convert_calico_NetworkConfig_To_v1alpha1_NetworkConfig(in *calico.NetworkCo
 }
 
 func autoConvert_v1alpha1_NetworkStatus_To_calico_NetworkStatus(in *NetworkStatus, out *calico.NetworkStatus, s conversion.Scope) error {
+	out.IPFamilies = *(*[]string)(unsafe.Pointer(&in.IPFamilies))
 	return nil
 }
 
@@ -304,6 +305,7 @@ func Convert_v1alpha1_NetworkStatus_To_calico_NetworkStatus(in *NetworkStatus, o
 }
 
 func autoConvert_calico_NetworkStatus_To_v1alpha1_NetworkStatus(in *calico.NetworkStatus, out *NetworkStatus, s conversion.Scope) error {
+	out.IPFamilies = *(*[]string)(unsafe.Pointer(&in.IPFamilies))
 	return nil
 }
 

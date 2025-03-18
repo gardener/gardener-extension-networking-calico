@@ -111,7 +111,7 @@ type NetworkConfig struct {
 // NetworkStatus contains information about created Network resources.
 type NetworkStatus struct {
 	metav1.TypeMeta
-	ipFamilies []string
+	IPFamilies []string
 }
 
 // IPAM defines the block that configuration for the ip assignment plugin to be used
