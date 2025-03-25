@@ -8,7 +8,6 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/gardener/gardener-extension-networking-calico/charts"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
@@ -28,7 +27,7 @@ func RenderCalicoChart(
 	nonPrivileged bool,
 	nodeCIDR *string,
 	podCidrs []string,
-	ipFamilies sets.Set[extensionsv1alpha1.IPFamily],
+	ipFamilies []extensionsv1alpha1.IPFamily,
 ) ([]byte, error) {
 	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, nonPrivileged, nodeCIDR, podCidrs, ipFamilies)
 	if err != nil {

@@ -8,9 +8,11 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
@@ -22,7 +24,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -86,7 +87,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		networkConfig *calicov1alpha1.NetworkConfig
 		err           error
 	)
-	ipFamilies := sets.New(network.Spec.IPFamilies...)
+
+	ipFamilies := slices.Clone(network.Spec.IPFamilies)
 
 	if network.Spec.ProviderConfig != nil {
 		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
@@ -95,22 +97,24 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, "ToDualStackMigration")
+	condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, "DualStackNodesMigrationReady")
 
-	if condition != nil && condition.Status != "DualStackNodesReady" {
-		ipFamilies.Delete(extensionsv1alpha1.IPFamilyIPv6)
+	if condition != nil && condition.Status != v1beta1.ConditionTrue {
+		if len(ipFamilies) > 1 {
+			ipFamilies = ipFamilies[:1]
+		}
 	}
 
 	if networkConfig == nil {
 		networkConfig = &calicov1alpha1.NetworkConfig{}
 	}
 
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
+	if slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv4) {
 		if networkConfig.IPv4 == nil {
 			networkConfig.IPv4 = &calicov1alpha1.IPv4{}
 		}
 	}
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+	if slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv6) {
 		if networkConfig.IPv6 == nil {
 			networkConfig.IPv6 = &calicov1alpha1.IPv6{}
 		}
@@ -146,7 +150,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 				}
 			}
 		} else {
-			if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+			if slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv6) {
 				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never)
 			} else {
 				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always)
@@ -204,8 +208,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	return a.updateProviderStatus(ctx, network, networkConfig)
 }
 
-func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Set[extensionsv1alpha1.IPFamily], mode calicov1alpha1.PoolMode) {
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {
+	if slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv6) {
 		networkConfig.IPv6.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(mode)))
 	} else {
 		networkConfig.IPv4.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(mode)))
@@ -218,14 +222,14 @@ func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Se
 	}
 }
 
-func setAutoDetectionMethod(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Set[extensionsv1alpha1.IPFamily], autodetectionMode string) {
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4) {
+func setAutoDetectionMethod(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, autodetectionMode string) {
+	if slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv4) {
 		networkConfig.IPv4.AutoDetectionMethod = &autodetectionMode
 	}
 }
 
-func setAutoDetectionMethodV6(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies sets.Set[extensionsv1alpha1.IPFamily], autodetectionModeV6 string) {
-	if ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6) {
+func setAutoDetectionMethodV6(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, autodetectionModeV6 string) {
+	if slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv6) {
 		networkConfig.IPv6.AutoDetectionMethod = &autodetectionModeV6
 	}
 }
