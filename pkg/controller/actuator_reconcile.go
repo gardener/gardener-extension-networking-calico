@@ -97,9 +97,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, "DualStackNodesMigrationReady")
-
-	if condition != nil && condition.Status != v1beta1.ConditionTrue {
+	if condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, "DualStackNodesMigrationReady"); condition != nil && condition.Status != v1beta1.ConditionTrue {
 		if len(ipFamilies) > 1 {
 			ipFamilies = ipFamilies[:1]
 		}
@@ -135,7 +133,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 			autodetectionModeV6 := updateAutoDetectionMode(ipv6Nodes)
 			setAutoDetectionMethodV6(networkConfig, ipFamilies, autodetectionModeV6)
-
 		}
 	}
 
