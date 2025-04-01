@@ -85,7 +85,14 @@ rules:
   - scrapeconfigs
   - statefulsets # TODO(rfranzke): Remove this after August 2024.
   verbs:
-  - "*"
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
