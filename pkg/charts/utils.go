@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"slices"
 	"strconv"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/gardener/gardener-extension-networking-calico/imagevector"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
@@ -162,8 +162,9 @@ func ComputeCalicoChartValues(
 	nonPrivileged bool,
 	nodeCIDR *string,
 	podCIDRs []string,
+	ipFamilies []extensionsv1alpha1.IPFamily,
 ) (map[string]interface{}, error) {
-	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, nonPrivileged)
+	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, nonPrivileged, ipFamilies)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
 	}
@@ -229,10 +230,9 @@ func ComputeCalicoChartValues(
 	return calicoChartValues, nil
 }
 
-func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool) (*calicoConfig, error) {
-	ipFamilies := sets.New[extensionsv1alpha1.IPFamily](network.Spec.IPFamilies...)
-	isIPv4 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv4)
-	isIPv6 := ipFamilies.Has(extensionsv1alpha1.IPFamilyIPv6)
+func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool, ipFamilies []extensionsv1alpha1.IPFamily) (*calicoConfig, error) {
+	isIPv4 := slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv4)
+	isIPv6 := slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv6)
 
 	c := newCalicoConfig()
 	if isIPv4 {

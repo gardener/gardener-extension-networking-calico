@@ -541,6 +541,16 @@ Per default, source network address translation is disabled.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<code>ipFamilies</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Overlay">Overlay
