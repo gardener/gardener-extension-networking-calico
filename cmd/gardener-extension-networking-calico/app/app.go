@@ -151,7 +151,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			if err := heartbeat.AddToManager(ctx, mgr); err != nil {
-				return fmt.Errorf("could not add healtbeat controller to manager: %w", err)
+				return fmt.Errorf("could not add heartbeat controller to manager: %w", err)
 			}
 
 			if err := mgr.AddReadyzCheck("informer-sync", gardenerhealthz.NewCacheSyncHealthz(mgr.GetCache())); err != nil {
