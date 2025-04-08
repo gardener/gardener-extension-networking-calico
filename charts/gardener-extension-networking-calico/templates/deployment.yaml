@@ -43,9 +43,23 @@ spec:
         - --heartbeat-renew-interval-seconds={{ .Values.controller.heartbeat.renewIntervalSeconds }} 
         - --ignore-operation-annotation={{ .Values.controller.ignoreOperationAnnotation }}
         - --config-file=/etc/{{ include "name" . }}/config/config.yaml
+        - --metrics-bind-address=:{{ tpl .Values.metrics.port . }}
+        - --health-bind-address=:{{ tpl .Values.healthPort . }}
         - --gardener-version={{ .Values.gardener.version }}
         securityContext:
           allowPrivilegeEscalation: false
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ tpl .Values.healthPort . }}
+            scheme: HTTP
+          initialDelaySeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: {{ tpl .Values.healthPort . }}
+            scheme: HTTP
+          initialDelaySeconds: 5
         env:
         - name: LEADER_ELECTION_NAMESPACE
           valueFrom:
