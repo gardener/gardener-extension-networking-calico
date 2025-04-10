@@ -3,16 +3,28 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-resources: {}
+replicaCount: 1
+maxUnavailable: 1
+maxSurge: 50%
 
+resources: {}
 vpa:
   enabled: true
-  resourcePolicy: {}
-#   minAllowed:
-#     memory: 128Mi
-#   maxAllowed:
-#     cpu: 4
-#     memory: 10G
+  updatePolicy:
+    updateMode: "Auto"
+
+metricsPort: "{{ index .Values.usablePorts 0 }}"
+healthPort: "{{ index .Values.usablePorts 2 }}"
+
+controllers:
+  concurrentSyncs: 5
+  healthcheck:
+    concurrentSyncs: 5
+  heartbeat:
+    renewIntervalSeconds: 30
+  ignoreOperationAnnotation: false
+
+ignoreResources: false
 
 # imageVectorOverwrite: |
 #   images:
@@ -28,13 +40,12 @@ vpa:
 #     version: ">= 1.12"
 #   ...
 
-controller:
-  concurrentSyncs: 5
-  healthcheck:
-    concurrentSyncs: 5
-  heartbeat: 
-    renewIntervalSeconds: 30 
-  ignoreOperationAnnotation: false
+## settings for metrics, e.g. scraping by seed-prometheus
+##
+metrics:
+  ## enable metrics scraping
+  ##
+  enableScraping: true
 
 config:
   clientConnection:
@@ -47,13 +58,14 @@ config:
 
 gardener:
   version: ""
-
-## settings for metrics, e.g. scraping by seed-prometheus
-metrics:
-  enableScraping: true
-  port: "{{ index .Values.usablePorts 0 }}"
-
-healthPort: "{{ index .Values.usablePorts 2 }}"
+  gardenlet:
+    featureGates: {}
+# seed:
+#   provider: aws
+#   spec:
+#     settings:
+#       topologyAwareRouting:
+#         enabled: false
 
 usablePorts:
 - 8080  # metrics
