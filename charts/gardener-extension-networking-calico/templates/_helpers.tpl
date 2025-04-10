@@ -14,12 +14,6 @@ app.kubernetes.io/name
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-{{- define "commonObjectLabels" -}}
-app.kubernetes.io/name: gardener-extension-networking-calico
-helm.sh/chart: gardener-extension-networking-calico
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
-
 {{-  define "image" -}}
   {{- if hasPrefix "sha256:" .Values.image.tag }}
   {{- printf "%s@%s" .Values.image.repository .Values.image.tag }}
@@ -27,3 +21,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
   {{- printf "%s:%s" .Values.image.repository .Values.image.tag }}
   {{- end }}
 {{- end }}
+
+{{- define "topologyAwareRouting.enabled" -}}
+{{- if and .Values.gardener.seed .Values.gardener.seed.spec.settings.topologyAwareRouting.enabled }}
+true
+{{- end -}}
+{{- end -}}

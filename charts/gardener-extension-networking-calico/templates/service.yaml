@@ -4,19 +4,28 @@ metadata:
   name: {{ include "name" . }}
   namespace: {{ .Release.Namespace }}
   annotations:
-    networking.resources.gardener.cloud/from-all-seed-scrape-targets-allowed-ports: '[{"port":{{ tpl .Values.metrics.port . }},"protocol":"TCP"}]'
+    networking.resources.gardener.cloud/from-all-seed-scrape-targets-allowed-ports: '[{"port":{{ tpl .Values.metricsPort . }},"protocol":"TCP"}]'
     networking.resources.gardener.cloud/namespace-selectors: '[{"matchLabels":{"kubernetes.io/metadata.name":"garden"}}]'
     networking.resources.gardener.cloud/pod-label-selector-namespace-alias: extensions
-{{-  if .Values.ignoreResources }}
+    {{- if .Values.ignoreResources }}
     resources.gardener.cloud/ignore: "true"
-{{- end }}
+    {{- end }}
+    {{- if and (include "topologyAwareRouting.enabled" .) (semverCompare "< 1.31-0" .Capabilities.KubeVersion.Version) }}
+    service.kubernetes.io/topology-mode: "auto"
+    {{- end }}
   labels:
 {{ include "labels" . | indent 4 }}
+    {{- if and (include "topologyAwareRouting.enabled" .) (semverCompare "< 1.32-0" .Capabilities.KubeVersion.Version) }}
+    endpoint-slice-hints.resources.gardener.cloud/consider: "true"
+    {{- end }}
 spec:
   type: ClusterIP
   selector:
-{{ include "labels" . | indent 6 }}
+{{ include "labels" . | indent 4 }}
   ports:
-  - port: {{ tpl .Values.metrics.port . }}
+  - port: {{ tpl .Values.metricsPort . }}
     protocol: TCP
-    targetPort: {{ tpl .Values.metrics.port . }}
+    targetPort: {{ tpl .Values.metricsPort . }}
+  {{- if and (include "topologyAwareRouting.enabled" .) (semverCompare ">= 1.31-0" .Capabilities.KubeVersion.Version) }}
+  trafficDistribution: PreferClose
+  {{- end }}
