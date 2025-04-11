@@ -86,7 +86,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	if condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, "DualStackNodesMigrationReady"); condition != nil && condition.Status != v1beta1.ConditionTrue {
+	if condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, v1beta1.ShootDualStackNodesMigrationReady); condition != nil && condition.Status != v1beta1.ConditionTrue {
 		if len(ipFamilies) > 1 {
 			ipFamilies = ipFamilies[:1]
 		}

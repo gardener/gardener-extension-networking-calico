@@ -33,21 +33,23 @@ func (a *actuator) updateProviderStatus(
 		100,
 		"Calico was configured successfully",
 	)
+	var ipFamilies []extensionsv1alpha1.IPFamily
+	if config.IPv4 != nil {
+		ipFamilies = append(ipFamilies, extensionsv1alpha1.IPFamilyIPv4)
+	}
+	if config.IPv6 != nil {
+		ipFamilies = append(ipFamilies, extensionsv1alpha1.IPFamilyIPv6)
+	}
+	network.Status.IPFamilies = ipFamilies
+
 	return a.client.Status().Patch(ctx, network, patch)
 }
 
 func (a *actuator) ComputeNetworkStatus(networkConfig *calicov1alpha1.NetworkConfig) (*calicov1alpha1.NetworkStatus, error) {
-	var ipFamilies []string
-	if networkConfig.IPv4 != nil {
-		ipFamilies = append(ipFamilies, string(extensionsv1alpha1.IPFamilyIPv4))
-	}
-	if networkConfig.IPv6 != nil {
-		ipFamilies = append(ipFamilies, string(extensionsv1alpha1.IPFamilyIPv6))
-	}
+
 	var (
 		status = &calicov1alpha1.NetworkStatus{
-			TypeMeta:   StatusTypeMeta,
-			IPFamilies: ipFamilies,
+			TypeMeta: StatusTypeMeta,
 		}
 	)
 
