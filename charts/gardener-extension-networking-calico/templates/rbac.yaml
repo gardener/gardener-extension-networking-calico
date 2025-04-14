@@ -83,7 +83,6 @@ rules:
   - mutatingwebhookconfigurations
   - customresourcedefinitions
   - scrapeconfigs
-  - statefulsets # TODO(rfranzke): Remove this after August 2024.
   verbs:
   - "*"
 ---

@@ -17,13 +17,10 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
-	kubernetesutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 	"github.com/go-logr/logr"
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -70,15 +67,7 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 		return client.IgnoreNotFound(calicoControlPlaneMonitoringChart.Delete(ctx, seedClient, network.Namespace))
 	}
 
-	// TODO(rfranzke): Delete this after August 2024.
-	gep19Monitoring := seedClient.Get(ctx, client.ObjectKey{Name: "prometheus-shoot", Namespace: network.Namespace}, &appsv1.StatefulSet{}) == nil
-	if gep19Monitoring {
-		if err := kubernetesutils.DeleteObject(ctx, seedClient, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "calico-monitoring-config", Namespace: network.Namespace}}); err != nil {
-			return fmt.Errorf("failed deleting calico-monitoring-config ConfigMap: %w", err)
-		}
-	}
-
-	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", map[string]interface{}{"gep19Monitoring": gep19Monitoring})
+	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", nil)
 }
 
 // Reconcile implements Network.Actuator.
