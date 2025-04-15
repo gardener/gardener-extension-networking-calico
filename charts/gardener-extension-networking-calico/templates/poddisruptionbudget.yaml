@@ -4,7 +4,7 @@ metadata:
   name: {{ include "name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-{{ include "commonObjectLabels" . | indent 4 }}
+{{ include "labels" . | indent 4 }}
 spec:
   maxUnavailable: 1
   selector:
