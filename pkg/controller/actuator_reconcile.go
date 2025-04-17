@@ -22,7 +22,7 @@ import (
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/gardener-extension-networking-calico/charts"
@@ -86,7 +86,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	if condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, "DualStackNodesMigrationReady"); condition != nil && condition.Status != v1beta1.ConditionTrue {
+	if condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, v1beta1.ShootDualStackNodesMigrationReady); condition != nil && condition.Status != v1beta1.ConditionTrue {
 		if len(ipFamilies) > 1 {
 			ipFamilies = ipFamilies[:1]
 		}
@@ -130,12 +130,12 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			if networkConfig.Overlay.Enabled {
 				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Always)
 				if networkConfig.VXLAN != nil && networkConfig.VXLAN.Enabled {
-					networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.VXLan)))
+					networkConfig.Backend = (*calicov1alpha1.Backend)(ptr.To(string(calicov1alpha1.VXLan)))
 				}
 			} else {
 				setPoolMode(networkConfig, ipFamilies, calicov1alpha1.Never)
 				if networkConfig.Overlay.CreatePodRoutes != nil && *networkConfig.Overlay.CreatePodRoutes {
-					networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
+					networkConfig.Backend = (*calicov1alpha1.Backend)(ptr.To(string(calicov1alpha1.Bird)))
 				}
 			}
 		} else {
@@ -197,15 +197,15 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {
 	if slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv6) {
-		networkConfig.IPv6.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(mode)))
+		networkConfig.IPv6.Mode = (*calicov1alpha1.PoolMode)(ptr.To(string(mode)))
 	} else {
-		networkConfig.IPv4.Mode = (*calicov1alpha1.PoolMode)(pointer.String(string(mode)))
+		networkConfig.IPv4.Mode = (*calicov1alpha1.PoolMode)(ptr.To(string(mode)))
 	}
 
 	if mode == calicov1alpha1.Never {
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.None)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(ptr.To(string(calicov1alpha1.None)))
 	} else {
-		networkConfig.Backend = (*calicov1alpha1.Backend)(pointer.String(string(calicov1alpha1.Bird)))
+		networkConfig.Backend = (*calicov1alpha1.Backend)(ptr.To(string(calicov1alpha1.Bird)))
 	}
 }
 
