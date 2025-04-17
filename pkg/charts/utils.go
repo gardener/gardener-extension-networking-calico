@@ -314,7 +314,7 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 	}
 
 	if c.IPAM.IPAMType == hostLocal {
-		if config.IPAM != nil && config.IPAM.CIDR != nil && !(isIPv4 && isIPv6) {
+		if config.IPAM != nil && config.IPAM.CIDR != nil && (!isIPv4 || !isIPv6) {
 			c.IPAM.Subnet = string(*config.IPAM.CIDR)
 		}
 	}

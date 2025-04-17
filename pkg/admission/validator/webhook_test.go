@@ -8,7 +8,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
@@ -29,7 +29,7 @@ var _ = Describe("Shoot validator", func() {
 
 		It("should return true because the networking type is calico", func() {
 			shoot.Spec.Networking = &core.Networking{
-				Type: pointer.String("calico"),
+				Type: ptr.To("calico"),
 			}
 
 			Expect(p.Create(event.CreateEvent{Object: shoot})).To(BeTrue())
@@ -40,7 +40,7 @@ var _ = Describe("Shoot validator", func() {
 
 		It("should return false because the networking type is not calico", func() {
 			shoot.Spec.Networking = &core.Networking{
-				Type: pointer.String("other-provider"),
+				Type: ptr.To("other-provider"),
 			}
 
 			Expect(p.Create(event.CreateEvent{Object: shoot})).To(BeFalse())
