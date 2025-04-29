@@ -114,7 +114,6 @@ generate: $(VGOPATH) $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(M
 	$(MAKE) format
 	@./hack/generate-renovate-ignore-deps.sh
 
-
 .PHONY: format
 format: $(GOIMPORTS) $(GOIMPORTSREVISER)
 	@bash $(GARDENER_HACK_DIR)/format.sh ./cmd ./pkg
