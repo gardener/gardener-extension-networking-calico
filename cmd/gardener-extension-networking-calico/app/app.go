@@ -30,7 +30,6 @@ import (
 	calicocmd "github.com/gardener/gardener-extension-networking-calico/pkg/cmd"
 	calicocontroller "github.com/gardener/gardener-extension-networking-calico/pkg/controller"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/healthcheck"
 )
 
 // NewControllerManagerCommand creates a new command for running a Calico controller.
@@ -132,8 +131,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			log := mgr.GetLogger()
 			log.Info("Adding controllers to manager")
-			configFileOpts.Completed().ApplyHealthCheckConfig(&healthcheck.AddOptions.HealthCheckConfig)
-			healthCheckCtrlOpts.Completed().Apply(&healthcheck.AddOptions.Controller)
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 			reconcileOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.IgnoreOperationAnnotation, nil)
 			calicoCtrlOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.Controller)
