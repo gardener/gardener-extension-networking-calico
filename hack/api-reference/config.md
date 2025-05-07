@@ -40,18 +40,6 @@ settings for the proxy server to use when communicating with the apiserver.</p>
 </tr>
 <tr>
 <td>
-<code>healthCheckConfig</code></br>
-<em>
-github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1.HealthCheckConfig
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>HealthCheckConfig is the config for the health check controller</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>featureGates</code></br>
 <em>
 map[string]bool
