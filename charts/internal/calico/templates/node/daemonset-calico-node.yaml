@@ -243,18 +243,17 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
           command:
-            - /bin/sh
+            - /bin/bash
             - -c
             - |
               echo "Waiting 30s for initialization to complete..."
               sleep 30
               echo "Ensuring NetworkUnavailable condition is set correctly..."
               calico-node -startup
-              echo "Finished ensuring NetworkUnavailable condition is set correctly."
-              while true; do
-                echo "Sleeping for 1h..."
-                sleep 3600
-              done
+              echo "Finished ensuring NetworkUnavailable condition is set correctly. Going to sleep."
+              trap 'echo "Got terminated"' TERM
+              sleep infinity&
+              wait $!
         {{- end }}
         - name: calico-node
           image: {{ index .Values.images "calico-node" }}
