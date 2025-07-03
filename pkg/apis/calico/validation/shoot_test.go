@@ -5,7 +5,6 @@
 package validation_test
 
 import (
-	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	"github.com/gardener/gardener/pkg/apis/core"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,6 +14,7 @@ import (
 	"k8s.io/utils/ptr"
 
 	"github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/validation"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
 var _ = Describe("Shoot validation", func() {
