@@ -15,6 +15,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/gardener/gardener/pkg/apis/extensions/validation"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
@@ -72,6 +73,9 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 
 // Reconcile implements Network.Actuator.
 func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
+	if errList := validation.ValidateNetwork(network); len(errList) != 0 {
+		return fmt.Errorf("invalid network resource: %w", errList.ToAggregate())
+	}
 	var (
 		networkConfig *calicov1alpha1.NetworkConfig
 		err           error
@@ -82,6 +86,9 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	if network.Spec.ProviderConfig != nil {
 		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
 		if err != nil {
+			return err
+		}
+		if err := ValidateNetworkConfig(networkConfig); err != nil {
 			return err
 		}
 	}
