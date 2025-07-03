@@ -20,7 +20,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicovalidation "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/validation"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/controller"
@@ -88,7 +87,7 @@ func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 			}
 
 			internalNetworkConfig := &calico.NetworkConfig{}
-			err = v1alpha1.Convert_v1alpha1_NetworkConfig_To_calico_NetworkConfig(networkConfig, internalNetworkConfig, nil)
+			err = calicov1alpha1.Convert_v1alpha1_NetworkConfig_To_calico_NetworkConfig(networkConfig, internalNetworkConfig, nil)
 			if err != nil {
 				return err
 			}
