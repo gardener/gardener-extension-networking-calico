@@ -37,6 +37,11 @@ const (
 	PoolVXLan Pool = "vxlan"
 )
 
+const (
+	IPAMCalico    string = "calico-ipam"
+	IPAMHostLocal string = "host-local"
+)
+
 // IPv4 contains configuration for calico ipv4 specific settings
 type IPv4 struct {
 	// Pool configures the type of ip pool for the tunnel interface
