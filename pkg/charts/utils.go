@@ -20,8 +20,6 @@ import (
 )
 
 const (
-	hostLocal    = "host-local"
-	calicoIPAM   = "calico-ipam"
 	usePodCIDR   = "usePodCidr"
 	usePodCIDRv6 = "usePodCidrIPv6"
 	defaultMTU   = "0"
@@ -117,7 +115,7 @@ var defaultCalicoConfig = calicoConfig{
 		},
 	},
 	IPAM: ipam{
-		IPAMType:   hostLocal,
+		IPAMType:   calicov1alpha1.IPAMHostLocal,
 		AssignIPv4: false,
 		AssignIPv6: false,
 	},
@@ -249,7 +247,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 	if isIPv6 {
 		c.IPAM.AssignIPv6 = true
 		c.IPAM.Subnet = usePodCIDRv6
-		c.IPAM.IPAMType = hostLocal
+		c.IPAM.IPAMType = calicov1alpha1.IPAMHostLocal
 		c.IPv6 = ipv6{
 			Enabled:             true,
 			Pool:                calicov1alpha1.PoolVXLan,
@@ -313,7 +311,7 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 		c.IPAM.IPAMType = config.IPAM.Type
 	}
 
-	if c.IPAM.IPAMType == hostLocal {
+	if c.IPAM.IPAMType == calicov1alpha1.IPAMHostLocal {
 		if config.IPAM != nil && config.IPAM.CIDR != nil && (!isIPv4 || !isIPv6) {
 			c.IPAM.Subnet = string(*config.IPAM.CIDR)
 		}
@@ -327,7 +325,7 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 		if config.VXLAN != nil && config.VXLAN.Enabled {
 			c.IPv4.Pool = calicov1alpha1.PoolVXLan
 			c.IPv4.Mode = calicov1alpha1.Always
-			c.IPAM.IPAMType = calicoIPAM
+			c.IPAM.IPAMType = calicov1alpha1.IPAMCalico
 		}
 
 		if config.IPv4.Pool != nil {

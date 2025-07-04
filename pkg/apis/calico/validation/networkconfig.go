@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -33,9 +34,7 @@ func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, fldPath *fie
 	allErrs = append(allErrs, ValidateNetworkConfigIPV6(networkConfig.IPv6, fldPath.Child("ipv6"))...)
 
 	if networkConfig.VethMTU != nil {
-		if err := IsValidMTU(*networkConfig.VethMTU); err != nil {
-			allErrs = append(allErrs, field.Invalid(fldPath.Child("vethMTU"), *networkConfig.VethMTU, fmt.Sprintf("invalid MTU: %q", err)))
-		}
+		allErrs = append(allErrs, IsValidMTU(*networkConfig.VethMTU, fldPath.Child("vethMTU"))...)
 	}
 
 	allErrs = append(allErrs, ValidateNetworkConfigAutoscaling(networkConfig.AutoScaling, fldPath.Child("autoScaling"))...)
@@ -45,7 +44,7 @@ func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, fldPath *fie
 	}
 
 	if networkConfig.IPAutoDetectionMethod != nil {
-		allErrs = append(allErrs, ValidateIPAutodetectionMethod(*networkConfig.IPAutoDetectionMethod, fldPath.Child("ipAutoDetectionMethod"))...)
+		allErrs = append(allErrs, ValidateIPAutoDetectionMethod(*networkConfig.IPAutoDetectionMethod, fldPath.Child("ipAutoDetectionMethod"))...)
 	}
 
 	return allErrs
@@ -59,17 +58,14 @@ func ValidateNetworkConfigIPAM(ipam *apiscalico.IPAM, fldPath *field.Path) field
 		return allErrs
 	}
 
-	ipamTypes := sets.New("calico-ipam", "host-local", "kubernetes")
+	ipamTypes := sets.New(apiscalico.IPAMCalico, apiscalico.IPAMHostLocal)
 
 	if ipam.Type != "" && !ipamTypes.Has(ipam.Type) {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("type"), ipam.Type, fmt.Sprintf("unsupported value %q for type, supported values are [%q, %q, %q]", ipam.Type, "calico-ipam", "host-local", "kubernetes")))
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("type"), ipam.Type, fmt.Sprintf("unsupported value %q for type, supported values are [%q, %q]", ipam.Type, apiscalico.IPAMCalico, apiscalico.IPAMHostLocal)))
 	}
 
-	if ipam.CIDR != nil && *ipam.CIDR != "" {
-		err := validation.IsValidCIDR(fldPath.Child("cidr"), string(*ipam.CIDR))
-		if err != nil {
-			allErrs = append(allErrs, field.Invalid(fldPath.Child("cidr"), *ipam.CIDR, fmt.Sprintf("invalid CIDR: %q", err)))
-		}
+	if ipam.CIDR != nil {
+		allErrs = append(allErrs, validation.IsValidCIDR(fldPath.Child("cidr"), string(*ipam.CIDR))...)
 	}
 
 	return allErrs
@@ -83,7 +79,7 @@ func ValidateNetworkConfigIPV4(ipv4 *apiscalico.IPv4, fldPath *field.Path) field
 		return allErrs
 	}
 
-	if ipv4.Pool != nil && *ipv4.Pool != "" && !sets.New(apiscalico.PoolIPIP, apiscalico.PoolVXLan).Has(*ipv4.Pool) {
+	if ipv4.Pool != nil && !sets.New(apiscalico.PoolIPIP, apiscalico.PoolVXLan).Has(*ipv4.Pool) {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("pool"), *ipv4.Pool, fmt.Sprintf("unsupported value %q for pool, supported values are [%q, %q]", *ipv4.Pool, apiscalico.PoolIPIP, apiscalico.PoolVXLan)))
 	}
 
@@ -91,8 +87,15 @@ func ValidateNetworkConfigIPV4(ipv4 *apiscalico.IPv4, fldPath *field.Path) field
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("mode"), *ipv4.Mode, fmt.Sprintf("unsupported value %q for mode, supported values are [%q, %q, %q, %q]", *ipv4.Mode, apiscalico.Always, apiscalico.Never, apiscalico.CrossSubnet, apiscalico.Off)))
 	}
 
+	// Check for unsupported mode with VXLan pool
+	// VXLan pool only supports Always and Never modes, so if the mode is set
+	// to CrossSubnet or Off, it is invalid.
+	if ipv4.Pool != nil && *ipv4.Pool == apiscalico.PoolVXLan && ipv4.Mode != nil && !sets.New(apiscalico.Always, apiscalico.Never).Has(*ipv4.Mode) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("mode"), *ipv4.Mode, fmt.Sprintf("unsupported value %q for mode with pool %q, supported values are [%q, %q]", *ipv4.Mode, apiscalico.PoolVXLan, apiscalico.Always, apiscalico.Never)))
+	}
+
 	if ipv4.AutoDetectionMethod != nil && *ipv4.AutoDetectionMethod != "" {
-		allErrs = append(allErrs, ValidateIPAutodetectionMethod(*ipv4.AutoDetectionMethod, fldPath.Child("autoDetectionMethod"))...)
+		allErrs = append(allErrs, ValidateIPAutoDetectionMethod(*ipv4.AutoDetectionMethod, fldPath.Child("autoDetectionMethod"))...)
 	}
 
 	return allErrs
@@ -101,11 +104,12 @@ func ValidateNetworkConfigIPV4(ipv4 *apiscalico.IPv4, fldPath *field.Path) field
 // ValidateNetworkConfigIPV6 validates the IPv6 configuration in the network config.
 func ValidateNetworkConfigIPV6(ipv6 *apiscalico.IPv6, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
+
 	if ipv6 == nil {
 		return allErrs
 	}
 
-	if ipv6.Pool != nil && *ipv6.Pool != "" && !sets.New(apiscalico.PoolIPIP, apiscalico.PoolVXLan).Has(*ipv6.Pool) {
+	if ipv6.Pool != nil && !sets.New(apiscalico.PoolIPIP, apiscalico.PoolVXLan).Has(*ipv6.Pool) {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("pool"), *ipv6.Pool, fmt.Sprintf("unsupported value %q for pool, supported values are [%q, %q]", *ipv6.Pool, apiscalico.PoolIPIP, apiscalico.PoolVXLan)))
 	}
 
@@ -113,16 +117,23 @@ func ValidateNetworkConfigIPV6(ipv6 *apiscalico.IPv6, fldPath *field.Path) field
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("mode"), *ipv6.Mode, fmt.Sprintf("unsupported value %q for mode, supported values are [%q, %q, %q, %q]", *ipv6.Mode, apiscalico.Always, apiscalico.Never, apiscalico.CrossSubnet, apiscalico.Off)))
 	}
 
+	// Check for unsupported mode with VXLan pool
+	// VXLan pool only supports Always and Never modes, so if the mode is set
+	// to CrossSubnet or Off, it is invalid.
+	if ipv6.Pool != nil && *ipv6.Pool == apiscalico.PoolVXLan && ipv6.Mode != nil && !sets.New(apiscalico.Always, apiscalico.Never).Has(*ipv6.Mode) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("mode"), *ipv6.Mode, fmt.Sprintf("unsupported value %q for mode with pool %q, supported values are [%q, %q]", *ipv6.Mode, apiscalico.PoolVXLan, apiscalico.Always, apiscalico.Never)))
+	}
+
 	if ipv6.AutoDetectionMethod != nil && *ipv6.AutoDetectionMethod != "" {
-		allErrs = append(allErrs, ValidateIPAutodetectionMethod(*ipv6.AutoDetectionMethod, fldPath.Child("autoDetectionMethod"))...)
+		allErrs = append(allErrs, ValidateIPAutoDetectionMethod(*ipv6.AutoDetectionMethod, fldPath.Child("autoDetectionMethod"))...)
 	}
 
 	return allErrs
 }
 
-func ValidateIPAutodetectionMethod(method string, fldPath *field.Path) field.ErrorList {
+func ValidateIPAutoDetectionMethod(method string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
-	validOptions := sets.New("first-found", "can-reach", "interface", "skip-interface", "cidr")
+	validOptions := sets.New("first-found", "can-reach", "interface", "skip-interface", "cidr", "kubernetes-internal-ip")
 	if method == "" {
 		allErrs = append(allErrs, field.Invalid(fldPath, method, "method cannot be empty"))
 		return allErrs
@@ -136,22 +147,33 @@ func ValidateIPAutodetectionMethod(method string, fldPath *field.Path) field.Err
 		return allErrs
 	}
 
+	if (option == "first-found" || option == "kubernetes-internal-ip") && len(parts) != 1 {
+		allErrs = append(allErrs, field.Invalid(fldPath, method, fmt.Sprintf("option %s does not take a parameter", option)))
+		return allErrs
+	}
+
 	if option == "cidr" {
 		if len(parts) != 2 || parts[1] == "" {
 			allErrs = append(allErrs, field.Invalid(fldPath, method, "option cidr requires a parameter"))
 			return allErrs
 		}
 
-		err := validation.IsValidCIDR(nil, parts[1])
-		if err != nil {
-			allErrs = append(allErrs, field.Invalid(fldPath, method, fmt.Sprintf("invalid CIDR: %q", err)))
-		}
+		allErrs = append(allErrs, validation.IsValidCIDR(fldPath, parts[1])...)
 	}
 
-	if option == "can-reach" || option == "interface" || option == "skip-interface" || option == "cidr" {
+	if option == "can-reach" || option == "interface" || option == "skip-interface" {
 		if len(parts) != 2 || parts[1] == "" {
 			allErrs = append(allErrs, field.Invalid(fldPath, method, fmt.Sprintf("option %s requires a parameter", option)))
 			return allErrs
+		}
+
+		if option == "can-reach" {
+			// Validate that the parameter is a valid IP address or DNS name
+			ipErrs := validation.IsValidIP(fldPath, parts[1])
+			dnsErrs := validation.IsDNS1123Subdomain(parts[1])
+			if len(ipErrs) > 0 && len(dnsErrs) > 0 {
+				allErrs = append(allErrs, field.Invalid(fldPath, method, fmt.Sprintf("parameter for can-reach must be a valid IP address or DNS name: %v, %v", ipErrs, dnsErrs)))
+			}
 		}
 
 		if option == "interface" || option == "skip-interface" {
@@ -166,22 +188,23 @@ func ValidateIPAutodetectionMethod(method string, fldPath *field.Path) field.Err
 }
 
 // IsValidMTU checks if the provided MTU is a valid positive integer.
-func IsValidMTU(mtu string) error {
+func IsValidMTU(mtu string, fieldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
 	if mtu == "" {
-		return fmt.Errorf("MTU cannot be empty")
+		return append(allErrs, field.Invalid(fieldPath, mtu, "MTU cannot be empty"))
 	}
 	mtuInt, err := strconv.Atoi(mtu)
 	if err != nil {
-		return fmt.Errorf("invalid MTU: %w", err)
+		return append(allErrs, field.Invalid(fieldPath, mtu, fmt.Sprintf("invalid MTU: %v", err)))
 	}
-
-	if mtuInt <= 0 {
-		return fmt.Errorf("MTU must be a positive integer")
+	if mtuInt < 0 {
+		return append(allErrs, field.Invalid(fieldPath, mtu, "MTU must be a positive integer"))
 	}
-
-	return nil
+	return allErrs
 }
 
+// ValidateNetworkConfigAutoscaling validates the autoscaling configuration in the network config.
+// It checks if the mode is one of the supported values and validates the resources if provided.
 func ValidateNetworkConfigAutoscaling(autoscaling *apiscalico.AutoScaling, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
@@ -192,40 +215,38 @@ func ValidateNetworkConfigAutoscaling(autoscaling *apiscalico.AutoScaling, fldPa
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("mode"), autoscaling.Mode, fmt.Sprintf("unsupported value %q for mode, supported values are [%q, %q, %q]", autoscaling.Mode, apiscalico.AutoscalingModeClusterProportional, apiscalico.AutoscalingModeVPA, apiscalico.AutoscalingModeStatic)))
 	}
 	if autoscaling.Resources != nil {
-		if autoscaling.Resources.Node != nil {
-			for name, quantity := range *autoscaling.Resources.Node {
-				switch name.String() {
-				case "cpu":
-					if quantity.IsZero() {
-						allErrs = append(allErrs, field.Invalid(fldPath.Child("resources").Child("node").Child("cpu"), quantity.String(), "CPU resource must be specified and cannot be zero"))
-					}
-				case "memory":
-					if quantity.IsZero() {
-						allErrs = append(allErrs, field.Invalid(fldPath.Child("resources").Child("node").Child("memory"), quantity.String(), "Memory resource must be specified and cannot be zero"))
-					}
-				default:
-					allErrs = append(allErrs, field.Invalid(fldPath.Child("resources").Child("node").Child(name.String()), quantity.String(), fmt.Sprintf("Unsupported resource: %s", name)))
-				}
 
+		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Node, "node", fldPath.Child("resources").Child("node"))...)
+		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Typha, "typha", fldPath.Child("resources").Child("typha"))...)
+	}
+
+	return allErrs
+}
+
+// ValidateResourceList validates the resources in the resource list.
+// It checks if the CPU and memory resources are specified and not zero, and if any unsupported resources are present.
+func ValidateResourceList(resourceList *v1.ResourceList, resourceType string, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	if resourceList == nil {
+		return allErrs
+	}
+	for name, quantity := range *resourceList {
+		switch name.String() {
+		case "cpu":
+			if quantity.IsZero() {
+				allErrs = append(allErrs, field.Invalid(fldPath.Child("cpu"), quantity.String(), "CPU resource must be specified and cannot be zero"))
+			} else if quantity.Sign() < 0 {
+				allErrs = append(allErrs, field.Invalid(fldPath.Child("cpu"), quantity.String(), "CPU resource must be positive"))
 			}
-		}
-
-		if autoscaling.Resources.Typha != nil {
-			for name, quantity := range *autoscaling.Resources.Typha {
-				switch name.String() {
-				case "cpu":
-					if quantity.IsZero() {
-						allErrs = append(allErrs, field.Invalid(fldPath.Child("resources").Child("typha").Child("cpu"), quantity.String(), "CPU resource must be specified and cannot be zero"))
-					}
-				case "memory":
-					if quantity.IsZero() {
-						allErrs = append(allErrs, field.Invalid(fldPath.Child("resources").Child("typha").Child("memory"), quantity.String(), "Memory resource must be specified and cannot be zero"))
-					}
-				default:
-					allErrs = append(allErrs, field.Invalid(fldPath.Child("resources").Child("typha").Child(name.String()), quantity.String(), fmt.Sprintf("Unsupported resource: %s", name)))
-				}
-
+		case "memory":
+			if quantity.IsZero() {
+				allErrs = append(allErrs, field.Invalid(fldPath.Child("memory"), quantity.String(), "Memory resource must be specified and cannot be zero"))
+			} else if quantity.Sign() < 0 {
+				allErrs = append(allErrs, field.Invalid(fldPath.Child("memory"), quantity.String(), "Memory resource must be positive"))
 			}
+		default:
+			allErrs = append(allErrs, field.Invalid(fldPath.Child(name.String()), quantity.String(), fmt.Sprintf("Unsupported resource: %s", name)))
 		}
 	}
 
