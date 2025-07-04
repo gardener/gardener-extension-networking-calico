@@ -10,13 +10,19 @@ import (
 
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
+	gardencorehelper "github.com/gardener/gardener/pkg/apis/core/helper"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	"github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
+	calicovalidation "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/validation"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/controller"
 )
 
 // NewShootValidator returns a new instance of a shoot validator.
@@ -43,6 +49,17 @@ func (s *shoot) Validate(ctx context.Context, new, old client.Object) error {
 		return fmt.Errorf("wrong object type %T", new)
 	}
 
+	// Skip if it's a workerless Shoot
+	if gardencorehelper.IsWorkerless(shoot) {
+		return nil
+	}
+
+	shootV1Beta1 := &gardencorev1beta1.Shoot{}
+	err := gardencorev1beta1.Convert_core_Shoot_To_v1beta1_Shoot(shoot, shootV1Beta1, nil)
+	if err != nil {
+		return err
+	}
+
 	if old != nil {
 		oldShoot, ok := old.(*core.Shoot)
 		if !ok {
@@ -55,6 +72,32 @@ func (s *shoot) Validate(ctx context.Context, new, old client.Object) error {
 }
 
 func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
+	// Network validation
+	if shoot.Spec.Networking != nil {
+		if errList := calicovalidation.ValidateNetworking(shoot.Spec.Networking, field.NewPath("spec", "networking")); len(errList) != 0 {
+			return errList.ToAggregate()
+		}
+
+		if shoot.Spec.Networking.ProviderConfig != nil {
+			network := &extensionsv1alpha1.Network{}
+			network.Spec.ProviderConfig = shoot.Spec.Networking.ProviderConfig
+			networkConfig, err := controller.CalicoNetworkConfigFromNetworkResource(network)
+			if err != nil {
+				return err
+			}
+
+			internalNetworkConfig := &calico.NetworkConfig{}
+			err = calicov1alpha1.Convert_v1alpha1_NetworkConfig_To_calico_NetworkConfig(networkConfig, internalNetworkConfig, nil)
+			if err != nil {
+				return err
+			}
+
+			if errList := calicovalidation.ValidateNetworkConfig(internalNetworkConfig, field.NewPath("spec", "networking", "providerConfig")); len(errList) != 0 {
+				return errList.ToAggregate()
+			}
+		}
+	}
+
 	networkConfig, err := s.decodeNetworkingConfig(shoot.Spec.Networking.ProviderConfig)
 	if err != nil {
 		return err
