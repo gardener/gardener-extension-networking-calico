@@ -121,6 +121,7 @@ jobs:
       - uses: gardener/cc-utils/.github/actions/trusted-checkout@master
       - name: run-verify
         run: |
+          export GOPATH=""
           set -eu
           .ci/verify
           # verify calls `make sast-report`, which generates `gosec-report.sarif`
