@@ -172,7 +172,7 @@ spec:
       typha:
         enabled: false
   kubernetes:
-    version: 1.28.3
+    version: 1.32.0
   maintenance:
     autoUpdate:
       kubernetesVersion: true
