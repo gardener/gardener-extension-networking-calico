@@ -81,3 +81,16 @@ images:
       confidentiality_requirement: 'low'
       integrity_requirement: 'high'
       availability_requirement: 'low'
+- name: bird-exporter
+  sourceRepository: github.com/czerwonk/bird_exporter
+  repository: ghcr.io/czerwonk/bird_exporter
+  tag: 1.4.3
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'end-user'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
