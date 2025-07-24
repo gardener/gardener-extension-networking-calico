@@ -135,6 +135,9 @@ type NetworkConfig struct {
 
 	// WireguardEncryption is the option to enable node to node wireguard encryption
 	WireguardEncryption bool `json:"wireguardEncryption,omitempty"`
+
+	// BirdExporter configures the bird metrics exporter.
+	BirdExporter *BirdExporter `json:"birdExporter,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -211,5 +214,10 @@ type StaticResources struct {
 
 type VXLAN struct {
 	// Enabled enables vxlan as overlay network.
+	Enabled bool `json:"enabled"`
+}
+
+type BirdExporter struct {
+	// Enabled enables the bird metrics exporter.
 	Enabled bool `json:"enabled"`
 }

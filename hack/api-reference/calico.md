@@ -236,6 +236,19 @@ bool
 <p>WireguardEncryption is the option to enable node to node wireguard encryption</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>birdExporter</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.BirdExporter">
+BirdExporter
+</a>
+</em>
+</td>
+<td>
+<p>BirdExporter configures the bird metrics exporter.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling
@@ -300,6 +313,35 @@ StaticResources
 </p>
 <p>
 </p>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.BirdExporter">BirdExporter
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>Enabled enables the bird metrics exporter.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.CIDR">CIDR
 (<code>string</code> alias)</p></h3>
 <p>
