@@ -64,7 +64,7 @@ func ValidateNetworkConfigIPAM(ipam *apiscalico.IPAM, fldPath *field.Path) field
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("type"), ipam.Type, fmt.Sprintf("unsupported value %q for type, supported values are [%q, %q]", ipam.Type, apiscalico.IPAMCalico, apiscalico.IPAMHostLocal)))
 	}
 
-	if ipam.CIDR != nil {
+	if ipam.CIDR != nil && strings.ToLower(string(*ipam.CIDR)) != "usepodcidr" {
 		allErrs = append(allErrs, validation.IsValidCIDR(fldPath.Child("cidr"), string(*ipam.CIDR))...)
 	}
 
