@@ -38,6 +38,7 @@ type calicoConfig struct {
 	VethMTU         string                 `json:"veth_mtu"`
 	Monitoring      monitoring             `json:"monitoring"`
 	NonPrivileged   bool                   `json:"nonPrivileged"`
+	BirdExporter    birdExporter           `json:"birdExporter"`
 }
 
 type felix struct {
@@ -97,9 +98,15 @@ type monitoring struct {
 	TyphaMetricsPort string `json:"typhaMetricsPort"`
 	// FelixPort is the port used to exposed felix metrics
 	FelixMetricsPort string `json:"felixMetricsPort"`
+	// BirdPort is the port used to exposed bird metrics
+	BirdMetricsPort string `json:"birdMetricsPort"`
 }
 
 type typha struct {
+	Enabled bool `json:"enabled"`
+}
+
+type birdExporter struct {
 	Enabled bool `json:"enabled"`
 }
 
@@ -132,6 +139,10 @@ var defaultCalicoConfig = calicoConfig{
 		Enabled:          true,
 		FelixMetricsPort: "9091",
 		TyphaMetricsPort: "9093",
+		BirdMetricsPort:  "9094",
+	},
+	BirdExporter: birdExporter{
+		Enabled: false,
 	},
 }
 
@@ -183,6 +194,7 @@ func ComputeCalicoChartValues(
 			calico.NodeImageName:                                  imagevector.CalicoNodeImage(kubernetesVersion),
 			calico.CalicoClusterProportionalAutoscalerImageName:   imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
 			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
+			calico.BirdExporterImageName:                          imagevector.BirdExporterImage(kubernetesVersion),
 		},
 		"global": map[string]string{
 			"podCIDR": network.Spec.PodCIDR,
@@ -403,6 +415,10 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 
 	if config.VethMTU != nil {
 		c.VethMTU = *config.VethMTU
+	}
+
+	if config.BirdExporter != nil {
+		c.BirdExporter.Enabled = config.BirdExporter.Enabled
 	}
 
 	return c, nil
