@@ -12,6 +12,7 @@ spec:
     listKind: TierList
     plural: tiers
     singular: tier
+  preserveUnknownFields: false
   scope: Cluster
   versions:
   - name: v1
@@ -54,9 +55,3 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
