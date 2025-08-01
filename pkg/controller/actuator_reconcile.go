@@ -19,7 +19,6 @@ import (
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
-
 	"github.com/go-logr/logr"
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -88,18 +87,13 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 	ipFamilies := slices.Clone(network.Spec.IPFamilies)
 
-	log, err := logr.FromContext(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get logger from context: %w", err)
 	}
-	log.Info("Reconciling Calico Network", "namespace", network.Namespace, "name", network.Name, "ipFamilies", ipFamilies)
 	if network.Spec.ProviderConfig != nil {
-		log.Info("Using ProviderConfig from Network resource", "ProviderConfig", network.Spec.ProviderConfig.Raw)
 		nc := &calicov1alpha1.NetworkConfig{}
-		log.Info("Decoding ProviderConfig into NetworkConfig", "NetworkConfig", nc)
 		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network, nc)
 		if err != nil {
-			log.Info("Failed to decode ProviderConfig into NetworkConfig", "error", err)
 			return err
 		}
 		if err := ValidateNetworkConfig(networkConfig); err != nil {

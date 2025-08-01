@@ -33,7 +33,7 @@ spec:
   - sourceLabels:
     - __name__
     action: keep
-    regex: bird_exporter_.+
+    regex: bird_.+
   - sourceLabels:
     - namespace
     action: keep
