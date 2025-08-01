@@ -78,6 +78,16 @@ spec:
                 maximum: 65535
                 minimum: 1
                 type: integer
+              localWorkloadPeeringIPV4:
+                description: |-
+                  The virtual IPv4 address of the node with which its local workload is expected to peer.
+                  It is recommended to use a link-local address.
+                type: string
+              localWorkloadPeeringIPV6:
+                description: |-
+                  The virtual IPv6 address of the node with which its local workload is expected to peer.
+                  It is recommended to use a link-local address.
+                type: string
               logSeverityScreen:
                 description: 'LogSeverityScreen is the log severity above which logs
                   are sent to the stdout. [Default: INFO]'
@@ -119,6 +129,7 @@ spec:
                     - key
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               nodeToNodeMeshEnabled:
                 description: 'NodeToNodeMeshEnabled sets whether full node to node
                   BGP mesh is enabled. [Default: true]'
@@ -186,9 +197,3 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

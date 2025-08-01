@@ -48,7 +48,7 @@ spec:
           env:
             # Choose which controllers to run.
             - name: ENABLED_CONTROLLERS
-              value: node
+              value: node,loadbalancer
             - name: DATASTORE_TYPE
               value: kubernetes
           resources:
