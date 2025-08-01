@@ -61,6 +61,10 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 				Type: &monitoringv1alpha1.ScrapeConfig{},
 				Name: "shoot-calico-typha",
 			},
+			{
+				Type: &monitoringv1alpha1.ScrapeConfig{},
+				Name: "shoot-calico-bird-exporter",
+			},
 		},
 	}
 
@@ -83,8 +87,12 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 	ipFamilies := slices.Clone(network.Spec.IPFamilies)
 
+	if err != nil {
+		return fmt.Errorf("failed to get logger from context: %w", err)
+	}
 	if network.Spec.ProviderConfig != nil {
-		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
+		nc := &calicov1alpha1.NetworkConfig{}
+		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network, nc)
 		if err != nil {
 			return err
 		}
