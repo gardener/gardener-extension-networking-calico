@@ -63,7 +63,7 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 			},
 			{
 				Type: &monitoringv1alpha1.ScrapeConfig{},
-				Name: "shoot-calico-bird-exporter",
+				Name: "shoot-calico-bird",
 			},
 		},
 	}

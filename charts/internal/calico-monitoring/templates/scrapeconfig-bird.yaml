@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: shoot-calico-bird-exporter
+  name: shoot-calico-bird
   namespace: {{ .Release.Namespace }}
   labels:
     prometheus: shoot
@@ -40,11 +40,11 @@ spec:
     regex: kube-system
   relabelings:
   - action: replace
-    replacement: bird-exporter-metrics
+    replacement: bird-metrics
     targetLabel: job
   - sourceLabels: [__meta_kubernetes_service_name, __meta_kubernetes_pod_container_port_name]
     separator: ;
-    regex: calico-bird-exporter-monitoring;metrics
+    regex: calico-bird-monitoring;bird-metrics
     replacement: $1
     action: keep
   - sourceLabels: [__meta_kubernetes_endpoint_node_name]

@@ -519,7 +519,7 @@ spec:
               readOnly: true
           ports:
             - containerPort: {{ .Values.config.monitoring.birdMetricsPort }}
-              name: metrics-bird
+              name: bird-metrics
               protocol: TCP
         {{- end }}
       volumes:
