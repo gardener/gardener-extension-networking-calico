@@ -87,12 +87,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 
 	ipFamilies := slices.Clone(network.Spec.IPFamilies)
 
-	if err != nil {
-		return fmt.Errorf("failed to get logger from context: %w", err)
-	}
 	if network.Spec.ProviderConfig != nil {
-		nc := &calicov1alpha1.NetworkConfig{}
-		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network, nc)
+		networkConfig, err = calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
 		if err != nil {
 			return err
 		}

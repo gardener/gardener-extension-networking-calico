@@ -32,7 +32,8 @@ func init() {
 
 // CalicoNetworkConfigFromNetworkResource extracts the NetworkConfig from the
 // ProviderConfig section of the given Network resource.
-func CalicoNetworkConfigFromNetworkResource(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig) (*calicov1alpha1.NetworkConfig, error) {
+func CalicoNetworkConfigFromNetworkResource(network *extensionsv1alpha1.Network) (*calicov1alpha1.NetworkConfig, error) {
+	config := &calicov1alpha1.NetworkConfig{}
 	if network.Spec.ProviderConfig != nil && network.Spec.ProviderConfig.Raw != nil {
 		if _, _, err := decoder.Decode(network.Spec.ProviderConfig.Raw, nil, config); err != nil {
 			return nil, err
