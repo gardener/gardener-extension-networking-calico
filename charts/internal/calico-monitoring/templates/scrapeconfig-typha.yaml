@@ -34,10 +34,6 @@ spec:
     - __name__
     action: keep
     regex: typha_.+
-  - sourceLabels:
-    - namespace
-    action: keep
-    regex: kube-system
   relabelings:
   - action: replace
     replacement: typha-metrics
