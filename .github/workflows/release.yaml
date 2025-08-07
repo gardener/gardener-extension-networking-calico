@@ -15,7 +15,7 @@ jobs:
     with:
       mode: release
     permissions:
-      contents: read
+      contents: write
       packages: write
       id-token: write
 
@@ -25,7 +25,7 @@ jobs:
       - build
     secrets: inherit
     permissions:
-      contents: read
+      contents: write
       packages: write
       id-token: write
     with:
