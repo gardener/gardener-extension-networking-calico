@@ -14,6 +14,10 @@ jobs:
     uses: ./.github/workflows/build.yaml
     with:
       mode: release
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
 
   release-to-github-and-bump:
     uses: gardener/cc-utils/.github/workflows/release.yaml@master
