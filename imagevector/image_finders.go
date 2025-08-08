@@ -46,3 +46,8 @@ func ClusterProportionalAutoscalerImage(kubernetesVersion string) string {
 func ClusterProportionalVerticalAutoscalerImage(kubernetesVersion string) string {
 	return findImage(calico.ClusterProportionalVerticalAutoscalerImageName, kubernetesVersion)
 }
+
+// BirdExporterImage returns the Calico bird-exporter image.
+func BirdExporterImage(kubernetesVersion string) string {
+	return findImage(calico.BirdExporterImageName, kubernetesVersion)
+}
