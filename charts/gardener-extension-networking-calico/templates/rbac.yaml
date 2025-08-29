@@ -31,15 +31,15 @@ rules:
   - leases
   verbs:
   - create
-  - list 
-  - watch 
+  - list
+  - watch
 - apiGroups:
   - coordination.k8s.io
   resources:
   - leases
   resourceNames:
   - networking-calico-leader-election
-  - gardener-extension-heartbeat 
+  - gardener-extension-heartbeat
   verbs:
   - get
   - patch
@@ -86,6 +86,7 @@ rules:
   resourceNames:
   - shoot-calico-felix
   - shoot-calico-typha
+  - shoot-calico-bird
   verbs:
   - update
   - patch

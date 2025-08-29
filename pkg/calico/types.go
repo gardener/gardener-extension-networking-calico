@@ -20,6 +20,7 @@ const (
 	TyphaImageName                                 = "calico-typha"
 	CalicoClusterProportionalAutoscalerImageName   = "calico-cpa"
 	ClusterProportionalVerticalAutoscalerImageName = "calico-cpva"
+	BirdExporterImageName                          = "bird-exporter"
 
 	// MonitoringChartName
 	MonitoringName = "calico-monitoring-config"

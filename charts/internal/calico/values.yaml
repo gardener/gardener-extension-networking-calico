@@ -11,6 +11,7 @@ config:
     enabled: true
     felixMetricsPort: 9091
     typhaMetricsPort: 9093
+    birdMetricsPort: 9094
   ipam:
     type: "host-local"
     # subnet: "usePodCidr"
@@ -41,6 +42,8 @@ config:
     bpfKubeProxyIPTablesCleanup:
       enabled: "false"
   nonPrivileged: false
+  birdExporter:
+    enabled: false
 images:
   calico-node: "image-repository:image-tag"
   calico-cni: "image-repository:image-tag"
@@ -48,6 +51,7 @@ images:
   calico-kube-controllers: "image-repository:image-tag"
   calico-cpva: "image-repository:image-tag"
   calico-cpa: "image-repository:image-tag"
+  bird-exporter: "image-repository:image-tag"
 
 autoscaling:
   kubeControllers: false

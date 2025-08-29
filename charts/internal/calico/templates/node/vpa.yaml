@@ -19,4 +19,6 @@ spec:
       mode: "Off"
     - containerName: "network-unavailable-condition-ensurer"
       mode: "Off"
+    - containerName: "bird-exporter"
+      mode: "Off"
 {{- end }}

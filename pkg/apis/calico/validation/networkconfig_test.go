@@ -138,7 +138,7 @@ var _ = Describe("Network validation", func() {
 			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.ipAutoDetectionMethod")})))),
 		Entry("should return error with invalid IP autodetection method with CIDR", &apiscalico.NetworkConfig{IPAutoDetectionMethod: ptr.To("cidr=290.8.8.8/16")}, field.NewPath("config"),
 			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.ipAutoDetectionMethod")})))),
-		Entry(" should check for a positive quantity in the resources", &apiscalico.NetworkConfig{
+		Entry("should check for a positive quantity in the resources", &apiscalico.NetworkConfig{
 			AutoScaling: &apiscalico.AutoScaling{
 				Mode: apiscalico.AutoscalingModeStatic,
 				Resources: &apiscalico.StaticResources{

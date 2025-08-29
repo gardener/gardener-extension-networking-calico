@@ -180,7 +180,7 @@ spec:
             nft_kubelet_rules=$( (iptables-nft-save -t mangle; ip6tables-nft-save -t mangle ) 2>/dev/null | grep -E '^:(KUBE-IPTABLES-HINT|KUBE-KUBELET-CANARY)')
             if [ -n "$nft_kubelet_rules" ]; then
               backend="nft"
-            else 
+            else
               backend="legacy"
             fi
             sleep 15
@@ -498,6 +498,31 @@ spec:
             - name: cni-log-dir
               mountPath: /var/log/calico/cni
               readOnly: true
+        {{- if and .Values.config.monitoring.enabled .Values.config.birdExporter.enabled (not .Values.config.nonPrivileged) }}
+        - name: bird-exporter
+          image: {{ index .Values.images "bird-exporter" }}
+          args:
+            - -format.new=true
+            - -bird.socket=/var/run/calico/bird.ctl
+            {{- if not .Values.config.ipv6.enabled }}
+            - -bird.ipv6=false
+            {{- end}}
+            - -web.listen-address=:{{ .Values.config.monitoring.birdMetricsPort }}
+          resources:
+            limits:
+              memory: 32Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          volumeMounts:
+            - name: var-run-calico
+              mountPath: /var/run/calico
+              readOnly: true
+          ports:
+            - containerPort: {{ .Values.config.monitoring.birdMetricsPort }}
+              name: bird-metrics
+              protocol: TCP
+        {{- end }}
       volumes:
         # Used by calico-node.
         - name: lib-modules
