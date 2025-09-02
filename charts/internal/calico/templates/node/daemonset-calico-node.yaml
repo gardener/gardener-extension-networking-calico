@@ -184,7 +184,8 @@ spec:
               backend="legacy"
             fi
             sleep 15
-            while true; do
+            trap 'echo Received SIGTERM, exiting...' TERM
+            (while true; do
               for i in $(cat /etc/resolv.conf | grep nameserver | sed -n -e 's/^.*nameserver //p' ); do
                 if [[ $i =~ .*:.* ]] && [[ ${POD_CIDR} =~ .*:.* ]]; then
                   ip6tables-$backend -t nat -C POSTROUTING -s ${POD_CIDR} -d $i/128 ! -o cali+ -m comment --comment "calico masquerade non-cluster" -j MASQUERADE 2>/dev/null \
@@ -195,7 +196,8 @@ spec:
                 fi
               done
               sleep 60
-            done
+            done)&
+            wait
           volumeMounts:
             - mountPath: /run/xtables.lock
               name: xtables-lock
