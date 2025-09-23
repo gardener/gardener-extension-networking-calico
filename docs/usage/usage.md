@@ -110,7 +110,7 @@ kind: NetworkConfig
 ipam:
   type: host-local
   cidr: usePodCIDR
-vethMTU: 1440
+vethMTU: "1440"
 typha:
   enabled: true
 overlay:
@@ -166,7 +166,7 @@ spec:
       kind: NetworkConfig
       ipam:
         type: host-local
-      vethMTU: 1440
+      vethMTU: "1440"
       overlay:
         enabled: true
       typha:
