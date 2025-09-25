@@ -65,7 +65,7 @@ func defaultShoot(generateName string) *gardencorev1beta1.Shoot {
 			Networking: &gardencorev1beta1.Networking{
 				Type:       pointer.String("calico"),
 				IPFamilies: []gardencorev1beta1.IPFamily{gardencorev1beta1.IPFamilyIPv4},
-				Nodes:      pointer.String("10.10.0.0/16"),
+				Nodes:      pointer.String("10.0.0.0/16"),
 			},
 			Provider: gardencorev1beta1.Provider{
 				Type: "local",
