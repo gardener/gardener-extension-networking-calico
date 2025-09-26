@@ -44,6 +44,9 @@ config:
   nonPrivileged: false
   birdExporter:
     enabled: false
+  multus:
+    enabled: false
+    installCNIPlugins: false
 images:
   calico-node: "image-repository:image-tag"
   calico-cni: "image-repository:image-tag"

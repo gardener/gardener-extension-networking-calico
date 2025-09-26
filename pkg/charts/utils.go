@@ -37,6 +37,7 @@ type calicoConfig struct {
 	Monitoring      monitoring             `json:"monitoring"`
 	NonPrivileged   bool                   `json:"nonPrivileged"`
 	BirdExporter    birdExporter           `json:"birdExporter"`
+	Multus          multus                 `json:"multus"`
 }
 
 type felix struct {
@@ -108,6 +109,11 @@ type birdExporter struct {
 	Enabled bool `json:"enabled"`
 }
 
+type multus struct {
+	Enabled           bool `json:"enabled"`
+	InstallCNIPlugins bool `json:"installCNIPlugins"`
+}
+
 var defaultCalicoConfig = calicoConfig{
 	Backend: calicov1alpha1.Bird,
 	Felix: felix{
@@ -141,6 +147,10 @@ var defaultCalicoConfig = calicoConfig{
 	},
 	BirdExporter: birdExporter{
 		Enabled: false,
+	},
+	Multus: multus{
+		Enabled:           false,
+		InstallCNIPlugins: false,
 	},
 }
 
@@ -193,6 +203,8 @@ func ComputeCalicoChartValues(
 			calico.CalicoClusterProportionalAutoscalerImageName:   imagevector.ClusterProportionalAutoscalerImage(kubernetesVersion),
 			calico.ClusterProportionalVerticalAutoscalerImageName: imagevector.ClusterProportionalVerticalAutoscalerImage(kubernetesVersion),
 			calico.BirdExporterImageName:                          imagevector.BirdExporterImage(kubernetesVersion),
+			calico.MultusImageName:                                imagevector.MultusImage(kubernetesVersion),
+			calico.CNIPluginsImageName:                            imagevector.CNIPluginsImage(kubernetesVersion),
 		},
 		"global": map[string]string{
 			"podCIDR": network.Spec.PodCIDR,
@@ -417,6 +429,13 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 
 	if config.BirdExporter != nil {
 		c.BirdExporter.Enabled = config.BirdExporter.Enabled
+	}
+
+	if config.Multus != nil {
+		c.Multus.Enabled = config.Multus.Enabled
+		if config.Multus.InstallCNIPlugins != nil {
+			c.Multus.InstallCNIPlugins = *config.Multus.InstallCNIPlugins
+		}
 	}
 
 	return c, nil
