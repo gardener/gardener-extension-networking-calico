@@ -249,6 +249,19 @@ BirdExporter
 <p>BirdExporter configures the bird metrics exporter.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>multus</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Multus">
+Multus
+</a>
+</em>
+</td>
+<td>
+<p>Multus configures Multus CNI.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling
@@ -566,6 +579,47 @@ bool
 <em>(Optional)</em>
 <p>SourceNATEnabled indicates whether the pod IP addresses should be masqueraded when targeting external destinations.
 Per default, source network address translation is disabled.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Multus">Multus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>Enabled enables Multus CNI.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>installCNIPlugins</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>InstallCNIPlugins enables the installation of containernetworking/plugins.</p>
 </td>
 </tr>
 </tbody>

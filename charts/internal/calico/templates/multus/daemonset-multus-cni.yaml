@@ -1,0 +1,139 @@
+{{- if .Values.config.multus.enabled }}
+---
+# This manifest installs Multus CNI plugins and network config on
+# each node in a Kubernetes cluster.
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: multus
+  namespace: kube-system
+  labels:
+    k8s-app: multus
+    gardener.cloud/role: system-component
+    node.gardener.cloud/critical-component: "true"
+  {{- if not .Values.autoscaling.staticRequests }}
+  annotations:
+    resources.gardener.cloud/preserve-resources: 'true'
+  {{- end }}
+spec:
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      k8s-app: multus
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+  template:
+    metadata:
+      labels:
+        node.gardener.cloud/critical-component: "true"
+        networking.gardener.cloud/to-public-networks: allowed
+        networking.gardener.cloud/to-apiserver: allowed
+        networking.gardener.cloud/to-dns: allowed
+        k8s-app: multus
+        gardener.cloud/role: system-component
+      annotations:
+        checksum/configmap-multus: {{ include (print $.Template.BasePath "/multus/configmap-multus-cni.yaml") . | sha256sum }}
+    spec:
+      nodeSelector:
+        kubernetes.io/os: linux
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+        # Make sure multus gets scheduled on all nodes.
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+      serviceAccountName: multus
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
+      # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
+      terminationGracePeriodSeconds: 0
+      priorityClassName: system-node-critical
+      initContainers:
+      # This container installs the multus CNI binaries
+      # and CNI network config file on each node.
+      - name: install-multus-cni
+        image: {{ index .Values.images "multus-cni" }}
+        command: ["/install_multus"]
+        args:
+          - "--type"
+          - "thin"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+        volumeMounts:
+          - name: cnibin
+            mountPath: /host/opt/cni/bin
+            mountPropagation: Bidirectional
+        securityContext:
+          privileged: true
+      {{ if .Values.config.multus.installCNIPlugins }}
+      # This container installs the CNI binaries on each node.
+      - name: install-cni-plugins
+        image: {{ index .Values.images "cni-plugins" }}
+        command: ["/bin/sh"]
+        args:
+          - "-c"
+          - "cp /usr/src/cni/bin/* /host/opt/cni/bin/"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+        volumeMounts:
+          - name: cnibin
+            mountPath: /host/opt/cni/bin
+        securityContext:
+          privileged: true
+      {{ end }}
+      containers:
+        # Runs multus container on each Kubernetes node.
+        - name: multus
+          image: {{ index .Values.images "multus-cni" }}
+          command: ["/thin_entrypoint"]
+          args:
+            - "--multus-conf-file=auto"
+            - "--multus-autoconfig-dir=/host/etc/cni/net.d"
+            - "--cni-conf-dir=/host/etc/cni/net.d"
+            - "--cleanup-config-on-exit"
+            - "--cni-bin-dir=/host/opt/cni/bin"
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "200Mi"
+            limits:
+              cpu: "100m"
+              memory: "200Mi"
+          env:
+            - name: MULTUS_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+          - name: cni
+            mountPath: /host/etc/cni/net.d
+          - name: cnibin
+            mountPath: /host/opt/cni/bin
+          - name: multus-cfg
+            mountPath: /tmp/multus-conf
+      volumes:
+      - name: cni
+        hostPath:
+          path: /etc/cni/net.d
+      - name: cnibin
+        hostPath:
+          path: /opt/cni/bin
+      - name: multus-cfg
+        configMap:
+          name: multus-cni-config
+          items:
+            - key: cni-conf.json
+              path: 00-multus.conf
+{{- end }}
