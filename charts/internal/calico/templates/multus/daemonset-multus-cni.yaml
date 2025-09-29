@@ -33,8 +33,6 @@ spec:
         networking.gardener.cloud/to-dns: allowed
         k8s-app: multus
         gardener.cloud/role: system-component
-      annotations:
-        checksum/configmap-multus: {{ include (print $.Template.BasePath "/multus/configmap-multus-cni.yaml") . | sha256sum }}
     spec:
       nodeSelector:
         kubernetes.io/os: linux
@@ -97,11 +95,18 @@ spec:
           image: {{ index .Values.images "multus-cni" }}
           command: ["/thin_entrypoint"]
           args:
-            - "--multus-conf-file=auto"
-            - "--multus-autoconfig-dir=/host/etc/cni/net.d"
-            - "--cni-conf-dir=/host/etc/cni/net.d"
-            - "--cleanup-config-on-exit"
-            - "--cni-bin-dir=/host/opt/cni/bin"
+            - --cleanup-config-on-exit
+            - --cni-bin-dir=/host/opt/cni/bin
+            - --cni-conf-dir=/host/etc/cni/net.d
+            - --cni-version=0.3.1
+            - --multus-autoconfig-dir=/host/etc/cni/net.d
+            - --multus-cni-conf-dir=/etc/cni/multus/net.d
+            - --multus-conf-file=auto
+            - --multus-log-file=/var/log/multus.log
+            - --multus-log-level=error
+            - --multus-log-to-stderr=true
+            - --multus-master-cni-file-name=10-calico.conflist
+            - --readiness-indicator-file=/etc/cni/net.d/10-calico.conflist
           securityContext:
             privileged: true
           resources:
@@ -121,8 +126,6 @@ spec:
             mountPath: /host/etc/cni/net.d
           - name: cnibin
             mountPath: /host/opt/cni/bin
-          - name: multus-cfg
-            mountPath: /tmp/multus-conf
       volumes:
       - name: cni
         hostPath:
@@ -130,10 +133,4 @@ spec:
       - name: cnibin
         hostPath:
           path: /opt/cni/bin
-      - name: multus-cfg
-        configMap:
-          name: multus-cni-config
-          items:
-            - key: cni-conf.json
-              path: 00-multus.conf
 {{- end }}
