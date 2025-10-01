@@ -107,7 +107,6 @@ spec:
               cpu: "100m"
               memory: "200Mi"
             limits:
-              cpu: "100m"
               memory: "200Mi"
           env:
             - name: MULTUS_NODE_NAME
