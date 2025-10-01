@@ -10,7 +10,7 @@ spec:
     kind: DaemonSet
     name: calico-node
   updatePolicy:
-    updateMode: "Auto"
+    updateMode: "Recreate"
   resourcePolicy:
     containerPolicies:
     - containerName: calico-node

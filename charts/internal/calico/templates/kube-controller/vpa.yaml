@@ -11,7 +11,7 @@ spec:
     kind: Deployment
     name: calico-kube-controllers
   updatePolicy:
-    updateMode: "Auto"
+    updateMode: "Recreate"
   resourcePolicy:
     containerPolicies:
     - containerName: "*"
