@@ -11,10 +11,6 @@ metadata:
     k8s-app: multus
     gardener.cloud/role: system-component
     node.gardener.cloud/critical-component: "true"
-  {{- if not .Values.autoscaling.staticRequests }}
-  annotations:
-    resources.gardener.cloud/preserve-resources: 'true'
-  {{- end }}
 spec:
   revisionHistoryLimit: 5
   selector:
@@ -28,7 +24,6 @@ spec:
     metadata:
       labels:
         node.gardener.cloud/critical-component: "true"
-        networking.gardener.cloud/to-public-networks: allowed
         networking.gardener.cloud/to-apiserver: allowed
         networking.gardener.cloud/to-dns: allowed
         k8s-app: multus
