@@ -32,7 +32,6 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
       hostNetwork: true
-      hostPID: true
       tolerations:
         # Make sure multus gets scheduled on all nodes.
         - effect: NoSchedule
