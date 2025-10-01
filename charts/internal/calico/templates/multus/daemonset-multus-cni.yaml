@@ -62,7 +62,6 @@ spec:
         volumeMounts:
           - name: cnibin
             mountPath: /host/opt/cni/bin
-            mountPropagation: Bidirectional
         securityContext:
           privileged: true
       {{ if .Values.config.multus.installCNIPlugins }}
