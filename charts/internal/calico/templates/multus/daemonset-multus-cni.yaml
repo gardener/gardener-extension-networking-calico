@@ -69,9 +69,11 @@ spec:
       - name: install-cni-plugins
         image: {{ index .Values.images "cni-plugins" }}
         command: ["/bin/sh"]
+      # Do not install host-local, portmap, loopback and tuning plugins as they are already provided by Calico
+      # see https://github.com/projectcalico/calico/blob/dbf63126b7297bfd8a401d6bef61d640fa8f250f/cni-plugin/Makefile#L147
         args:
           - "-c"
-          - "cp /usr/src/cni/bin/* /host/opt/cni/bin/"
+          - "cd /usr/src/cni/bin && cp $(ls | grep -v -E '^(host-local|portmap|loopback|tuning)$') /host/opt/cni/bin/"
         resources:
           requests:
             cpu: 10m
