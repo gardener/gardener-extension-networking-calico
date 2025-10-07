@@ -138,6 +138,9 @@ type NetworkConfig struct {
 
 	// BirdExporter configures the bird metrics exporter.
 	BirdExporter *BirdExporter `json:"birdExporter,omitempty"`
+
+	// Multus configures Multus CNI.
+	Multus *Multus `json:"multus,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -220,4 +223,12 @@ type VXLAN struct {
 type BirdExporter struct {
 	// Enabled enables the bird metrics exporter.
 	Enabled bool `json:"enabled"`
+}
+
+type Multus struct {
+	// Enabled enables Multus CNI.
+	Enabled bool `json:"enabled"`
+	// InstallCNIPlugins enables the installation of containernetworking/plugins.
+	// +optional
+	InstallCNIPlugins *bool `json:"installCNIPlugins,omitempty"`
 }

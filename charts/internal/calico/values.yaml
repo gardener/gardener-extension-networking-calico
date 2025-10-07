@@ -7,6 +7,7 @@ global:
 config:
   veth_mtu: 1440
   backend: bird
+  cniVersion: 0.3.1
   monitoring:
     enabled: true
     felixMetricsPort: 9091
@@ -44,6 +45,9 @@ config:
   nonPrivileged: false
   birdExporter:
     enabled: false
+  multus:
+    enabled: false
+    installCNIPlugins: false
 images:
   calico-node: "image-repository:image-tag"
   calico-cni: "image-repository:image-tag"
@@ -52,6 +56,8 @@ images:
   calico-cpva: "image-repository:image-tag"
   calico-cpa: "image-repository:image-tag"
   bird-exporter: "image-repository:image-tag"
+  multus-cni: "image-repository:image-tag"
+  cni-plugins: "image-repository:image-tag"
 
 autoscaling:
   kubeControllers: false

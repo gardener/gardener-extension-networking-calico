@@ -21,6 +21,8 @@ const (
 	CalicoClusterProportionalAutoscalerImageName   = "calico-cpa"
 	ClusterProportionalVerticalAutoscalerImageName = "calico-cpva"
 	BirdExporterImageName                          = "bird-exporter"
+	MultusImageName                                = "multus-cni"
+	CNIPluginsImageName                            = "cni-plugins"
 
 	// MonitoringChartName
 	MonitoringName = "calico-monitoring-config"

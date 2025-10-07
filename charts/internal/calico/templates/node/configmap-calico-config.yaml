@@ -25,7 +25,7 @@ data:
   cni_network_config: |-
     {
       "name": "k8s-pod-network",
-      "cniVersion": "0.3.1",
+      "cniVersion": {{ .Values.config.cniVersion | quote }},
       "plugins": [
         {
           "type": "calico",

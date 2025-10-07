@@ -51,3 +51,13 @@ func ClusterProportionalVerticalAutoscalerImage(kubernetesVersion string) string
 func BirdExporterImage(kubernetesVersion string) string {
 	return findImage(calico.BirdExporterImageName, kubernetesVersion)
 }
+
+// MultusImage returns the Multus CNI image.
+func MultusImage(kubernetesVersion string) string {
+	return findImage(calico.MultusImageName, kubernetesVersion)
+}
+
+// CNIPluginsImage returns the CNI plugins image.
+func CNIPluginsImage(kubernetesVersion string) string {
+	return findImage(calico.CNIPluginsImageName, kubernetesVersion)
+}
