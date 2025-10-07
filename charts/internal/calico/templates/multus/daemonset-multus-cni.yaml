@@ -73,7 +73,7 @@ spec:
       # see https://github.com/projectcalico/calico/blob/dbf63126b7297bfd8a401d6bef61d640fa8f250f/cni-plugin/Makefile#L147
         args:
           - "-c"
-          - "cd /usr/src/cni/bin && cp $(ls | grep -v -E '^(host-local|portmap|loopback|tuning)$') /host/opt/cni/bin/"
+          - "find /usr/src/cni/bin -maxdepth 1 -type f ! -name 'host-local' ! -name 'portmap' ! -name 'loopback' ! -name 'tuning' -exec cp {} /host/opt/cni/bin/ \\;"
         resources:
           requests:
             cpu: 10m
@@ -93,7 +93,7 @@ spec:
             - --cleanup-config-on-exit
             - --cni-bin-dir=/host/opt/cni/bin
             - --cni-conf-dir=/host/etc/cni/net.d
-            - --cni-version=0.3.1
+            - --cni-version={{ .Values.config.cniVersion }}
             - --multus-autoconfig-dir=/host/etc/cni/net.d
             - --multus-cni-conf-dir=/etc/cni/multus/net.d
             - --multus-conf-file=auto
