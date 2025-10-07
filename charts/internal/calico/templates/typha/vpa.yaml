@@ -10,7 +10,7 @@ spec:
     kind: Deployment
     name: calico-typha-deploy
   updatePolicy:
-    updateMode: "Auto"
+    updateMode: "Recreate"
   resourcePolicy:
     containerPolicies:
     - containerName: "*"
