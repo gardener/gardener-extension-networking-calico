@@ -79,7 +79,7 @@ type NetworkConfig struct {
 	metav1.TypeMeta
 	// Backend defines whether a backend should be used or not (e.g., bird or none)
 	Backend *Backend
-	// IPAM to use for the Calico Plugin (e.g., host-local or Calico)
+	// IPAM to use for the Calico Plugin (e.g., host-local or calico-ipam)
 	IPAM *IPAM
 	// IPv4 contains configuration for calico ipv4 specific settings
 	IPv4 *IPv4

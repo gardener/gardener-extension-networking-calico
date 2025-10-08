@@ -89,7 +89,7 @@ type NetworkConfig struct {
 	// Backend defines whether a backend should be used or not (e.g., bird or none)
 	// +optional
 	Backend *Backend `json:"backend,omitempty"`
-	// IPAM to use for the Calico Plugin (e.g., host-local or Calico)
+	// IPAM to use for the Calico Plugin (e.g., host-local or calico-ipam)
 	// +optional
 	IPAM *IPAM `json:"ipam,omitempty"`
 	// IPv4 contains configuration for calico ipv4 specific settings

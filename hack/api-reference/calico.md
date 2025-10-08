@@ -67,7 +67,7 @@ IPAM
 </td>
 <td>
 <em>(Optional)</em>
-<p>IPAM to use for the Calico Plugin (e.g., host-local or Calico)</p>
+<p>IPAM to use for the Calico Plugin (e.g., host-local or calico-ipam)</p>
 </td>
 </tr>
 <tr>
