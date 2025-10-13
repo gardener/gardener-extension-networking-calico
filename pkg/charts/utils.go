@@ -245,6 +245,7 @@ func ComputeCalicoChartValues(
 	if config != nil && config.AutoScaling != nil && config.AutoScaling.Mode == calicov1alpha1.AutoscalingModeVPA && wantsVPA {
 		calicoChartValues["autoscaling"].(map[string]interface{})["node"] = strconv.FormatBool(true)
 		calicoChartValues["autoscaling"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+		calicoChartValues["autoscaling"].(map[string]interface{})["resourceRequests"] = calculateResourceRequests(config.AutoScaling.Resources)
 	} else if config != nil && config.AutoScaling != nil && config.AutoScaling.Mode == calicov1alpha1.AutoscalingModeStatic {
 		calicoChartValues["autoscaling"].(map[string]interface{})["staticRequests"] = strconv.FormatBool(true)
 		calicoChartValues["autoscaling"].(map[string]interface{})["resourceRequests"] = calculateResourceRequests(config.AutoScaling.Resources)
