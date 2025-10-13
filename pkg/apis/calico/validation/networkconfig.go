@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	kubernetescorevalidation "github.com/gardener/gardener/pkg/utils/validation/kubernetes/core"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -215,9 +216,8 @@ func ValidateNetworkConfigAutoscaling(autoscaling *apiscalico.AutoScaling, fldPa
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("mode"), autoscaling.Mode, fmt.Sprintf("unsupported value %q for mode, supported values are [%q, %q, %q]", autoscaling.Mode, apiscalico.AutoscalingModeClusterProportional, apiscalico.AutoscalingModeVPA, apiscalico.AutoscalingModeStatic)))
 	}
 	if autoscaling.Resources != nil {
-
-		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Node, "node", fldPath.Child("resources").Child("node"))...)
-		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Typha, "typha", fldPath.Child("resources").Child("typha"))...)
+		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Node, fldPath.Child("resources").Child("node"))...)
+		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Typha, fldPath.Child("resources").Child("typha"))...)
 	}
 
 	return allErrs
@@ -225,29 +225,32 @@ func ValidateNetworkConfigAutoscaling(autoscaling *apiscalico.AutoScaling, fldPa
 
 // ValidateResourceList validates the resources in the resource list.
 // It checks if the CPU and memory resources are specified and not zero, and if any unsupported resources are present.
-func ValidateResourceList(resourceList *v1.ResourceList, resourceType string, fldPath *field.Path) field.ErrorList {
+func ValidateResourceList(resourceList *v1.ResourceList, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	if resourceList == nil {
 		return allErrs
 	}
 	for name, quantity := range *resourceList {
+		resourcePath := fldPath.Child(name.String())
 		switch name.String() {
 		case "cpu":
 			if quantity.IsZero() {
-				allErrs = append(allErrs, field.Invalid(fldPath.Child("cpu"), quantity.String(), "CPU resource must be specified and cannot be zero"))
+				allErrs = append(allErrs, field.Invalid(resourcePath, quantity.String(), "CPU resource must be specified and cannot be zero"))
 			} else if quantity.Sign() < 0 {
-				allErrs = append(allErrs, field.Invalid(fldPath.Child("cpu"), quantity.String(), "CPU resource must be positive"))
+				allErrs = append(allErrs, field.Invalid(resourcePath, quantity.String(), "CPU resource must be positive"))
 			}
 		case "memory":
 			if quantity.IsZero() {
-				allErrs = append(allErrs, field.Invalid(fldPath.Child("memory"), quantity.String(), "Memory resource must be specified and cannot be zero"))
+				allErrs = append(allErrs, field.Invalid(resourcePath, quantity.String(), "Memory resource must be specified and cannot be zero"))
 			} else if quantity.Sign() < 0 {
-				allErrs = append(allErrs, field.Invalid(fldPath.Child("memory"), quantity.String(), "Memory resource must be positive"))
+				allErrs = append(allErrs, field.Invalid(resourcePath, quantity.String(), "Memory resource must be positive"))
 			}
 		default:
-			allErrs = append(allErrs, field.Invalid(fldPath.Child(name.String()), quantity.String(), fmt.Sprintf("Unsupported resource: %s", name)))
+			allErrs = append(allErrs, field.Invalid(resourcePath, quantity.String(), fmt.Sprintf("Unsupported resource: %s", name)))
 		}
+
+		allErrs = append(allErrs, kubernetescorevalidation.ValidateResourceQuantityValue(name.String(), quantity, resourcePath)...)
 	}
 
 	return allErrs

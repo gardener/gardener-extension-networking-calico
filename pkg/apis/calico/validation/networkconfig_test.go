@@ -158,6 +158,8 @@ var _ = Describe("Network validation", func() {
 				},
 			},
 		}, field.NewPath("config"),
-			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.node.cpu"), "Detail": ContainSubstring("must be positive")})))),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.node.cpu"), "Detail": ContainSubstring("must be positive")})),
+				PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.node.cpu"), "Detail": ContainSubstring("must be greater than or equal to 0")}))),
+		),
 	)
 })
