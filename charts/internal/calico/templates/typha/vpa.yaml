@@ -15,4 +15,15 @@ spec:
     containerPolicies:
     - containerName: "*"
       controlledValues: RequestsOnly
+      {{- if and .Values.autoscaling.typha .Values.autoscaling.resourceRequests .Values.autoscaling.resourceRequests.typha }}
+      {{- if or .Values.autoscaling.resourceRequests.typha.cpu .Values.autoscaling.resourceRequests.typha.memory }}
+      minAllowed:
+        {{- if .Values.autoscaling.resourceRequests.typha.cpu }}
+        cpu: {{ .Values.autoscaling.resourceRequests.typha.cpu }}
+        {{- end }}
+        {{- if .Values.autoscaling.resourceRequests.typha.memory }}
+        memory: {{ .Values.autoscaling.resourceRequests.typha.memory }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
 {{- end }}

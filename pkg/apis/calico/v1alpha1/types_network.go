@@ -203,15 +203,28 @@ const (
 type AutoScaling struct {
 	// Mode defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
 	Mode AutoscalingMode `json:"mode"`
-	// Resources optionally defines the amount of resources to statically allocate for the calico components.
-	Resources *StaticResources `json:"resources,omitempty"`
+	// Resources optionally defines the amount of resources to statically allocate for the calico components in case of
+	// static resource allocation.
+	// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate.
+	// +optional
+	Resources *Resources `json:"resources,omitempty"`
 }
 
-// StaticResources optionally defines the amount of resources to statically allocate for the calico components.
-type StaticResources struct {
-	// Node optionally defines the amount of resources to statically allocate for the calico node component.
+// Resources optionally defines the amount of resources to statically allocate for the calico components in case of
+// static resource allocation.
+// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate.
+type Resources struct {
+	// Node optionally defines the amount of resources to statically allocate for the calico node component in case of
+	// static resource allocation.
+	// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate for the calico
+	// node component.
+	// +optional
 	Node *corev1.ResourceList `json:"node,omitempty"`
-	// Node optionally defines the amount of resources to statically allocate for the calico typha component.
+	// Node optionally defines the amount of resources to statically allocate for the calico typha component in case of
+	// static resource allocation.
+	// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate for the calico
+	// typha component.
+	// +optional
 	Typha *corev1.ResourceList `json:"typha,omitempty"`
 }
 

@@ -181,15 +181,25 @@ const (
 type AutoScaling struct {
 	// Mode defines how the calico components are automatically scaled. It allows to use static configuration, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
 	Mode AutoscalingMode
-	// Resources optionally defines the amount of resources to statically allocate for the calico components.
+	// Resources optionally defines the amount of resources to statically allocate for the calico components in case of
+	// static resource allocation.
+	// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate.
 	Resources *StaticResources
 }
 
-// StaticResources optionally defines the amount of resources to statically allocate for the calico components.
+// Resources optionally defines the amount of resources to statically allocate for the calico components in case of
+// static resource allocation.
+// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate.
 type StaticResources struct {
-	// Node optionally defines the amount of resources to statically allocate for the calico node component.
+	// Node optionally defines the amount of resources to statically allocate for the calico node component in case of
+	// static resource allocation.
+	// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate for the calico
+	// node component.
 	Node *corev1.ResourceList
-	// Node optionally defines the amount of resources to statically allocate for the calico typha component.
+	// Node optionally defines the amount of resources to statically allocate for the calico typha component in case of
+	// static resource allocation.
+	// In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate for the calico
+	// typha component.
 	Typha *corev1.ResourceList
 }
 

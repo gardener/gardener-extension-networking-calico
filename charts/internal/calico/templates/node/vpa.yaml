@@ -15,6 +15,17 @@ spec:
     containerPolicies:
     - containerName: calico-node
       controlledValues: RequestsOnly
+      {{- if and .Values.autoscaling.node .Values.autoscaling.resourceRequests .Values.autoscaling.resourceRequests.node }}
+      {{- if or .Values.autoscaling.resourceRequests.node.cpu .Values.autoscaling.resourceRequests.node.memory }}
+      minAllowed:
+        {{- if .Values.autoscaling.resourceRequests.node.cpu }}
+        cpu: {{ .Values.autoscaling.resourceRequests.node.cpu }}
+        {{- end }}
+        {{- if .Values.autoscaling.resourceRequests.node.memory }}
+        memory: {{ .Values.autoscaling.resourceRequests.node.memory }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
     - containerName: "add-snat-rule-to-upstream-dns"
       mode: "Off"
     - containerName: "network-unavailable-condition-ensurer"
