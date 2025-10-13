@@ -78,7 +78,16 @@ apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
 kind: NetworkConfig
 autoScaling:
   mode: "vpa"
+  resources:
+    node:
+      cpu: 100m
+      memory: 100Mi
+    typha:
+      cpu: 100m
+      memory: 100Mi
 ```
+
+The resources section is optional in conjunction with vpa mode. It allows to set the minimum allowed resource requests for `calico-node` and `calico-typha`. If not specified, no minimum value is defined.
 
 An example `NetworkingConfig` manifest for static resource assignment:
 
