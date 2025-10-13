@@ -298,13 +298,16 @@ AutoscalingMode
 <td>
 <code>resources</code></br>
 <em>
-<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.StaticResources">
-StaticResources
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Resources">
+Resources
 </a>
 </em>
 </td>
 <td>
-<p>Resources optionally defines the amount of resources to statically allocate for the calico components.</p>
+<em>(Optional)</em>
+<p>Resources optionally defines the amount of resources to statically allocate for the calico components in case of
+static resource allocation.
+In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate.</p>
 </td>
 </tr>
 </tbody>
@@ -700,6 +703,61 @@ This will only work if the cluster nodes share a single L2 network.</p>
 </p>
 <p>
 </p>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Resources">Resources
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling</a>)
+</p>
+<p>
+<p>Resources optionally defines the amount of resources to statically allocate for the calico components in case of
+static resource allocation.
+In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>node</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcelist-v1-core">
+Kubernetes core/v1.ResourceList
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Node optionally defines the amount of resources to statically allocate for the calico node component in case of
+static resource allocation.
+In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate for the calico
+node component.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>typha</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcelist-v1-core">
+Kubernetes core/v1.ResourceList
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Node optionally defines the amount of resources to statically allocate for the calico typha component in case of
+static resource allocation.
+In case of vertical pod autoscaling with VPA, this field defines the minimum resources to allocate for the calico
+typha component.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.SnatToUpstreamDNS">SnatToUpstreamDNS
 </h3>
 <p>
@@ -725,51 +783,6 @@ bool
 </em>
 </td>
 <td>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.StaticResources">StaticResources
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling</a>)
-</p>
-<p>
-<p>StaticResources optionally defines the amount of resources to statically allocate for the calico components.</p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>node</code></br>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcelist-v1-core">
-Kubernetes core/v1.ResourceList
-</a>
-</em>
-</td>
-<td>
-<p>Node optionally defines the amount of resources to statically allocate for the calico node component.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>typha</code></br>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcelist-v1-core">
-Kubernetes core/v1.ResourceList
-</a>
-</em>
-</td>
-<td>
-<p>Node optionally defines the amount of resources to statically allocate for the calico typha component.</p>
 </td>
 </tr>
 </tbody>
