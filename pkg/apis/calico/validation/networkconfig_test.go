@@ -161,5 +161,17 @@ var _ = Describe("Network validation", func() {
 			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.node.cpu"), "Detail": ContainSubstring("must be positive")})),
 				PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.node.cpu"), "Detail": ContainSubstring("must be greater than or equal to 0")}))),
 		),
+		Entry("should return error with negative memory resource", &apiscalico.NetworkConfig{
+			AutoScaling: &apiscalico.AutoScaling{
+				Mode: apiscalico.AutoscalingModeStatic,
+				Resources: &apiscalico.StaticResources{
+					Node:  &corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("100m"), corev1.ResourceMemory: resource.MustParse("128Mi")},
+					Typha: &corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("50m"), corev1.ResourceMemory: resource.MustParse("-64Mi")},
+				},
+			},
+		}, field.NewPath("config"),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.typha.memory"), "Detail": ContainSubstring("must be positive")})),
+				PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.typha.memory"), "Detail": ContainSubstring("must be greater than or equal to 0")}))),
+		),
 	)
 })
