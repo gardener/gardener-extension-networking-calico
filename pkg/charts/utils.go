@@ -441,7 +441,7 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 	return c, nil
 }
 
-func calculateResourceRequests(resources *calicov1alpha1.StaticResources) map[string]interface{} {
+func calculateResourceRequests(resources *calicov1alpha1.Resources) map[string]interface{} {
 	if resources == nil {
 		return map[string]interface{}{}
 	}
