@@ -383,6 +383,13 @@ spec:
             # Enable eBPF dataplane mode.
             - name: FELIX_BPFENABLED
               value: "{{ .Values.config.felix.bpf.enabled }}"
+            # Move Kube-proxy healthz endpoint of calico-node to a different port when running in eBPF mode and kube-proxy is enabled.
+            {{- if and .Values.config.felix.bpf.enabled (not .Values.config.felix.bpfKubeProxyIPTablesCleanup.enabled) }}
+            - name: FELIX_BPFKUBEPROXYHEALTZPORT
+              value: "10257"
+            - name: FELIX_BPFKUBEPROXYHEALTHZPORT
+              value: "10257"
+            {{- end }}
             # Controls whether Felix will clean up the iptables rules created by the Kubernetes kube-proxy; should only be enabled if kube-proxy is not running.
             - name: FELIX_BPFKUBEPROXYIPTABLESCLEANUPENABLED
               value: "{{ .Values.config.felix.bpfKubeProxyIPTablesCleanup.enabled }}"
