@@ -292,6 +292,11 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 		)
 	}
 
+	// Disable IP-in-IP if overlay is disabled
+	if config != nil && config.Overlay != nil && !config.Overlay.Enabled {
+		c.Felix.IPInIP.Enabled = false
+	}
+
 	if !kubeProxyEnabled {
 		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
 	}
@@ -321,6 +326,7 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 			return nil, fmt.Errorf("unsupported value for backend: %s", *config.Backend)
 		}
 	}
+
 	if c.Backend == calicov1alpha1.None {
 		c.KubeControllers.Enabled = false
 		c.Felix.IPInIP.Enabled = false
