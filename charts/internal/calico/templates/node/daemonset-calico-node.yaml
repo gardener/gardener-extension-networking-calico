@@ -61,6 +61,34 @@ spec:
         securityContext:
           privileged: true
       {{- end }}
+      # Log MTU issues if monitoring is enabled
+      {{- if .Values.config.monitoring.enabled }}
+      - name: log-mtu-issues
+        image: {{ index .Values.images "calico-node" }}
+        command:
+          - /bin/sh
+          - -c
+          - |
+            if [ -x "/usr/sbin/iptables-legacy" ]; then
+              backend="legacy"
+            else
+              backend="nft"
+            fi
+            rulespecV4=("-p" "icmp" "--icmp-type" "fragmentation-needed" "-m" "comment" "--comment" "gardener log mtu problems" "-j" "LOG" "--log-prefix" "PACKET-TOO-BIG ")
+            rulespecV6=("-p" "ipv6-icmp" "--icmpv6-type" "packet-too-big" "-m" "comment" "--comment" "gardener log mtu problems" "-j" "LOG" "--log-prefix" "PACKET-TOO-BIG ")
+            if iptables-$backend -t filter -C OUTPUT "${rulespecV4[@]}" 2>/dev/null; then
+              echo "IPv4 MTU logging rule already exists"
+            else
+              iptables-$backend -t filter -I OUTPUT "${rulespecV4[@]}"
+            fi
+            if ip6tables-$backend -t filter -C OUTPUT "${rulespecV6[@]}" 2>/dev/null; then
+              echo "IPv6 MTU logging rule already exists"
+            else
+              ip6tables-$backend -t filter -I OUTPUT "${rulespecV6[@]}"
+            fi
+        securityContext:
+          privileged: true
+      {{- end }}
       # This container installs the CNI binaries
       # and CNI network config file on each node.
       - name: install-cni
