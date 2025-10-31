@@ -97,7 +97,7 @@ images:
 - name: multus-cni
   sourceRepository: github.com/k8snetworkplumbingwg/multus-cni
   repository: ghcr.io/k8snetworkplumbingwg/multus-cni
-  tag: v4.2.2
+  tag: v4.2.3
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
