@@ -108,15 +108,7 @@ images:
         integrity_requirement: 'high'
         availability_requirement: 'low'
 - name: cni-plugins
-  sourceRepository: github.com/k8snetworkplumbingwg/plugins
-  repository: ghcr.io/k8snetworkplumbingwg/plugins
-  tag: v1.6.2
-  labels:
-    - name: 'gardener.cloud/cve-categorisation'
-      value:
-        network_exposure: 'protected'
-        authentication_enforced: false
-        user_interaction: 'end-user'
-        confidentiality_requirement: 'low'
-        integrity_requirement: 'high'
-        availability_requirement: 'low'
+  sourceRepository: github.com/gardener/gardener-extension-networking-calico
+  repository: europe-docker.pkg.dev/gardener-project/releases/gardener/extensions/cni-plugins
+  resourceId:
+    name: cni-plugins
