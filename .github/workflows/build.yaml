@@ -57,6 +57,18 @@ jobs:
                 confidentiality_requirement: low
                 integrity_requirement: high
                 availability_requirement: high
+          - name: cni-plugins
+            target: cni-plugins
+            oci-repository: gardener/extensions/cni-plugins
+            ocm-labels:
+              name: gardener.cloud/cve-categorisation
+              value:
+                network_exposure: protected
+                authentication_enforced: false
+                user_interaction: end-user
+                confidentiality_requirement: low
+                integrity_requirement: high
+                availability_requirement: low
     with:
       name: ${{ matrix.args.name }}
       version: ${{ needs.prepare.outputs.version }}

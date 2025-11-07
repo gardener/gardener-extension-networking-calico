@@ -7,6 +7,7 @@ GARDENER_HACK_DIR    		:= $(shell go list -m -f "{{.Dir}}" github.com/gardener/g
 EXTENSION_PREFIX            := gardener-extension
 NAME                        := networking-calico
 ADMISSION_NAME              := admission-calico
+CNI_PLUGINS_NAME            := cni-plugins
 REGISTRY                    := europe-docker.pkg.dev/gardener-project/public/gardener
 IMAGE_PREFIX                := $(REGISTRY)/extensions
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -79,8 +80,9 @@ docker-login:
 
 .PHONY: docker-images
 docker-images:
-	@docker build --platform=linux/$(ARCH) --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
-	@docker build --platform=linux/$(ARCH) --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(ADMISSION_NAME) .
+	@docker build --platform=linux/$(ARCH) --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)             -t $(IMAGE_PREFIX)/$(NAME):latest             -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
+	@docker build --platform=linux/$(ARCH) --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):$(VERSION)   -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):latest   -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(ADMISSION_NAME) .
+	@docker build --platform=linux/$(ARCH) --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(CNI_PLUGINS_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(CNI_PLUGINS_NAME):latest -f Dockerfile -m 6g --target $(CNI_PLUGINS_NAME)                   .
 
 #####################################################################
 # Rules for verification, formatting, linting, testing and cleaning #
