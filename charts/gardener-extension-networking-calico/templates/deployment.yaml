@@ -65,6 +65,9 @@ spec:
         {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         livenessProbe:
           httpGet:
             path: /healthz
@@ -81,6 +84,8 @@ spec:
         resources:
 {{ toYaml .Values.resources | nindent 10 }}
 {{- end }}
+        securityContext:
+          runAsNonRoot: true
         volumeMounts:
         - name: config
           mountPath: /etc/{{ include "name" . }}/config
