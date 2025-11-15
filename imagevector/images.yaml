@@ -84,7 +84,7 @@ images:
 - name: bird-exporter
   sourceRepository: github.com/czerwonk/bird_exporter
   repository: ghcr.io/czerwonk/bird_exporter
-  tag: 1.4.3
+  tag: v1.4.4
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
