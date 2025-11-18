@@ -39,6 +39,8 @@ spec:
 {{ include "labels" . | indent 8 }}
     spec:
       priorityClassName: gardener-system-900
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: {{ include "name" . }}
       containers:
       - name: {{ include "name" . }}
@@ -84,8 +86,6 @@ spec:
         resources:
 {{ toYaml .Values.resources | nindent 10 }}
 {{- end }}
-        securityContext:
-          runAsNonRoot: true
         volumeMounts:
         - name: config
           mountPath: /etc/{{ include "name" . }}/config
