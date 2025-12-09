@@ -54,7 +54,7 @@ func defaultShoot(generateName string) *gardencorev1beta1.Shoot {
 				Kind: "CloudProfile",
 			},
 			Kubernetes: gardencorev1beta1.Kubernetes{
-				Version: "1.29.0",
+				Version: "1.33.0",
 				Kubelet: &gardencorev1beta1.KubeletConfig{
 					SerializeImagePulls: pointer.Bool(false),
 					RegistryPullQPS:     pointer.Int32(10),
