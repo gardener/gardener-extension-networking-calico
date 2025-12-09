@@ -187,7 +187,7 @@ func ComputeCalicoChartValues(
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
 	}
-	calicoConfig, err := typedConfig.toMap()
+	calicoCfg, err := typedConfig.toMap()
 	if err != nil {
 		return nil, fmt.Errorf("could not convert calico config: %v", err)
 	}
@@ -209,7 +209,7 @@ func ComputeCalicoChartValues(
 		"global": map[string]string{
 			"podCIDR": network.Spec.PodCIDR,
 		},
-		"config": calicoConfig,
+		"config": calicoCfg,
 	}
 
 	for _, podCIDR := range podCIDRs {
@@ -244,7 +244,9 @@ func ComputeCalicoChartValues(
 
 	if config != nil && config.AutoScaling != nil && config.AutoScaling.Mode == calicov1alpha1.AutoscalingModeVPA && wantsVPA {
 		calicoChartValues["autoscaling"].(map[string]interface{})["node"] = strconv.FormatBool(true)
-		calicoChartValues["autoscaling"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+		if typedConfig.Typha.Enabled {
+			calicoChartValues["autoscaling"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+		}
 		calicoChartValues["autoscaling"].(map[string]interface{})["resourceRequests"] = calculateResourceRequests(config.AutoScaling.Resources)
 	} else if config != nil && config.AutoScaling != nil && config.AutoScaling.Mode == calicov1alpha1.AutoscalingModeStatic {
 		calicoChartValues["autoscaling"].(map[string]interface{})["staticRequests"] = strconv.FormatBool(true)
