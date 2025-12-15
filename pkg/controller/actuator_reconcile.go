@@ -20,7 +20,9 @@ import (
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 	"github.com/go-logr/logr"
+	"github.com/labstack/gommon/log"
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/ptr"
@@ -101,9 +103,11 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		if err != nil {
 			return err
 		}
+
 		if err := ValidateNetworkConfig(networkConfig); err != nil {
 			return err
 		}
+
 	}
 
 	if condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, v1beta1.ShootDualStackNodesMigrationReady); condition != nil && condition.Status != v1beta1.ConditionTrue {
@@ -145,6 +149,36 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
+	cp := &extensionsv1alpha1.ControlPlane{}
+	if err := a.client.Get(ctx, client.ObjectKey{Namespace: network.Namespace, Name: network.Name}, cp); err != nil {
+		return err
+	}
+
+	overlaySwitch, err := isOverlaySwitch(ctx, a.client, network)
+	if err != nil {
+		return err
+	}
+
+	routeControllerActive := isRouteControllerActive(cp)
+
+	log.Info("Overlay switch check",
+		"overlaySwitch", overlaySwitch,
+		"routeControllerActive", routeControllerActive)
+
+	// Check if RouteController is active before allowing overlay switch
+	// If overlay switch is requested but RouteController is not ready, keep overlay enabled
+	// and defer reconciliation
+	if overlaySwitch && !routeControllerActive {
+		if networkConfig.Overlay == nil {
+			networkConfig.Overlay = &calicov1alpha1.Overlay{}
+		}
+		networkConfig.Overlay.Enabled = true
+		log.Info("Forcing overlay to remain enabled - waiting for RouteController")
+		// Do not update ManagedResource yet - wait for RouteController to be active
+		// This prevents rolling the DaemonSet before routes are ready
+		return fmt.Errorf("waiting for RouteController to become active before disabling overlay")
+	}
+
 	if networkConfig != nil {
 		if networkConfig.Overlay != nil {
 			if networkConfig.Overlay.Enabled {
@@ -166,6 +200,7 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	}
 
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {
+
 		if networkConfig == nil || networkConfig.EbpfDataplane == nil || (networkConfig.EbpfDataplane != nil && !networkConfig.EbpfDataplane.Enabled) {
 			return field.Forbidden(field.NewPath("spec", "kubernetes", "kubeProxy", "enabled"), "Disabling kube-proxy is forbidden in conjunction with calico without running in ebpf dataplane")
 		}
@@ -262,4 +297,60 @@ func updateAutoDetectionMode(nodes []string) string {
 		return fmt.Sprintf("cidr=%s", strings.Join(nodes, ","))
 	}
 	return ""
+}
+
+func isRouteControllerActive(cp *extensionsv1alpha1.ControlPlane) bool {
+	condition := gardencorev1beta1helper.GetCondition(cp.Status.Conditions, "RouteControllerActive")
+	if condition == nil {
+		return false
+	}
+	return condition.Status == v1beta1.ConditionTrue
+}
+
+func isOverlaySwitch(ctx context.Context, seedClient client.Client, network *extensionsv1alpha1.Network) (bool, error) {
+	shootOverlayEnabled := true
+	networkConfig, err := calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
+	if err != nil {
+		return false, err
+	}
+
+	if networkConfig.Overlay != nil {
+		shootOverlayEnabled = networkConfig.Overlay.Enabled
+	}
+
+	mr, err := managedresources.GetObjects(ctx, seedClient, network.Namespace, CalicoConfigManagedResourceName)
+	if err != nil {
+		// ManagedResource doesn't exist or has malformed data
+		// If the shoot wants overlay disabled, treat this as a potential switch
+		// to be safe and wait for RouteController
+		if !shootOverlayEnabled {
+			log.Info("Cannot read current overlay state, but shoot wants overlay disabled - treating as overlay switch")
+			return true, nil
+		}
+		// If shoot wants overlay enabled or we're on first reconciliation, no switch
+		return false, nil
+	}
+
+	calicoDaemonSet := &appsv1.DaemonSet{}
+	for _, obj := range mr {
+		if obj.GetObjectKind().GroupVersionKind().Kind == "DaemonSet" && obj.GetName() == "calico-node" {
+			calicoDaemonSet = obj.(*appsv1.DaemonSet)
+			break
+		}
+	}
+
+	overlayEnabled := false
+	for _, container := range calicoDaemonSet.Spec.Template.Spec.Containers {
+		for _, env := range container.Env {
+			if env.Name == "FELIX_IPINIPENABLED" && env.Value == "true" || env.Name == "FELIX_VXLANENABLED" && env.Value == "true" {
+				overlayEnabled = true
+			}
+		}
+	}
+
+	if shootOverlayEnabled != overlayEnabled {
+		return true, nil
+	}
+
+	return false, nil
 }
