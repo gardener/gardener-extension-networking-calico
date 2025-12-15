@@ -26,6 +26,15 @@ rules:
   - patch
   - update
 - apiGroups:
+  - extensions.gardener.cloud
+  resources:
+  - controlplanes
+  - controlplanes/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - coordination.k8s.io
   resources:
   - leases

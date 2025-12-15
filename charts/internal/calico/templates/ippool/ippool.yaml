@@ -1,4 +1,4 @@
-{{- if .Values.config.ipv4.enabled -}}
+{{- if .Values.config.ipv4.enabled }}
 {{- if eq .Values.global.overlayEnabled "true" }}
 ---
 apiVersion: crd.projectcalico.org/v1
@@ -49,8 +49,8 @@ spec:
   disableBGPExport: true
 {{- end }}
 {{- end }}
-{{- end -}}
-{{- if .Values.config.ipv6.enabled -}}
+{{- end }}
+{{- if .Values.config.ipv6.enabled }}
 ---
 apiVersion: crd.projectcalico.org/v1
 kind: IPPool
@@ -66,4 +66,4 @@ spec:
   natOutgoing: {{ if .Values.config.ipv6.natOutgoing }}true{{ else }}false{{ end }}
   nodeSelector: all()
   vxlanMode: Never
-{{- end -}}
+{{- end }}
