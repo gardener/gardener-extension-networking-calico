@@ -15,14 +15,14 @@ ARG EFFECTIVE_VERSION
 RUN make install EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 ############# gardener-extension-networking-calico
-FROM gcr.io/distroless/static-debian12:nonroot AS gardener-extension-networking-calico
+FROM gcr.io/distroless/static-debian13:nonroot AS gardener-extension-networking-calico
 WORKDIR /
 
 COPY --from=builder /go/bin/gardener-extension-networking-calico /gardener-extension-networking-calico
 ENTRYPOINT ["/gardener-extension-networking-calico"]
 
 ############# gardener-extension-admission-calico
-FROM gcr.io/distroless/static-debian12:nonroot AS gardener-extension-admission-calico
+FROM gcr.io/distroless/static-debian13:nonroot AS gardener-extension-admission-calico
 WORKDIR /
 
 COPY --from=builder /go/bin/gardener-extension-admission-calico /gardener-extension-admission-calico
