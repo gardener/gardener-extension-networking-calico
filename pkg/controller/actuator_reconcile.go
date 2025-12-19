@@ -16,6 +16,7 @@ import (
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/apis/extensions/validation"
+	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
@@ -24,9 +25,12 @@ import (
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	"github.com/gardener/gardener-extension-networking-calico/charts"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
@@ -162,8 +166,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	routeControllerActive := isRouteControllerActive(cp)
 
 	log.Info("Overlay switch check",
-		"overlaySwitch", overlaySwitch,
-		"routeControllerActive", routeControllerActive)
+		"overlaySwitch: ", overlaySwitch,
+		"routeControllerActive: ", routeControllerActive)
 
 	// Check if RouteController is active before allowing overlay switch
 	// If overlay switch is requested but RouteController is not ready, keep overlay enabled
@@ -318,25 +322,19 @@ func isOverlaySwitch(ctx context.Context, seedClient client.Client, network *ext
 		shootOverlayEnabled = networkConfig.Overlay.Enabled
 	}
 
-	mr, err := managedresources.GetObjects(ctx, seedClient, network.Namespace, CalicoConfigManagedResourceName)
+	// Get the calico-node DaemonSet from the ManagedResource
+	calicoDaemonSet, err := getDaemonSetFromManagedResource(ctx, seedClient, network.Namespace, CalicoConfigManagedResourceName, "calico-node")
 	if err != nil {
-		// ManagedResource doesn't exist or has malformed data
+		// ManagedResource doesn't exist or DaemonSet not found
 		// If the shoot wants overlay disabled, treat this as a potential switch
 		// to be safe and wait for RouteController
 		if !shootOverlayEnabled {
-			log.Info("Cannot read current overlay state, but shoot wants overlay disabled - treating as overlay switch")
+			log.Info("Cannot read current overlay state, but shoot wants overlay disabled - treating as overlay switch", "error", err)
 			return true, nil
 		}
-		// If shoot wants overlay enabled or we're on first reconciliation, no switch
+		// If shoot wants overlay enabled or first reconciliation of a new cluster happens, no switch
+		log.Info("Cannot read current overlay state during first reconciliation or with overlay enabled", "error", err)
 		return false, nil
-	}
-
-	calicoDaemonSet := &appsv1.DaemonSet{}
-	for _, obj := range mr {
-		if obj.GetObjectKind().GroupVersionKind().Kind == "DaemonSet" && obj.GetName() == "calico-node" {
-			calicoDaemonSet = obj.(*appsv1.DaemonSet)
-			break
-		}
 	}
 
 	overlayEnabled := false
@@ -353,4 +351,68 @@ func isOverlaySwitch(ctx context.Context, seedClient client.Client, network *ext
 	}
 
 	return false, nil
+}
+
+// getDaemonSetFromManagedResource extracts a specific DaemonSet from a ManagedResource's secret
+// It only decodes DaemonSet objects to avoid scheme registration issues with other resource types
+func getDaemonSetFromManagedResource(ctx context.Context, c client.Client, namespace, mrName, daemonSetName string) (*appsv1.DaemonSet, error) {
+	// Get the ManagedResource
+	managedResource := &resourcesv1alpha1.ManagedResource{}
+	if err := c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: mrName}, managedResource); err != nil {
+		return nil, fmt.Errorf("could not get ManagedResource %q: %w", mrName, err)
+	}
+
+	// Create a scheme with only the types we need to decode
+	scheme := runtime.NewScheme()
+	if err := appsv1.AddToScheme(scheme); err != nil {
+		return nil, fmt.Errorf("could not add apps/v1 to scheme: %w", err)
+	}
+	decoder := serializer.NewCodecFactory(scheme).UniversalDeserializer()
+
+	// Iterate through all secrets referenced by the ManagedResource
+	for _, secretRef := range managedResource.Spec.SecretRefs {
+		secret := &corev1.Secret{}
+		if err := c.Get(ctx, client.ObjectKey{Name: secretRef.Name, Namespace: namespace}, secret); err != nil {
+			return nil, fmt.Errorf("could not get secret %q: %w", secretRef.Name, err)
+		}
+
+		// Check all keys in the secret data
+		for _, value := range secret.Data {
+			// Split the YAML content into individual documents
+			docs := strings.Split(string(value), "---\n")
+
+			for _, doc := range docs {
+				if strings.TrimSpace(doc) == "" {
+					continue
+				}
+
+				// Try to parse as unstructured to check if it's a DaemonSet
+				var meta struct {
+					Kind     string `yaml:"kind"`
+					Metadata struct {
+						Name string `yaml:"name"`
+					} `yaml:"metadata"`
+				}
+
+				if err := yaml.Unmarshal([]byte(doc), &meta); err != nil {
+					// Skip documents that can't be parsed as YAML
+					continue
+				}
+
+				// Only decode if it's a DaemonSet with the name we're looking for
+				if meta.Kind == "DaemonSet" && meta.Metadata.Name == daemonSetName {
+					obj, _, err := decoder.Decode([]byte(doc), nil, nil)
+					if err != nil {
+						return nil, fmt.Errorf("could not decode DaemonSet %q: %w", daemonSetName, err)
+					}
+
+					if ds, ok := obj.(*appsv1.DaemonSet); ok {
+						return ds, nil
+					}
+				}
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("DaemonSet %q not found in ManagedResource %q", daemonSetName, mrName)
 }
