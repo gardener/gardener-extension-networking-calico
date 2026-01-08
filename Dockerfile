@@ -37,7 +37,7 @@ COPY --from=cni-plugins-original /entrypoint.sh /
 COPY --from=cni-plugins-original /usr/src/cni/bin/* /usr/src/cni/bin/
 
 ############# cni-plugins
-FROM alpine:3.23.0 AS cni-plugins
+FROM alpine:3.23.2 AS cni-plugins
 WORKDIR /
 LABEL io.k8s.display-name="Container Network Plugins"
 
