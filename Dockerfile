@@ -29,17 +29,16 @@ COPY --from=builder /go/bin/gardener-extension-admission-calico /gardener-extens
 ENTRYPOINT ["/gardener-extension-admission-calico"]
 
 ############# cni-plugins-builder
-FROM ghcr.io/k8snetworkplumbingwg/plugins:v1.6.2 AS cni-plugins-original
-FROM scratch AS cni-plugins-builder
+FROM golang:1.25.5 AS cni-plugins-builder
+ARG CNI_PLUGINS_VERSION=v1.9.0
 WORKDIR /
-
-COPY --from=cni-plugins-original /entrypoint.sh /
-COPY --from=cni-plugins-original /usr/src/cni/bin/* /usr/src/cni/bin/
-
+RUN mkdir -p /usr/src/cni/bin && \
+    curl -L -O https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-amd64-${CNI_PLUGINS_VERSION}.tgz && \
+    tar -xvf cni-plugins-linux-amd64-${CNI_PLUGINS_VERSION}.tgz -C /usr/src/cni/bin/ && \
+    echo done
 ############# cni-plugins
 FROM alpine:3.23.2 AS cni-plugins
 WORKDIR /
 LABEL io.k8s.display-name="Container Network Plugins"
 
-COPY --from=cni-plugins-builder / /
-ENTRYPOINT ["/entrypoint.sh"]
+COPY --from=cni-plugins-builder /usr/src/cni/bin/* /usr/src/cni/bin/
