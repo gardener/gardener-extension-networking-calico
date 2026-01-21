@@ -464,8 +464,16 @@ spec:
             {{- end }}
           resources:
             requests:
-              cpu: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.node.cpu }}{{ .Values.autoscaling.resourceRequests.node.cpu }}{{ else }}250m{{ end }}
-              memory: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.node.memory }}{{ .Values.autoscaling.resourceRequests.node.memory }}{{ else }}100Mi{{ end }}
+              {{- if and (or .Values.autoscaling.staticRequests .Values.autoscaling.node) .Values.autoscaling.resourceRequests.node.cpu }}
+              cpu: {{ .Values.autoscaling.resourceRequests.node.cpu }}
+              {{- else }}
+              cpu: 250m
+              {{- end }}
+              {{- if and (or .Values.autoscaling.staticRequests .Values.autoscaling.node) .Values.autoscaling.resourceRequests.node.memory }}
+              memory: {{ .Values.autoscaling.resourceRequests.node.memory }}
+              {{- else }}
+              memory: 100Mi
+              {{- end }}
             limits:
               memory: 2800Mi
           lifecycle:
