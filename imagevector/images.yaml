@@ -71,7 +71,7 @@ images:
 - name: calico-cpva
   sourceRepository: github.com/kubernetes-sigs/cluster-proportional-vertical-autoscaler
   repository: registry.k8s.io/cpa/cpvpa
-  tag: v0.8.4
+  tag: v0.8.10
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
