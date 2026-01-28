@@ -37,7 +37,7 @@ RUN mkdir -p /usr/src/cni/bin && \
     tar -xvf cni-plugins-linux-amd64-${CNI_PLUGINS_VERSION}.tgz -C /usr/src/cni/bin/ && \
     echo done
 ############# cni-plugins
-FROM alpine:3.23.2 AS cni-plugins
+FROM alpine:3.23.3 AS cni-plugins
 WORKDIR /
 LABEL io.k8s.display-name="Container Network Plugins"
 
