@@ -11,7 +11,9 @@ import (
 	"slices"
 	"strings"
 
+	extensionsconfig "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/util"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -153,34 +155,41 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	cp := &extensionsv1alpha1.ControlPlane{}
-	if err := a.client.Get(ctx, client.ObjectKey{Namespace: network.Namespace, Name: network.Name}, cp); err != nil {
-		return err
-	}
-
 	overlaySwitch, err := isOverlaySwitch(ctx, a.client, network)
 	if err != nil {
 		return err
 	}
 
-	routeControllerActive := isRouteControllerActive(cp)
-
-	log.Info("Overlay switch check",
-		"overlaySwitch: ", overlaySwitch,
-		"routeControllerActive: ", routeControllerActive)
-
-	// Check if RouteController is active before allowing overlay switch
-	// If overlay switch is requested but RouteController is not ready, keep overlay enabled
-	// and defer reconciliation
-	if overlaySwitch && !routeControllerActive {
-		if networkConfig.Overlay == nil {
-			networkConfig.Overlay = &calicov1alpha1.Overlay{}
+	// Only check node routes if overlay switch is happening
+	if overlaySwitch {
+		// Try to get shoot client to check node conditions
+		shootClient, err := a.getShootClient(ctx, cluster)
+		if err != nil {
+			// Cannot access shoot cluster - we must wait before switching overlay off
+			log.Info("Cannot access shoot cluster to verify node routes - waiting", "error", err)
+			return fmt.Errorf("cannot verify node routes before overlay switch: %w", err)
 		}
-		networkConfig.Overlay.Enabled = true
-		log.Info("Forcing overlay to remain enabled - waiting for RouteController")
-		// Do not update ManagedResource yet - wait for RouteController to be active
-		// This prevents rolling the DaemonSet before routes are ready
-		return fmt.Errorf("waiting for RouteController to become active before disabling overlay")
+
+		// We have shoot access, check node route status
+		allNodesRoutesCreated, err := areAllNodesRoutesCreated(ctx, shootClient)
+		if err != nil {
+			log.Info("Failed to check node route status - waiting", "error", err)
+			return fmt.Errorf("failed to check node route status: %w", err)
+		}
+
+		log.Info("Overlay switch check",
+			"overlaySwitch: ", overlaySwitch,
+			"allNodesRoutesCreated: ", allNodesRoutesCreated)
+
+		// If routes are not ready, keep overlay enabled
+		if !allNodesRoutesCreated {
+			if networkConfig.Overlay == nil {
+				networkConfig.Overlay = &calicov1alpha1.Overlay{}
+			}
+			networkConfig.Overlay.Enabled = true
+			log.Info("Forcing overlay to remain enabled - waiting for routes to be created on all nodes")
+			return fmt.Errorf("waiting for routes to be created on all nodes before disabling overlay")
+		}
 	}
 
 	if networkConfig != nil {
@@ -303,12 +312,47 @@ func updateAutoDetectionMode(nodes []string) string {
 	return ""
 }
 
-func isRouteControllerActive(cp *extensionsv1alpha1.ControlPlane) bool {
-	condition := gardencorev1beta1helper.GetCondition(cp.Status.Conditions, "RouteControllerActive")
-	if condition == nil {
-		return false
+// getShootClient creates a client for the shoot cluster
+func (a *actuator) getShootClient(ctx context.Context, cluster *extensionscontroller.Cluster) (client.Client, error) {
+	_, shootClient, err := util.NewClientForShoot(ctx, a.client, cluster.ObjectMeta.Name, client.Options{}, extensionsconfig.RESTOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create shoot client: %w", err)
 	}
-	return condition.Status == v1beta1.ConditionTrue
+	return shootClient, nil
+}
+
+// areAllNodesRoutesCreated checks if all nodes in the shoot cluster have the NetworkUnavailable
+// condition set to False with reason RouteCreated
+func areAllNodesRoutesCreated(ctx context.Context, shootClient client.Client) (bool, error) {
+	nodeList := &corev1.NodeList{}
+	if err := shootClient.List(ctx, nodeList); err != nil {
+		return false, fmt.Errorf("failed to list nodes: %w", err)
+	}
+
+	// If there are no nodes yet, we cannot proceed
+	if len(nodeList.Items) == 0 {
+		return false, nil
+	}
+
+	// Check each node for the NetworkUnavailable condition
+	for _, node := range nodeList.Items {
+		hasRouteCreated := false
+		for _, condition := range node.Status.Conditions {
+			if condition.Type == corev1.NodeNetworkUnavailable {
+				// NetworkUnavailable should be False and reason should be RouteCreated
+				if condition.Status == corev1.ConditionFalse && condition.Reason == "RouteCreated" {
+					hasRouteCreated = true
+					break
+				}
+			}
+		}
+		if !hasRouteCreated {
+			log.Info("Node does not have route created yet", "node", node.Name)
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 func isOverlaySwitch(ctx context.Context, seedClient client.Client, network *extensionsv1alpha1.Network) (bool, error) {
