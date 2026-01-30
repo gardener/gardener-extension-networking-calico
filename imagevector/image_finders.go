@@ -7,6 +7,7 @@ package imagevector
 import (
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/component-base/version"
 
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
@@ -59,5 +60,8 @@ func MultusImage(kubernetesVersion string) string {
 
 // CNIPluginsImage returns the CNI plugins image.
 func CNIPluginsImage(kubernetesVersion string) string {
-	return findImage(calico.CNIPluginsImageName, kubernetesVersion)
+	image, err := imageVector.FindImage(calico.CNIPluginsImageName)
+	runtime.Must(err)
+	image.WithOptionalTag(version.Get().GitVersion)
+	return image.String()
 }
