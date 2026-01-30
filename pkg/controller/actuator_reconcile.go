@@ -155,39 +155,41 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		}
 	}
 
-	overlaySwitch, err := isOverlaySwitch(ctx, a.client, network)
-	if err != nil {
-		return err
-	}
-
-	// Only check node routes if overlay switch is happening and feature flag is enabled
-	if overlaySwitch && features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) {
-		// Try to get shoot client to check node conditions
-		shootClient, err := a.getShootClient(ctx, cluster)
+	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) {
+		overlaySwitch, err := isOverlaySwitch(ctx, a.client, network)
 		if err != nil {
-			// Cannot access shoot cluster - we must wait before switching overlay off
-			log.Info("Cannot access shoot cluster to verify node routes - waiting", "error", err)
-			return fmt.Errorf("cannot verify node routes before overlay switch: %w", err)
+			return err
 		}
 
-		allNodesRoutesCreated, err := areAllNodesRoutesCreated(ctx, shootClient)
-		if err != nil {
-			log.Info("Failed to check node route status - waiting", "error", err)
-			return fmt.Errorf("failed to check node route status: %w", err)
-		}
-
-		log.Info("Overlay switch check",
-			"overlaySwitch: ", overlaySwitch,
-			"allNodesRoutesCreated: ", allNodesRoutesCreated)
-
-		// If routes are not ready, keep overlay enabled
-		if !allNodesRoutesCreated {
-			if networkConfig.Overlay == nil {
-				networkConfig.Overlay = &calicov1alpha1.Overlay{}
+		// Only check node routes if overlay switch is happening and feature flag is enabled
+		if overlaySwitch {
+			// Try to get shoot client to check node conditions
+			shootClient, err := a.getShootClient(ctx, cluster)
+			if err != nil {
+				// Cannot access shoot cluster - we must wait before switching overlay off
+				log.Info("Cannot access shoot cluster to verify node routes - waiting", "error", err)
+				return fmt.Errorf("cannot verify node routes before overlay switch: %w", err)
 			}
-			networkConfig.Overlay.Enabled = true
-			log.Info("Forcing overlay to remain enabled - waiting for routes to be created on all nodes")
-			return fmt.Errorf("waiting for routes to be created on all nodes before disabling overlay")
+
+			allNodesRoutesCreated, err := areAllNodesRoutesCreated(ctx, shootClient)
+			if err != nil {
+				log.Info("Failed to check node route status - waiting", "error", err)
+				return fmt.Errorf("failed to check node route status: %w", err)
+			}
+
+			log.Info("Overlay switch check",
+				"overlaySwitch: ", overlaySwitch,
+				"allNodesRoutesCreated: ", allNodesRoutesCreated)
+
+			// If routes are not ready, keep overlay enabled
+			if !allNodesRoutesCreated {
+				if networkConfig.Overlay == nil {
+					networkConfig.Overlay = &calicov1alpha1.Overlay{}
+				}
+				networkConfig.Overlay.Enabled = true
+				log.Info("Forcing overlay to remain enabled - waiting for routes to be created on all nodes")
+				return fmt.Errorf("waiting for routes to be created on all nodes before disabling overlay")
+			}
 		}
 	}
 
