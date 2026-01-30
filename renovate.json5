@@ -48,6 +48,7 @@
   ignoreDeps: [
     "github.com/ahmetb/gen-crd-api-reference-docs",
     "github.com/go-logr/logr",
+    "github.com/labstack/gommon",
     "github.com/onsi/ginkgo/v2",
     "github.com/onsi/gomega",
     "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring",
@@ -63,6 +64,7 @@
     "k8s.io/component-base",
     "k8s.io/utils",
     "sigs.k8s.io/controller-runtime",
+    "sigs.k8s.io/yaml",
     "cel.dev/expr",
     "dario.cat/mergo",
     "github.com/BurntSushi/toml",
@@ -134,7 +136,6 @@
     "github.com/json-iterator/go",
     "github.com/kubernetes-csi/external-snapshotter/client/v4",
     "github.com/labstack/echo/v4",
-    "github.com/labstack/gommon",
     "github.com/mattn/go-colorable",
     "github.com/mattn/go-isatty",
     "github.com/mitchellh/copystructure",
@@ -239,6 +240,5 @@
     "sigs.k8s.io/json",
     "sigs.k8s.io/randfill",
     "sigs.k8s.io/structured-merge-diff/v6",
-    "sigs.k8s.io/yaml",
   ]
 }
