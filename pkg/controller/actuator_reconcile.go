@@ -160,8 +160,8 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		return err
 	}
 
-	// Only check node routes if overlay switch is happening
-	if overlaySwitch {
+	// Only check node routes if overlay switch is happening and feature flag is enabled
+	if overlaySwitch && features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) {
 		// Try to get shoot client to check node conditions
 		shootClient, err := a.getShootClient(ctx, cluster)
 		if err != nil {
@@ -170,7 +170,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 			return fmt.Errorf("cannot verify node routes before overlay switch: %w", err)
 		}
 
-		// We have shoot access, check node route status
 		allNodesRoutesCreated, err := areAllNodesRoutesCreated(ctx, shootClient)
 		if err != nil {
 			log.Info("Failed to check node route status - waiting", "error", err)
