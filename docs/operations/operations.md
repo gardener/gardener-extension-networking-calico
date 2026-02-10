@@ -47,9 +47,8 @@ When switching Calico from overlay mode (IPIP) to non-overlay mode, there is a c
 
 The `SeamlessOverlaySwitch` feature gate enables validation of node routes before disabling overlay networking. When this feature is enabled and an overlay-to-non-overlay switch is detected, the extension will:
 
-1. Verify that the shoot cluster is accessible
-2. Check that all nodes have the `NetworkUnavailable` condition set to `False` with reason `RouteCreated`
-3. Only proceed with disabling overlay once routes are confirmed to be in place
+1. Check that all nodes have the `NetworkUnavailable` condition set to `False` with reason `RouteCreated`
+2. Only proceed with disabling overlay once routes are confirmed to be in place
 
 This prevents connectivity issues during the transition period. The feature is controlled via feature gate named `SeamlessOverlaySwitch`. The feature gates are configured in the [ControllerConfiguration](../../example/00-componentconfig.yaml) of networking-calico. The corresponding ControllerDeployment configuration that enables the `SeamlessOverlaySwitch` would look like:
 
@@ -69,10 +68,9 @@ providerConfig:
 
 ##### Behavior
 
-- **Enabled** (default: `false`): The extension validates that routes are created before disabling overlay. If routes are not ready, the reconciliation will fail with a retriable error, keeping overlay enabled until routes are confirmed.
+- **Enabled** (default): The extension validates that routes are created before disabling overlay. If routes are not ready, the reconciliation will fail with a retriable error, keeping overlay enabled until routes are confirmed.
 - **Disabled**: The extension will disable overlay immediately when requested, without checking for route readiness. This may result in temporary connectivity issues during the transition.
 
 ##### Limitations
 
-- The feature requires access to the shoot cluster to check node conditions. If the shoot cluster is inaccessible during reconciliation, the overlay switch will be delayed until access is restored.
-- This validation only applies when switching from overlay-enabled to overlay-disabled. It does not affect other configuration changes.
+This validation only applies when switching from overlay-enabled to overlay-disabled. It does not affect other configuration changes.

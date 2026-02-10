@@ -23,7 +23,6 @@ import (
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 	"github.com/go-logr/logr"
-	"github.com/labstack/gommon/log"
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -46,6 +45,18 @@ const (
 	// CalicoConfigManagedResourceName is the name of the managed resource of networking calico
 	CalicoConfigManagedResourceName = "extension-networking-calico-config"
 )
+
+var (
+	daemonSetScheme  = runtime.NewScheme()
+	daemonSetDecoder runtime.Decoder
+)
+
+func init() {
+	if err := appsv1.AddToScheme(daemonSetScheme); err != nil {
+		panic(fmt.Sprintf("failed to add apps/v1 to scheme: %v", err))
+	}
+	daemonSetDecoder = serializer.NewCodecFactory(daemonSetScheme).UniversalDeserializer()
+}
 
 func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartApplier gardenerkubernetes.ChartApplier, network *extensionsv1alpha1.Network, deleteChart bool) error {
 	calicoControlPlaneMonitoringChart := &chart.Chart{
@@ -93,7 +104,7 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 }
 
 // Reconcile implements Network.Actuator.
-func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
 	if errList := validation.ValidateNetwork(network); len(errList) != 0 {
 		return fmt.Errorf("invalid network resource: %w", errList.ToAggregate())
 	}
@@ -113,7 +124,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 		if err := ValidateNetworkConfig(networkConfig); err != nil {
 			return err
 		}
-
 	}
 
 	if condition := gardencorev1beta1helper.GetCondition(cluster.Shoot.Status.Constraints, v1beta1.ShootDualStackNodesMigrationReady); condition != nil && condition.Status != v1beta1.ConditionTrue {
@@ -156,40 +166,13 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	}
 
 	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) {
-		overlaySwitch, err := isOverlaySwitch(ctx, a.client, network)
+		overlaySwitch, err := isOverlaySwitch(ctx, log, a.client, network)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to detect pod overlay switch: %w", err)
 		}
 
-		// Only check node routes if overlay switch is happening and feature flag is enabled
-		if overlaySwitch {
-			// Try to get shoot client to check node conditions
-			shootClient, err := a.getShootClient(ctx, cluster)
-			if err != nil {
-				// Cannot access shoot cluster - we must wait before switching overlay off
-				log.Info("Cannot access shoot cluster to verify node routes - waiting", "error", err)
-				return fmt.Errorf("cannot verify node routes before overlay switch: %w", err)
-			}
-
-			allNodesRoutesCreated, err := areAllNodesRoutesCreated(ctx, shootClient)
-			if err != nil {
-				log.Info("Failed to check node route status - waiting", "error", err)
-				return fmt.Errorf("failed to check node route status: %w", err)
-			}
-
-			log.Info("Overlay switch check",
-				"overlaySwitch: ", overlaySwitch,
-				"allNodesRoutesCreated: ", allNodesRoutesCreated)
-
-			// If routes are not ready, keep overlay enabled
-			if !allNodesRoutesCreated {
-				if networkConfig.Overlay == nil {
-					networkConfig.Overlay = &calicov1alpha1.Overlay{}
-				}
-				networkConfig.Overlay.Enabled = true
-				log.Info("Forcing overlay to remain enabled - waiting for routes to be created on all nodes")
-				return fmt.Errorf("waiting for routes to be created on all nodes before disabling overlay")
-			}
+		if err := a.ensureNodesRoutesBeforeOverlaySwitch(ctx, log, cluster, networkConfig, overlaySwitch); err != nil {
+			return err
 		}
 	}
 
@@ -214,7 +197,6 @@ func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, network *extens
 	}
 
 	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil && !*cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled {
-
 		if networkConfig == nil || networkConfig.EbpfDataplane == nil || (networkConfig.EbpfDataplane != nil && !networkConfig.EbpfDataplane.Enabled) {
 			return field.Forbidden(field.NewPath("spec", "kubernetes", "kubeProxy", "enabled"), "Disabling kube-proxy is forbidden in conjunction with calico without running in ebpf dataplane")
 		}
@@ -322,33 +304,43 @@ func (a *actuator) getShootClient(ctx context.Context, cluster *extensionscontro
 	return shootClient, nil
 }
 
-// areAllNodesRoutesCreated checks if all nodes in the shoot cluster have the NetworkUnavailable
+// ensureNodesRoutesBeforeOverlaySwitch checks if all nodes have routes created before allowing overlay to be disabled
+func (a *actuator) ensureNodesRoutesBeforeOverlaySwitch(ctx context.Context, log logr.Logger, cluster *extensionscontroller.Cluster, networkConfig *calicov1alpha1.NetworkConfig, overlaySwitch bool) error {
+	if !overlaySwitch {
+		return nil
+	}
+
+	shootClient, err := a.getShootClient(ctx, cluster)
+	if err != nil {
+		// Cannot access shoot cluster - we must wait before switching overlay off
+		return fmt.Errorf("cannot verify node routes before overlay switch: %w", err)
+	}
+
+	allNodeRoutesCreated, err := areAllNodeRoutesCreated(ctx, log, shootClient)
+	if err != nil {
+		return fmt.Errorf("failed to check node route status: %w", err)
+	}
+
+	// If routes are not ready, return error to retry later
+	if !allNodeRoutesCreated {
+		return fmt.Errorf("waiting for routes to be created on all nodes before disabling overlay")
+	}
+
+	return nil
+}
+
+// areAllNodeRoutesCreated checks if all nodes in the shoot cluster have the NetworkUnavailable
 // condition set to False with reason RouteCreated
-func areAllNodesRoutesCreated(ctx context.Context, shootClient client.Client) (bool, error) {
+func areAllNodeRoutesCreated(ctx context.Context, log logr.Logger, shootClient client.Client) (bool, error) {
 	nodeList := &corev1.NodeList{}
 	if err := shootClient.List(ctx, nodeList); err != nil {
 		return false, fmt.Errorf("failed to list nodes: %w", err)
 	}
 
-	// If there are no nodes yet, we cannot proceed
-	if len(nodeList.Items) == 0 {
-		return false, nil
-	}
-
 	// Check each node for the NetworkUnavailable condition
 	for _, node := range nodeList.Items {
-		hasRouteCreated := false
-		for _, condition := range node.Status.Conditions {
-			if condition.Type == corev1.NodeNetworkUnavailable {
-				// NetworkUnavailable should be False and reason should be RouteCreated
-				if condition.Status == corev1.ConditionFalse && condition.Reason == "RouteCreated" {
-					hasRouteCreated = true
-					break
-				}
-			}
-		}
-		if !hasRouteCreated {
-			log.Info("Node does not have route created yet", "node", node.Name)
+		if !hasRouteCreated(node) {
+			log.Info("Node does not have route created yet", "nodeName", node.Name)
 			return false, nil
 		}
 	}
@@ -356,46 +348,50 @@ func areAllNodesRoutesCreated(ctx context.Context, shootClient client.Client) (b
 	return true, nil
 }
 
-func isOverlaySwitch(ctx context.Context, seedClient client.Client, network *extensionsv1alpha1.Network) (bool, error) {
-	shootOverlayEnabled := true
-	networkConfig, err := calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
-	if err != nil {
-		return false, err
+// hasRouteCreated checks if a node has the NetworkUnavailable condition set to False with reason RouteCreated
+func hasRouteCreated(node corev1.Node) bool {
+	for _, condition := range node.Status.Conditions {
+		if condition.Type == corev1.NodeNetworkUnavailable {
+			if condition.Status == corev1.ConditionFalse && condition.Reason == "RouteCreated" {
+				return true
+			}
+		}
 	}
+	return false
+}
 
-	if networkConfig.Overlay != nil {
-		shootOverlayEnabled = networkConfig.Overlay.Enabled
+func isOverlaySwitch(ctx context.Context, log logr.Logger, seedClient client.Client, network *extensionsv1alpha1.Network) (bool, error) {
+	desiredOverlayEnabled := true
+
+	if network.Spec.ProviderConfig != nil && network.Spec.ProviderConfig.Raw != nil {
+		networkConfig, err := calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
+		if err != nil {
+			return false, fmt.Errorf("failed to decode network provider config: %w", err)
+		}
+
+		if networkConfig.Overlay != nil {
+			desiredOverlayEnabled = networkConfig.Overlay.Enabled
+		}
 	}
 
 	// Get the calico-node DaemonSet from the ManagedResource
 	calicoDaemonSet, err := getDaemonSetFromManagedResource(ctx, seedClient, network.Namespace, CalicoConfigManagedResourceName, "calico-node")
 	if err != nil {
-		// ManagedResource doesn't exist or DaemonSet not found
-		// If the shoot wants overlay disabled, treat this as a potential switch
-		// to be safe and wait for RouteController
-		if !shootOverlayEnabled {
-			log.Info("Cannot read current overlay state, but shoot wants overlay disabled - treating as overlay switch", "error", err)
-			return true, nil
-		}
 		// If shoot wants overlay enabled or first reconciliation of a new cluster happens, no switch
 		log.Info("Cannot read current overlay state during first reconciliation or with overlay enabled", "error", err)
 		return false, nil
 	}
 
-	overlayEnabled := false
+	actualOverlayEnabled := false
 	for _, container := range calicoDaemonSet.Spec.Template.Spec.Containers {
 		for _, env := range container.Env {
 			if env.Name == "FELIX_IPINIPENABLED" && env.Value == "true" || env.Name == "FELIX_VXLANENABLED" && env.Value == "true" {
-				overlayEnabled = true
+				actualOverlayEnabled = true
 			}
 		}
 	}
 
-	if shootOverlayEnabled != overlayEnabled {
-		return true, nil
-	}
-
-	return false, nil
+	return desiredOverlayEnabled != actualOverlayEnabled, nil
 }
 
 // getDaemonSetFromManagedResource extracts a specific DaemonSet from a ManagedResource's secret
@@ -407,13 +403,6 @@ func getDaemonSetFromManagedResource(ctx context.Context, c client.Client, names
 		return nil, fmt.Errorf("could not get ManagedResource %q: %w", mrName, err)
 	}
 
-	// Create a scheme with only the types we need to decode
-	scheme := runtime.NewScheme()
-	if err := appsv1.AddToScheme(scheme); err != nil {
-		return nil, fmt.Errorf("could not add apps/v1 to scheme: %w", err)
-	}
-	decoder := serializer.NewCodecFactory(scheme).UniversalDeserializer()
-
 	// Iterate through all secrets referenced by the ManagedResource
 	for _, secretRef := range managedResource.Spec.SecretRefs {
 		secret := &corev1.Secret{}
@@ -421,7 +410,6 @@ func getDaemonSetFromManagedResource(ctx context.Context, c client.Client, names
 			return nil, fmt.Errorf("could not get secret %q: %w", secretRef.Name, err)
 		}
 
-		// Check all keys in the secret data
 		for _, value := range secret.Data {
 			// Split the YAML content into individual documents
 			docs := strings.Split(string(value), "---\n")
@@ -446,7 +434,7 @@ func getDaemonSetFromManagedResource(ctx context.Context, c client.Client, names
 
 				// Only decode if it's a DaemonSet with the name we're looking for
 				if meta.Kind == "DaemonSet" && meta.Metadata.Name == daemonSetName {
-					obj, _, err := decoder.Decode([]byte(doc), nil, nil)
+					obj, _, err := daemonSetDecoder.Decode([]byte(doc), nil, nil)
 					if err != nil {
 						return nil, fmt.Errorf("could not decode DaemonSet %q: %w", daemonSetName, err)
 					}
