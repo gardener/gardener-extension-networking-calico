@@ -5,6 +5,7 @@
 package controller
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"net"
@@ -29,9 +30,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
 
 	"github.com/gardener/gardener-extension-networking-calico/charts"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
@@ -411,35 +412,23 @@ func getDaemonSetFromManagedResource(ctx context.Context, c client.Client, names
 		}
 
 		for _, value := range secret.Data {
-			// Split the YAML content into individual documents
-			docs := strings.Split(string(value), "---\n")
+			reader := yaml.NewYAMLReader(bufio.NewReader(strings.NewReader(string(value))))
 
-			for _, doc := range docs {
-				if strings.TrimSpace(doc) == "" {
-					continue
+			for {
+				doc, err := reader.Read()
+				if err != nil {
+					break // End of document stream
 				}
 
-				// Try to parse as unstructured to check if it's a DaemonSet
-				var meta struct {
-					Kind     string `yaml:"kind"`
-					Metadata struct {
-						Name string `yaml:"name"`
-					} `yaml:"metadata"`
+				// Decode the document to check its type
+				obj, gvk, err := daemonSetDecoder.Decode(doc, nil, nil)
+				if err != nil {
+					continue // Skip documents that can't be decoded as DaemonSet
 				}
 
-				if err := yaml.Unmarshal([]byte(doc), &meta); err != nil {
-					// Skip documents that can't be parsed as YAML
-					continue
-				}
-
-				// Only decode if it's a DaemonSet with the name we're looking for
-				if meta.Kind == "DaemonSet" && meta.Metadata.Name == daemonSetName {
-					obj, _, err := daemonSetDecoder.Decode([]byte(doc), nil, nil)
-					if err != nil {
-						return nil, fmt.Errorf("could not decode DaemonSet %q: %w", daemonSetName, err)
-					}
-
-					if ds, ok := obj.(*appsv1.DaemonSet); ok {
+				// Check if it's a DaemonSet with the name we're looking for
+				if gvk.Kind == "DaemonSet" {
+					if ds, ok := obj.(*appsv1.DaemonSet); ok && ds.Name == daemonSetName {
 						return ds, nil
 					}
 				}
