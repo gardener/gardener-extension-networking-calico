@@ -66,6 +66,8 @@ providerConfig:
         SeamlessOverlaySwitch: true
 ```
 
+Note: Seamless overlay switching requires the shoot Kubernetes cluster to be running Kubernetes >= 1.36 or to have the MutatingAdmissionPolicy admission feature enabled in the kube-apiserver (feature gate and RuntimeConfig). Without one of these, the extension cannot use the newer admission APIs needed for the seamless switch.
+
 ##### Behavior
 
 - **Enabled** (default): The extension validates that routes are created before disabling overlay. If routes are not ready, the reconciliation will fail with a retriable error, keeping overlay enabled until routes are confirmed.

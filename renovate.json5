@@ -46,6 +46,7 @@
   // The following list of dependencies to ignore is updated by `make generate`.
   // DO NOT EDIT THIS SECTION MANUALLY.
   ignoreDeps: [
+    "github.com/Masterminds/semver/v3",
     "github.com/ahmetb/gen-crd-api-reference-docs",
     "github.com/go-logr/logr",
     "github.com/onsi/ginkgo/v2",
@@ -67,7 +68,6 @@
     "dario.cat/mergo",
     "github.com/BurntSushi/toml",
     "github.com/Masterminds/goutils",
-    "github.com/Masterminds/semver/v3",
     "github.com/Masterminds/sprig/v3",
     "github.com/PaesslerAG/gval",
     "github.com/PaesslerAG/jsonpath",

@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	extensionsconfig "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/util"
@@ -23,6 +24,7 @@ import (
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
+	versionutils "github.com/gardener/gardener/pkg/utils/version"
 	"github.com/go-logr/logr"
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -166,7 +168,14 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		}
 	}
 
-	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) {
+	shootKubernetesVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
+	if err != nil {
+		return err
+	}
+
+	newK8sGreaterEqual136, _ := versionutils.CheckVersionMeetsConstraint(shootKubernetesVersion.String(), ">= 1.36")
+
+	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) && (newK8sGreaterEqual136 || isMutatingAdmissionPolicyEnabled(cluster)) {
 		overlaySwitch, err := isOverlaySwitch(ctx, log, a.client, network)
 		if err != nil {
 			return fmt.Errorf("failed to detect pod overlay switch: %w", err)
@@ -437,4 +446,28 @@ func getDaemonSetFromManagedResource(ctx context.Context, c client.Client, names
 	}
 
 	return nil, fmt.Errorf("DaemonSet %q not found in ManagedResource %q", daemonSetName, mrName)
+}
+
+func isMutatingAdmissionPolicyEnabled(cluster *extensionscontroller.Cluster) bool {
+	if cluster.Shoot.Spec.Kubernetes.KubeAPIServer == nil {
+		return false
+	}
+
+	if cluster.Shoot.Spec.Kubernetes.KubeAPIServer.FeatureGates == nil {
+		return false
+	}
+
+	if enabled, ok := cluster.Shoot.Spec.Kubernetes.KubeAPIServer.FeatureGates["MutatingAdmissionPolicy"]; !ok || !enabled {
+		return false
+	}
+
+	if cluster.Shoot.Spec.Kubernetes.KubeAPIServer.RuntimeConfig == nil {
+		return false
+	}
+
+	if enabled, ok := cluster.Shoot.Spec.Kubernetes.KubeAPIServer.RuntimeConfig["admissionregistration.k8s.io/v1alpha1"]; !ok || !enabled {
+		return false
+	}
+
+	return true
 }
