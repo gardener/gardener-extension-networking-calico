@@ -14,6 +14,10 @@ const (
 	// owner @ialidzhikov
 	// alpha: v1.27.0
 	NonPrivilegedCalicoNode featuregate.Feature = "NonPrivilegedCalicoNode"
+	// SeamlessOverlaySwitch validates node routes before disabling overlay networking.
+	// owner @docktofuture
+	// alpha: v1.38.0
+	SeamlessOverlaySwitch featuregate.Feature = "SeamlessOverlaySwitch"
 )
 
 var (
@@ -21,6 +25,7 @@ var (
 	FeatureGate  = featuregate.NewFeatureGate()
 	featureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 		NonPrivilegedCalicoNode: {Default: false, PreRelease: featuregate.Alpha},
+		SeamlessOverlaySwitch:   {Default: false, PreRelease: featuregate.Alpha},
 	}
 )
 
