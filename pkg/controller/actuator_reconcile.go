@@ -170,10 +170,13 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 
 	shootKubernetesVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse shoot Kubernetes version %s: %w", cluster.Shoot.Spec.Kubernetes.Version, err)
 	}
 
-	newK8sGreaterEqual136, _ := versionutils.CheckVersionMeetsConstraint(shootKubernetesVersion.String(), ">= 1.36")
+	newK8sGreaterEqual136, err := versionutils.CheckVersionMeetsConstraint(shootKubernetesVersion.String(), ">= 1.36")
+	if err != nil {
+		return fmt.Errorf("failed to check version constraint %w", err)
+	}
 
 	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) && (newK8sGreaterEqual136 || isMutatingAdmissionPolicyEnabled(cluster)) {
 		overlaySwitch, err := isOverlaySwitch(ctx, log, a.client, network)
@@ -370,6 +373,7 @@ func hasRouteCreated(node corev1.Node) bool {
 	return false
 }
 
+// isOverlaySwitch determines if there is a switch from overlay to non-overlay networking based on the desired state in the Network resource and the actual state in the calico-node DaemonSet
 func isOverlaySwitch(ctx context.Context, log logr.Logger, seedClient client.Client, network *extensionsv1alpha1.Network) (bool, error) {
 	desiredOverlayEnabled := true
 
@@ -401,7 +405,7 @@ func isOverlaySwitch(ctx context.Context, log logr.Logger, seedClient client.Cli
 		}
 	}
 
-	return desiredOverlayEnabled != actualOverlayEnabled, nil
+	return (desiredOverlayEnabled != actualOverlayEnabled) && !desiredOverlayEnabled, nil
 }
 
 // getDaemonSetFromManagedResource extracts a specific DaemonSet from a ManagedResource's secret
