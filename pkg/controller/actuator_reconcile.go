@@ -31,6 +31,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/utils/ptr"
@@ -55,9 +56,7 @@ var (
 )
 
 func init() {
-	if err := appsv1.AddToScheme(daemonSetScheme); err != nil {
-		panic(fmt.Sprintf("failed to add apps/v1 to scheme: %v", err))
-	}
+	utilruntime.Must(appsv1.AddToScheme(daemonSetScheme))
 	daemonSetDecoder = serializer.NewCodecFactory(daemonSetScheme).UniversalDeserializer()
 }
 
