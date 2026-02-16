@@ -60,6 +60,7 @@ config:
     burst: 130
   featureGates: {}
     # NonPrivilegedCalicoNode: false
+    # SeamlessOverlaySwitch: false
 
 gardener:
   version: ""

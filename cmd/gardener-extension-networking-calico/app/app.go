@@ -108,6 +108,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 					DisableFor: []client.Object{
 						&corev1.Secret{},    // applied for ManagedResources
 						&corev1.ConfigMap{}, // applied for monitoring config
+						&corev1.Namespace{}, // avoid watching cluster-scoped Namespaces (no RBAC permission)
 					},
 				},
 			}
