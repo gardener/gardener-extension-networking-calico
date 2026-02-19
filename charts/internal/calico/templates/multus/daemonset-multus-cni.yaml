@@ -108,8 +108,6 @@ spec:
             requests:
               cpu: "100m"
               memory: "200Mi"
-            limits:
-              memory: "200Mi"
           env:
             - name: MULTUS_NODE_NAME
               valueFrom:
