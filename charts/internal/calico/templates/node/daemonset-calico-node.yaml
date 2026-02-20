@@ -474,8 +474,6 @@ spec:
               {{- else }}
               memory: 100Mi
               {{- end }}
-            limits:
-              memory: 2800Mi
           lifecycle:
             preStop:
               exec:
@@ -555,8 +553,6 @@ spec:
             {{- end}}
             - -web.listen-address=:{{ .Values.config.monitoring.birdMetricsPort }}
           resources:
-            limits:
-              memory: 32Mi
             requests:
               cpu: 10m
               memory: 32Mi

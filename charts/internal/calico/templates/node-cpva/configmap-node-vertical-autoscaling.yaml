@@ -16,12 +16,6 @@ data:
             "nodesPerStep": 10,
             "max": "1400Mi"
           }
-        },
-        "limits": {
-          "memory": {
-            "base": "2800Mi",
-            "max": "2800Mi"
-          }
         }
       }
     }
