@@ -1,5 +1,6 @@
 global:
   podCIDR: ""
+  podCIDRv6: ""
   #nodeCIDR: "" # Only set when available
   overlayEnabled: ""
   snatToUpstreamDNSEnabled: ""
