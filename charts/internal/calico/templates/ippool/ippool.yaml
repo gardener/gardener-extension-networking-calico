@@ -61,7 +61,7 @@ spec:
   - Workload
   - Tunnel
   blockSize: 122
-  cidr: "{{ .Values.global.podCIDR }}"
+  cidr: "{{ .Values.global.podCIDRv6 }}"
   ipipMode: Never
   natOutgoing: {{ if .Values.config.ipv6.natOutgoing }}true{{ else }}false{{ end }}
   nodeSelector: all()
