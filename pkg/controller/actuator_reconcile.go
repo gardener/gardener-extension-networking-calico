@@ -18,6 +18,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/util"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/api/core/v1beta1/helper"
 	"github.com/gardener/gardener/pkg/api/extensions/validation"
+	"github.com/gardener/gardener/pkg/apis/core"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
@@ -123,7 +124,13 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 			return err
 		}
 
-		if err := ValidateNetworkConfig(networkConfig); err != nil {
+		// Convert ipFamilies to core.IPFamily for validation
+		coreIPFamilies := make([]core.IPFamily, len(ipFamilies))
+		for i, ipFamily := range ipFamilies {
+			coreIPFamilies[i] = core.IPFamily(ipFamily)
+		}
+
+		if err := ValidateNetworkConfig(networkConfig, coreIPFamilies); err != nil {
 			return err
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gardener/gardener/pkg/apis/core"
 	kubernetescorevalidation "github.com/gardener/gardener/pkg/utils/validation/kubernetes/core"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -20,7 +21,7 @@ import (
 )
 
 // ValidateNetworkConfig validates the network config.
-func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, fldPath *field.Path) field.ErrorList {
+func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, ipFamilies []core.IPFamily, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	allowedBackendModes := sets.New(apiscalico.Bird, apiscalico.None, apiscalico.VXLan)
@@ -28,7 +29,7 @@ func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, fldPath *fie
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("backend"), *networkConfig.Backend, fmt.Sprintf("unsupported value %q for backend, supported values are [%q, %q, %q]", *networkConfig.Backend, apiscalico.Bird, apiscalico.None, apiscalico.VXLan)))
 	}
 
-	allErrs = append(allErrs, ValidateNetworkConfigIPAM(networkConfig.IPAM, fldPath.Child("ipam"))...)
+	allErrs = append(allErrs, ValidateNetworkConfigIPAM(networkConfig.IPAM, ipFamilies, fldPath.Child("ipam"))...)
 
 	allErrs = append(allErrs, ValidateNetworkConfigIPV4(networkConfig.IPv4, fldPath.Child("ipv4"))...)
 
@@ -52,7 +53,7 @@ func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, fldPath *fie
 }
 
 // ValidateNetworkConfigIPAM validates the kube-proxy configuration in the network config.
-func ValidateNetworkConfigIPAM(ipam *apiscalico.IPAM, fldPath *field.Path) field.ErrorList {
+func ValidateNetworkConfigIPAM(ipam *apiscalico.IPAM, ipFamilies []core.IPFamily, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	if ipam == nil {
@@ -63,6 +64,11 @@ func ValidateNetworkConfigIPAM(ipam *apiscalico.IPAM, fldPath *field.Path) field
 
 	if ipam.Type != "" && !ipamTypes.Has(ipam.Type) {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("type"), ipam.Type, fmt.Sprintf("unsupported value %q for type, supported values are [%q, %q]", ipam.Type, apiscalico.IPAMCalico, apiscalico.IPAMHostLocal)))
+	}
+
+	// IPAMCalico is only allowed for IPv4 single-stack shoots (not for IPv6 or dual-stack)
+	if ipam.Type == apiscalico.IPAMCalico && sets.New(ipFamilies...).Has(core.IPFamilyIPv6) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("type"), ipam.Type, fmt.Sprintf("IPAM type %q is only supported for IPv4 single-stack shoots, use %q instead", apiscalico.IPAMCalico, apiscalico.IPAMHostLocal)))
 	}
 
 	if ipam.CIDR != nil && strings.ToLower(string(*ipam.CIDR)) != "usepodcidr" {
