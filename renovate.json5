@@ -48,6 +48,7 @@
   ignoreDeps: [
     "github.com/Masterminds/semver/v3",
     "github.com/ahmetb/gen-crd-api-reference-docs",
+    "github.com/gardener/gardener/pkg/apis",
     "github.com/go-logr/logr",
     "github.com/onsi/ginkgo/v2",
     "github.com/onsi/gomega",
