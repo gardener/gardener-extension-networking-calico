@@ -126,8 +126,6 @@ spec:
           requests:
             cpu: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.typha.cpu }}{{ .Values.autoscaling.resourceRequests.typha.cpu }}{{ else }}200m{{ end }}
             memory: {{ if and .Values.autoscaling.staticRequests .Values.autoscaling.resourceRequests.typha.memory }}{{ .Values.autoscaling.resourceRequests.typha.memory }}{{ else }}100Mi{{ end }}
-          limits:
-            memory: 4000Mi
         livenessProbe:
           httpGet:
             path: /liveness
