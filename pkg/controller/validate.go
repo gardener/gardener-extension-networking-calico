@@ -7,6 +7,7 @@ package controller
 import (
 	"fmt"
 
+	"github.com/gardener/gardener/pkg/apis/core"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	apiscalico "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
@@ -15,13 +16,13 @@ import (
 )
 
 // ValidateNetworkConfig validates the given network configuration.
-func ValidateNetworkConfig(networkConfig *calicov1alpha1.NetworkConfig) error {
+func ValidateNetworkConfig(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []core.IPFamily) error {
 	internalNetworkConfig := &apiscalico.NetworkConfig{}
 	if err := calicov1alpha1.Convert_v1alpha1_NetworkConfig_To_calico_NetworkConfig(networkConfig, internalNetworkConfig, nil); err != nil {
 		return fmt.Errorf("could not convert network config: %w", err)
 	}
 
-	if errList := calicovalidation.ValidateNetworkConfig(internalNetworkConfig, field.NewPath("spec", "providerConfig")); len(errList) != 0 {
+	if errList := calicovalidation.ValidateNetworkConfig(internalNetworkConfig, ipFamilies, field.NewPath("spec", "providerConfig")); len(errList) != 0 {
 		return fmt.Errorf("invalid network config: %w", errList.ToAggregate())
 	}
 

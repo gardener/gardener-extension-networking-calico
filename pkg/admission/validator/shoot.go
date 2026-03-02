@@ -86,13 +86,15 @@ func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 				return err
 			}
 
+			ipFamilies := shoot.Spec.Networking.IPFamilies
+
 			internalNetworkConfig := &calico.NetworkConfig{}
 			err = calicov1alpha1.Convert_v1alpha1_NetworkConfig_To_calico_NetworkConfig(networkConfig, internalNetworkConfig, nil)
 			if err != nil {
 				return err
 			}
 
-			if errList := calicovalidation.ValidateNetworkConfig(internalNetworkConfig, field.NewPath("spec", "networking", "providerConfig")); len(errList) != 0 {
+			if errList := calicovalidation.ValidateNetworkConfig(internalNetworkConfig, ipFamilies, field.NewPath("spec", "networking", "providerConfig")); len(errList) != 0 {
 				return errList.ToAggregate()
 			}
 		}

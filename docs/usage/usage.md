@@ -63,6 +63,28 @@ spec:
   ...
 ```
 
+## IPAM Configuration
+
+Calico supports two IPAM (IP Address Management) types: `calico-ipam` and `host-local` (default).
+
+### `calico-ipam`
+
+The `calico-ipam` type uses Calico's built-in IPAM controller for IP address allocation. **Note**: `calico-ipam` cannot be used with IPv6 single-stack or dual-stack shoots.
+
+### `host-local`
+
+The `host-local` IPAM type is the recommended option and supports all networking configurations, including IPv4 single-stack, IPv6 single-stack, and dual-stack shoots.
+
+An example `NetworkingConfig` with IPAM configuration:
+
+```yaml
+apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
+kind: NetworkConfig
+ipam:
+  type: host-local
+  cidr: usePodCIDR
+```
+
 ## AutoScaling
 
 Autoscaling defines how the calico components are automatically scaled. It allows to use either static resource assignment, vertical pod or cluster-proportional autoscaler (default: cluster-proportional).
