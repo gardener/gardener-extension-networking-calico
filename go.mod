@@ -7,7 +7,7 @@ toolchain go1.26.0
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
-	github.com/gardener/gardener v1.137.0
+	github.com/gardener/gardener v1.137.1
 	github.com/gardener/gardener/pkg/apis v1.137.0
 	github.com/go-logr/logr v1.4.3
 	github.com/onsi/ginkgo/v2 v2.28.1
