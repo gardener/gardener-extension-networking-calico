@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 
@@ -45,6 +46,7 @@ type felix struct {
 	BPF                         felixBPF                              `json:"bpf"`
 	BPFKubeProxyIptablesCleanup felixBPFKubeProxyIptablesCleanup      `json:"bpfKubeProxyIPTablesCleanup"`
 	ServiceLoopPrevention       *calicov1alpha1.ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty"`
+	NFTables                    felixNFTables                         `json:"nftables"`
 }
 
 type felixIPinIP struct {
@@ -56,6 +58,10 @@ type felixBPF struct {
 }
 
 type felixBPFKubeProxyIptablesCleanup struct {
+	Enabled bool `json:"enabled"`
+}
+
+type felixNFTables struct {
 	Enabled bool `json:"enabled"`
 }
 
@@ -179,12 +185,13 @@ func ComputeCalicoChartValues(
 	kubernetesVersion string,
 	wantsVPA bool,
 	kubeProxyEnabled bool,
+	kubeProxyMode *v1beta1.ProxyMode,
 	nonPrivileged bool,
 	nodeCIDR *string,
 	podCIDRs []string,
 	ipFamilies []extensionsv1alpha1.IPFamily,
 ) (map[string]interface{}, error) {
-	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, nonPrivileged, ipFamilies)
+	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, kubeProxyMode, nonPrivileged, ipFamilies)
 	if err != nil {
 		return nil, fmt.Errorf("error when generating calico config: %v", err)
 	}
@@ -256,7 +263,7 @@ func ComputeCalicoChartValues(
 	return calicoChartValues, nil
 }
 
-func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, nonPrivileged bool, ipFamilies []extensionsv1alpha1.IPFamily) (*calicoConfig, error) {
+func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1alpha1.NetworkConfig, kubeProxyEnabled bool, kubeProxyMode *v1beta1.ProxyMode, nonPrivileged bool, ipFamilies []extensionsv1alpha1.IPFamily) (*calicoConfig, error) {
 	isIPv4 := slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv4)
 	isIPv6 := slices.Contains(ipFamilies, extensionsv1alpha1.IPFamilyIPv6)
 
@@ -293,6 +300,12 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 			[]ipamRange{{Subnet: usePodCIDRv6}},
 			[]ipamRange{{Subnet: usePodCIDR}},
 		)
+	}
+
+	if kubeProxyMode != nil {
+		if *kubeProxyMode == v1beta1.ProxyModeNFTables {
+			c.Felix.NFTables.Enabled = true
+		}
 	}
 
 	if !kubeProxyEnabled {

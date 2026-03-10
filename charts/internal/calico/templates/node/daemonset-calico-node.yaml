@@ -431,6 +431,10 @@ spec:
             - name: FELIX_SERVICELOOPPREVENTION
               value: "{{ .Values.config.felix.serviceLoopPrevention }}"
             {{- end }}
+            {{- if .Values.config.felix.nftables.enabled }}
+            - name: FELIX_NFTABLESMODE
+              value: "Enabled"
+            {{- end }}
             {{- if eq .Values.global.snatToUpstreamDNSEnabled "true" }}
             - name: FELIX_CHAININSERTMODE
               value: "Append"
