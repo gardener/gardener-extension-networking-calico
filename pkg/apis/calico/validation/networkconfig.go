@@ -41,6 +41,8 @@ func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, ipFamilies [
 
 	allErrs = append(allErrs, ValidateNetworkConfigAutoscaling(networkConfig.AutoScaling, fldPath.Child("autoScaling"))...)
 
+	allErrs = append(allErrs, ValidateFelixConfiguration(networkConfig.Felix, fldPath.Child("felix"))...)
+
 	if networkConfig.IPIP != nil && !sets.New(apiscalico.Always, apiscalico.Never, apiscalico.CrossSubnet, apiscalico.Off).Has(*networkConfig.IPIP) {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("ipip"), *networkConfig.IPIP, fmt.Sprintf("unsupported value %q for ipip, supported values are [%q, %q, %q, %q]", *networkConfig.IPIP, apiscalico.Always, apiscalico.Never, apiscalico.CrossSubnet, apiscalico.Off)))
 	}
@@ -224,6 +226,23 @@ func ValidateNetworkConfigAutoscaling(autoscaling *apiscalico.AutoScaling, fldPa
 	if autoscaling.Resources != nil {
 		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Node, fldPath.Child("resources").Child("node"))...)
 		allErrs = append(allErrs, ValidateResourceList(autoscaling.Resources.Typha, fldPath.Child("resources").Child("typha"))...)
+	}
+
+	return allErrs
+}
+
+func ValidateFelixConfiguration(felixConfig *apiscalico.Felix, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	if felixConfig == nil {
+		return allErrs
+	}
+
+	if felixConfig.ServiceLoopPrevention != nil {
+		allowedValues := sets.New(apiscalico.ServiceLoopPreventionDisabled, apiscalico.ServiceLoopPreventionDrop, apiscalico.ServiceLoopPreventionReject)
+		if !allowedValues.Has(*felixConfig.ServiceLoopPrevention) {
+			allErrs = append(allErrs, field.Invalid(fldPath.Child("serviceLoopPrevention"), *felixConfig.ServiceLoopPrevention, fmt.Sprintf("unsupported value %q for serviceLoopPrevention, supported values are [%q, %q, %q]", *felixConfig.ServiceLoopPrevention, apiscalico.ServiceLoopPreventionDisabled, apiscalico.ServiceLoopPreventionDrop, apiscalico.ServiceLoopPreventionReject)))
+		}
 	}
 
 	return allErrs

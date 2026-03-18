@@ -262,6 +262,19 @@ Multus
 <p>Multus configures Multus CNI.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>felix</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Felix">
+Felix
+</a>
+</em>
+</td>
+<td>
+<p>Felix contains configuration for the Felix agent of Calico.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.AutoScaling">AutoScaling
@@ -391,6 +404,37 @@ bool
 </td>
 <td>
 <p>Enabled enables the eBPF dataplane mode.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Felix">Felix
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
+</p>
+<p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>serviceLoopPrevention</code></br>
+<em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.ServiceLoopPrevention">
+ServiceLoopPrevention
+</a>
+</em>
+</td>
+<td>
+<p>ServiceLoopPrevention configures the Felix service loop prevention option.</p>
 </td>
 </tr>
 </tbody>
@@ -758,6 +802,14 @@ typha component.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.ServiceLoopPrevention">ServiceLoopPrevention
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Felix">Felix</a>)
+</p>
+<p>
+</p>
 <h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.SnatToUpstreamDNS">SnatToUpstreamDNS
 </h3>
 <p>

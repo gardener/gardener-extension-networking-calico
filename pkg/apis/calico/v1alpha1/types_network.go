@@ -141,7 +141,23 @@ type NetworkConfig struct {
 
 	// Multus configures Multus CNI.
 	Multus *Multus `json:"multus,omitempty"`
+
+	// Felix contains configuration for the Felix agent of Calico.
+	Felix *Felix `json:"felix,omitempty"`
 }
+
+type Felix struct {
+	// ServiceLoopPrevention configures the Felix service loop prevention option.
+	ServiceLoopPrevention *ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty" protobuf:"bytes,1,opt,name=serviceLoopPrevention"`
+}
+
+type ServiceLoopPrevention string
+
+const (
+	ServiceLoopPreventionDisabled ServiceLoopPrevention = "Disabled"
+	ServiceLoopPreventionDrop     ServiceLoopPrevention = "Drop"
+	ServiceLoopPreventionReject   ServiceLoopPrevention = "Reject"
+)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

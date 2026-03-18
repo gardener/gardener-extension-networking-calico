@@ -147,6 +147,18 @@ var _ = Describe("Network validation", func() {
 			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.ipAutoDetectionMethod")})))),
 		Entry("should return error with invalid IP autodetection method with CIDR", &apiscalico.NetworkConfig{IPAutoDetectionMethod: ptr.To("cidr=290.8.8.8/16")}, nil, field.NewPath("config"),
 			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.ipAutoDetectionMethod")})))),
+		Entry("should succeed with nil felix config", &apiscalico.NetworkConfig{Felix: nil}, nil, field.NewPath("config"),
+			BeEmpty()),
+		Entry("should succeed with empty felix config", &apiscalico.NetworkConfig{Felix: &apiscalico.Felix{}}, nil, field.NewPath("config"),
+			BeEmpty()),
+		Entry("should succeed with valid felix serviceLoopPrevention Disabled", &apiscalico.NetworkConfig{Felix: &apiscalico.Felix{ServiceLoopPrevention: ptr.To(apiscalico.ServiceLoopPreventionDisabled)}}, nil, field.NewPath("config"),
+			BeEmpty()),
+		Entry("should succeed with valid felix serviceLoopPrevention Drop", &apiscalico.NetworkConfig{Felix: &apiscalico.Felix{ServiceLoopPrevention: ptr.To(apiscalico.ServiceLoopPreventionDrop)}}, nil, field.NewPath("config"),
+			BeEmpty()),
+		Entry("should succeed with valid felix serviceLoopPrevention Reject", &apiscalico.NetworkConfig{Felix: &apiscalico.Felix{ServiceLoopPrevention: ptr.To(apiscalico.ServiceLoopPreventionReject)}}, nil, field.NewPath("config"),
+			BeEmpty()),
+		Entry("should return error with invalid felix serviceLoopPrevention", &apiscalico.NetworkConfig{Felix: &apiscalico.Felix{ServiceLoopPrevention: ptr.To(apiscalico.ServiceLoopPrevention("Invalid"))}}, nil, field.NewPath("config"),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.felix.serviceLoopPrevention")})))),
 		Entry("should check for a positive quantity in the resources", &apiscalico.NetworkConfig{
 			AutoScaling: &apiscalico.AutoScaling{
 				Mode: apiscalico.AutoscalingModeStatic,

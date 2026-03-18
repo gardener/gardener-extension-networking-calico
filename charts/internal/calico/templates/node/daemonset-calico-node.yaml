@@ -427,6 +427,10 @@ spec:
             # Limit NAT port range: https://github.com/projectcalico/felix/pull/1838
             - name: FELIX_NATPORTRANGE
               value: "32768:65535"
+            {{- if .Values.config.felix.serviceLoopPrevention }}
+            - name: FELIX_SERVICELOOPPREVENTION
+              value: "{{ .Values.config.felix.serviceLoopPrevention }}"
+            {{- end}}
             {{- if eq .Values.global.snatToUpstreamDNSEnabled "true" }}
             - name: FELIX_CHAININSERTMODE
               value: "Append"

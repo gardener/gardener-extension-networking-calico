@@ -121,7 +121,22 @@ type NetworkConfig struct {
 
 	// Multus configures Multus CNI.
 	Multus *Multus
+
+	Felix *Felix
 }
+
+type Felix struct {
+	// ServiceLoopPrevention configures the Felix service loop prevention option.
+	ServiceLoopPrevention *ServiceLoopPrevention
+}
+
+type ServiceLoopPrevention string
+
+const (
+	ServiceLoopPreventionDisabled ServiceLoopPrevention = "Disabled"
+	ServiceLoopPreventionDrop     ServiceLoopPrevention = "Drop"
+	ServiceLoopPreventionReject   ServiceLoopPrevention = "Reject"
+)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
