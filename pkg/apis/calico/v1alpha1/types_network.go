@@ -148,7 +148,7 @@ type NetworkConfig struct {
 
 type Felix struct {
 	// ServiceLoopPrevention configures the Felix service loop prevention option.
-	ServiceLoopPrevention *ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty" protobuf:"bytes,1,opt,name=serviceLoopPrevention"`
+	ServiceLoopPrevention *ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty"`
 }
 
 type ServiceLoopPrevention string
