@@ -298,7 +298,7 @@ spec:
           - containerPort: {{  .Values.config.monitoring.felixMetricsPort }}
             name: metrics
             protocol: TCP
-            {{- end}}
+            {{- end }}
           env:
             {{- if eq .Values.config.ipam.type "host-local"}}
             - name: USE_POD_CIDR
@@ -427,6 +427,10 @@ spec:
             # Limit NAT port range: https://github.com/projectcalico/felix/pull/1838
             - name: FELIX_NATPORTRANGE
               value: "32768:65535"
+            {{- if .Values.config.felix.serviceLoopPrevention }}
+            - name: FELIX_SERVICELOOPPREVENTION
+              value: "{{ .Values.config.felix.serviceLoopPrevention }}"
+            {{- end }}
             {{- if eq .Values.global.snatToUpstreamDNSEnabled "true" }}
             - name: FELIX_CHAININSERTMODE
               value: "Append"
@@ -550,7 +554,7 @@ spec:
             - -bird.socket=/var/run/calico/bird.ctl
             {{- if not .Values.config.ipv6.enabled }}
             - -bird.ipv6=false
-            {{- end}}
+            {{- end }}
             - -web.listen-address=:{{ .Values.config.monitoring.birdMetricsPort }}
           resources:
             requests:

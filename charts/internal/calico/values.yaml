@@ -43,6 +43,7 @@ config:
       enabled: "false"
     bpfKubeProxyIPTablesCleanup:
       enabled: "false"
+    serviceLoopPrevention: "Drop"
   nonPrivileged: false
   birdExporter:
     enabled: false
