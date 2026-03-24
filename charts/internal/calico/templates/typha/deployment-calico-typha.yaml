@@ -11,7 +11,6 @@ metadata:
   name: calico-typha-deploy
   namespace: kube-system
   annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
     {{- if not .Values.autoscaling.staticRequests }}
     resources.gardener.cloud/preserve-resources: 'true'
     {{- end }}
@@ -43,6 +42,8 @@ spec:
   # production, we recommend running at least 3 replicas to reduce the impact of rolling upgrade.
   template:
     metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
       labels:
         networking.gardener.cloud/to-public-networks: allowed
         networking.gardener.cloud/to-apiserver: allowed
