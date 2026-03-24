@@ -142,11 +142,6 @@ type NetworkConfig struct {
 	// Multus configures Multus CNI.
 	Multus *Multus `json:"multus,omitempty"`
 
-	// Felix contains configuration for the Felix agent of Calico.
-	Felix *Felix `json:"felix,omitempty"`
-}
-
-type Felix struct {
 	// ServiceLoopPrevention configures the Felix service loop prevention option.
 	ServiceLoopPrevention *ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty"`
 }

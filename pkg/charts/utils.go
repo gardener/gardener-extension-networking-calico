@@ -310,8 +310,8 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 		return c, nil
 	}
 
-	if config.Felix != nil {
-		c.Felix.ServiceLoopPrevention = config.Felix.ServiceLoopPrevention
+	if config.ServiceLoopPrevention != nil {
+		c.Felix.ServiceLoopPrevention = config.ServiceLoopPrevention
 	}
 
 	c.IPv4.Wireguard = config.WireguardEncryption

@@ -264,15 +264,15 @@ Multus
 </tr>
 <tr>
 <td>
-<code>felix</code></br>
+<code>serviceLoopPrevention</code></br>
 <em>
-<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Felix">
-Felix
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.ServiceLoopPrevention">
+ServiceLoopPrevention
 </a>
 </em>
 </td>
 <td>
-<p>Felix contains configuration for the Felix agent of Calico.</p>
+<p>ServiceLoopPrevention configures the Felix service loop prevention option.</p>
 </td>
 </tr>
 </tbody>
@@ -404,37 +404,6 @@ bool
 </td>
 <td>
 <p>Enabled enables the eBPF dataplane mode.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="calico.networking.extensions.gardener.cloud/v1alpha1.Felix">Felix
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
-</p>
-<p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>serviceLoopPrevention</code></br>
-<em>
-<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.ServiceLoopPrevention">
-ServiceLoopPrevention
-</a>
-</em>
-</td>
-<td>
-<p>ServiceLoopPrevention configures the Felix service loop prevention option.</p>
 </td>
 </tr>
 </tbody>
@@ -806,7 +775,7 @@ typha component.</p>
 (<code>string</code> alias)</p></h3>
 <p>
 (<em>Appears on:</em>
-<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.Felix">Felix</a>)
+<a href="#calico.networking.extensions.gardener.cloud/v1alpha1.NetworkConfig">NetworkConfig</a>)
 </p>
 <p>
 </p>

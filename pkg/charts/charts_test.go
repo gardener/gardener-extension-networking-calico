@@ -132,9 +132,7 @@ var _ = Describe("Chart package test", func() {
 				Mode:                &crossSubnet,
 				AutoDetectionMethod: &autodetectionMethod,
 			},
-			Felix: &calicov1alpha1.Felix{
-				ServiceLoopPrevention: &felixServiceLoopPreventionDisabled,
-			},
+			ServiceLoopPrevention: &felixServiceLoopPreventionDisabled,
 		}
 		networkConfigAllMTU = &calicov1alpha1.NetworkConfig{
 			Backend: &backendVXLan,
@@ -324,8 +322,8 @@ var _ = Describe("Chart package test", func() {
 				},
 			}
 			if config != nil && config() != nil {
-				if config().Felix != nil && config().Felix.ServiceLoopPrevention != nil {
-					expected["config"].(map[string]interface{})["felix"].(map[string]interface{})["serviceLoopPrevention"] = string(*config().Felix.ServiceLoopPrevention)
+				if config().ServiceLoopPrevention != nil {
+					expected["config"].(map[string]interface{})["felix"].(map[string]interface{})["serviceLoopPrevention"] = string(*config().ServiceLoopPrevention)
 				}
 				if config().AutoScaling != nil && config().AutoScaling.Mode == calicov1alpha1.AutoscalingModeVPA {
 					if typhaEnabled {
