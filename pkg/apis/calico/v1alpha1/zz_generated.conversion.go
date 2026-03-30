@@ -330,6 +330,7 @@ func autoConvert_v1alpha1_NetworkConfig_To_calico_NetworkConfig(in *NetworkConfi
 	out.WireguardEncryption = in.WireguardEncryption
 	out.BirdExporter = (*calico.BirdExporter)(unsafe.Pointer(in.BirdExporter))
 	out.Multus = (*calico.Multus)(unsafe.Pointer(in.Multus))
+	out.ServiceLoopPrevention = (*calico.ServiceLoopPrevention)(unsafe.Pointer(in.ServiceLoopPrevention))
 	return nil
 }
 
@@ -355,6 +356,7 @@ func autoConvert_calico_NetworkConfig_To_v1alpha1_NetworkConfig(in *calico.Netwo
 	out.WireguardEncryption = in.WireguardEncryption
 	out.BirdExporter = (*BirdExporter)(unsafe.Pointer(in.BirdExporter))
 	out.Multus = (*Multus)(unsafe.Pointer(in.Multus))
+	out.ServiceLoopPrevention = (*ServiceLoopPrevention)(unsafe.Pointer(in.ServiceLoopPrevention))
 	return nil
 }
 

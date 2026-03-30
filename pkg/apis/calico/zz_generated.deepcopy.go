@@ -256,6 +256,11 @@ func (in *NetworkConfig) DeepCopyInto(out *NetworkConfig) {
 		*out = new(Multus)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.ServiceLoopPrevention != nil {
+		in, out := &in.ServiceLoopPrevention, &out.ServiceLoopPrevention
+		*out = new(ServiceLoopPrevention)
+		**out = **in
+	}
 	return
 }
 

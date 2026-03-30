@@ -32,27 +32,29 @@ var (
 
 var _ = Describe("Chart package test", func() {
 	var (
-		kubernetesVersion                           = "1.33.0"
-		podCIDR                                     = calicov1alpha1.CIDR("12.0.0.0/8")
-		nodeCIDR                                    = "10.250.0.0/8"
-		usePodCidr                                  = calicov1alpha1.CIDR("usePodCidr")
-		crossSubnet                                 = calicov1alpha1.CrossSubnet
-		always                                      = calicov1alpha1.Always
-		never                                       = calicov1alpha1.Never
-		invalid             calicov1alpha1.PoolMode = "invalid"
-		autodetectionMethod                         = "interface=eth1"
-		backendNone                                 = calicov1alpha1.None
-		backendVXLan                                = calicov1alpha1.VXLan
-		backendBird                                 = calicov1alpha1.Bird
-		backendInvalid                              = calicov1alpha1.Backend("invalid")
-		poolIPIP                                    = calicov1alpha1.PoolIPIP
-		poolVXlan                                   = calicov1alpha1.PoolVXLan
+		kubernetesVersion                                          = "1.33.0"
+		podCIDR                                                    = calicov1alpha1.CIDR("12.0.0.0/8")
+		nodeCIDR                                                   = "10.250.0.0/8"
+		usePodCidr                                                 = calicov1alpha1.CIDR("usePodCidr")
+		crossSubnet                                                = calicov1alpha1.CrossSubnet
+		always                                                     = calicov1alpha1.Always
+		never                                                      = calicov1alpha1.Never
+		invalid                            calicov1alpha1.PoolMode = "invalid"
+		autodetectionMethod                                        = "interface=eth1"
+		backendNone                                                = calicov1alpha1.None
+		backendVXLan                                               = calicov1alpha1.VXLan
+		backendBird                                                = calicov1alpha1.Bird
+		backendInvalid                                             = calicov1alpha1.Backend("invalid")
+		poolIPIP                                                   = calicov1alpha1.PoolIPIP
+		poolVXlan                                                  = calicov1alpha1.PoolVXLan
+		felixServiceLoopPreventionDisabled                         = calicov1alpha1.ServiceLoopPreventionDisabled
 
 		network                       *extensionsv1alpha1.Network
 		networkConfigNil              *calicov1alpha1.NetworkConfig
 		networkConfigNilValues        *calicov1alpha1.NetworkConfig
 		networkConfigBackendNone      *calicov1alpha1.NetworkConfig
 		networkConfigAll              *calicov1alpha1.NetworkConfig
+		networkConfigAllFelix         *calicov1alpha1.NetworkConfig
 		networkConfigAllMTU           *calicov1alpha1.NetworkConfig
 		networkConfigAllEBPFDataplane *calicov1alpha1.NetworkConfig
 		networkConfigDeprecated       *calicov1alpha1.NetworkConfig
@@ -68,6 +70,7 @@ var _ = Describe("Chart package test", func() {
 		networkConfigBackendNoneFunc      = func() *calicov1alpha1.NetworkConfig { return networkConfigBackendNone }
 		networkConfigAllFunc              = func() *calicov1alpha1.NetworkConfig { return networkConfigAll }
 		networkConfigAllMTUFunc           = func() *calicov1alpha1.NetworkConfig { return networkConfigAllMTU }
+		networkConfigAllFelixFunc         = func() *calicov1alpha1.NetworkConfig { return networkConfigAllFelix }
 		networkConfigAllEBPFDataplaneFunc = func() *calicov1alpha1.NetworkConfig { return networkConfigAllEBPFDataplane }
 		networkConfigDeprecatedFunc       = func() *calicov1alpha1.NetworkConfig { return networkConfigDeprecated }
 		networkConfigOverlayDisabledFunc  = func() *calicov1alpha1.NetworkConfig { return networkConfigOverlayDisabled }
@@ -117,6 +120,19 @@ var _ = Describe("Chart package test", func() {
 				Mode:                &crossSubnet,
 				AutoDetectionMethod: &autodetectionMethod,
 			},
+		}
+		networkConfigAllFelix = &calicov1alpha1.NetworkConfig{
+			Backend: &backendVXLan,
+			IPAM: &calicov1alpha1.IPAM{
+				CIDR: &podCIDR,
+				Type: "host-local",
+			},
+			IPv4: &calicov1alpha1.IPv4{
+				Pool:                &poolVXlan,
+				Mode:                &crossSubnet,
+				AutoDetectionMethod: &autodetectionMethod,
+			},
+			ServiceLoopPrevention: &felixServiceLoopPreventionDisabled,
 		}
 		networkConfigAllMTU = &calicov1alpha1.NetworkConfig{
 			Backend: &backendVXLan,
@@ -305,12 +321,17 @@ var _ = Describe("Chart package test", func() {
 					},
 				},
 			}
-			if config != nil && config() != nil && config().AutoScaling != nil && config().AutoScaling.Mode == calicov1alpha1.AutoscalingModeVPA {
-				if typhaEnabled {
-					expected["autoscaling"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+			if config != nil && config() != nil {
+				if config().ServiceLoopPrevention != nil {
+					expected["config"].(map[string]interface{})["felix"].(map[string]interface{})["serviceLoopPrevention"] = string(*config().ServiceLoopPrevention)
 				}
-				expected["autoscaling"].(map[string]interface{})["node"] = strconv.FormatBool(true)
-				expected["autoscaling"].(map[string]interface{})["resourceRequests"] = calculateResourceRequests(config().AutoScaling.Resources)
+				if config().AutoScaling != nil && config().AutoScaling.Mode == calicov1alpha1.AutoscalingModeVPA {
+					if typhaEnabled {
+						expected["autoscaling"].(map[string]interface{})["typha"] = strconv.FormatBool(true)
+					}
+					expected["autoscaling"].(map[string]interface{})["node"] = strconv.FormatBool(true)
+					expected["autoscaling"].(map[string]interface{})["resourceRequests"] = calculateResourceRequests(config().AutoScaling.Resources)
+				}
 			}
 			if detectionMethodFunc() != nil {
 				expected["config"].(map[string]interface{})["ipv4"].(map[string]interface{})["autoDetectionMethod"] = *detectionMethodFunc()
@@ -344,6 +365,11 @@ var _ = Describe("Chart package test", func() {
 		Entry("should correctly compute all of the calico chart values with mtu",
 			networkConfigAllMTUFunc, networkConfigAllMTUFunc,
 			true, false, true, mtuVar, true, false, string(poolVXlan), false, false, false,
+			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
+			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
+		Entry("should correctly compute all of the calico chart values with serviceLoopPrevention",
+			networkConfigAllFelixFunc, networkConfigAllFelixFunc,
+			true, true, true, defaultMtu, true, false, string(poolVXlan), false, false, false,
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with ebpf dataplane enabled and kube-proxy disabled",
