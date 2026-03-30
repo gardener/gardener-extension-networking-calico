@@ -41,9 +41,7 @@ func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, ipFamilies [
 
 	allErrs = append(allErrs, ValidateNetworkConfigAutoscaling(networkConfig.AutoScaling, fldPath.Child("autoScaling"))...)
 
-	if networkConfig.ServiceLoopPrevention != nil {
-		allErrs = append(allErrs, ValidateServiceLoopPrevention(networkConfig.ServiceLoopPrevention, fldPath.Child("serviceLoopPrevention"))...)
-	}
+	allErrs = append(allErrs, ValidateServiceLoopPrevention(networkConfig.ServiceLoopPrevention, fldPath.Child("serviceLoopPrevention"))...)
 
 	if networkConfig.IPIP != nil && !sets.New(apiscalico.Always, apiscalico.Never, apiscalico.CrossSubnet, apiscalico.Off).Has(*networkConfig.IPIP) {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("ipip"), *networkConfig.IPIP, fmt.Sprintf("unsupported value %q for ipip, supported values are [%q, %q, %q, %q]", *networkConfig.IPIP, apiscalico.Always, apiscalico.Never, apiscalico.CrossSubnet, apiscalico.Off)))
@@ -234,16 +232,18 @@ func ValidateNetworkConfigAutoscaling(autoscaling *apiscalico.AutoScaling, fldPa
 }
 
 func ValidateServiceLoopPrevention(serviceLoopPrevention *apiscalico.ServiceLoopPrevention, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
 	if serviceLoopPrevention == nil {
-		return nil
+		return allErrs
 	}
 
 	allowedValues := sets.New(apiscalico.ServiceLoopPreventionDisabled, apiscalico.ServiceLoopPreventionDrop, apiscalico.ServiceLoopPreventionReject)
 	if !allowedValues.Has(*serviceLoopPrevention) {
-		return field.ErrorList{field.Invalid(fldPath, *serviceLoopPrevention, fmt.Sprintf("unsupported value %q for serviceLoopPrevention, supported values are [%q, %q, %q]", *serviceLoopPrevention, apiscalico.ServiceLoopPreventionDisabled, apiscalico.ServiceLoopPreventionDrop, apiscalico.ServiceLoopPreventionReject))}
+		allErrs = append(allErrs, field.Invalid(fldPath, *serviceLoopPrevention, fmt.Sprintf("unsupported value %q for serviceLoopPrevention, supported values are [%q, %q, %q]", *serviceLoopPrevention, apiscalico.ServiceLoopPreventionDisabled, apiscalico.ServiceLoopPreventionDrop, apiscalico.ServiceLoopPreventionReject)))
 	}
 
-	return nil
+	return allErrs
 }
 
 // ValidateResourceList validates the resources in the resource list.
