@@ -45,8 +45,8 @@ type felix struct {
 	IPInIP                      felixIPinIP                           `json:"ipinip"`
 	BPF                         felixBPF                              `json:"bpf"`
 	BPFKubeProxyIptablesCleanup felixBPFKubeProxyIptablesCleanup      `json:"bpfKubeProxyIPTablesCleanup"`
-	ServiceLoopPrevention       *calicov1alpha1.ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty"`
 	NFTables                    felixNFTables                         `json:"nftables"`
+	ServiceLoopPrevention       *calicov1alpha1.ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty"`
 }
 
 type felixIPinIP struct {
@@ -131,6 +131,9 @@ var defaultCalicoConfig = calicoConfig{
 			Enabled: false,
 		},
 		BPFKubeProxyIptablesCleanup: felixBPFKubeProxyIptablesCleanup{
+			Enabled: false,
+		},
+		NFTables: felixNFTables{
 			Enabled: false,
 		},
 	},
@@ -302,13 +305,16 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 		)
 	}
 
-	if kubeProxyMode != nil {
+	if kubeProxyEnabled && kubeProxyMode != nil {
 		if *kubeProxyMode == v1beta1.ProxyModeNFTables {
 			c.Felix.NFTables.Enabled = true
 		}
 	}
 
 	if !kubeProxyEnabled {
+		if kubeProxyMode != nil {
+			return nil, fmt.Errorf("kube-proxy mode must not be set if kube-proxy is disabled")
+		}
 		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
 	}
 
