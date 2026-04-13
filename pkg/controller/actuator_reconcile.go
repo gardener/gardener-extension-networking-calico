@@ -475,7 +475,8 @@ func isMutatingAdmissionPolicyEnabled(cluster *extensionscontroller.Cluster) boo
 		return false
 	}
 
-	if enabled, ok := cluster.Shoot.Spec.Kubernetes.KubeAPIServer.RuntimeConfig["admissionregistration.k8s.io/v1alpha1"]; !ok || !enabled {
+	rc := cluster.Shoot.Spec.Kubernetes.KubeAPIServer.RuntimeConfig
+	if !rc["admissionregistration.k8s.io/v1alpha1"] && !rc["admissionregistration.k8s.io/v1beta1"] {
 		return false
 	}
 
