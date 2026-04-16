@@ -66,7 +66,46 @@ providerConfig:
         SeamlessOverlaySwitch: true
 ```
 
-Note: Seamless overlay switching requires the shoot Kubernetes cluster to be running Kubernetes >= 1.36 or to have the MutatingAdmissionPolicy admission feature enabled in the kube-apiserver (feature gate and RuntimeConfig). Without one of these, the extension cannot use the newer admission APIs needed for the seamless switch.
+##### Kubernetes version requirements
+
+The seamless overlay switch relies on the `MutatingAdmissionPolicy` admission API. The availability of this API depends on the shoot's Kubernetes version:
+
+| Kubernetes version | MutatingAdmissionPolicy state | What you need to do |
+|--------------------|-------------------------------|---------------------|
+| < 1.34             | Alpha (off by default)        | Explicitly enable via feature gate and runtimeConfig (see below) |
+| >= 1.34, < 1.36    | Beta (on by default)          | Nothing — seamless switch activates automatically unless you explicitly disable it |
+| >= 1.36            | GA (always on)                | Nothing — seamless switch activates automatically |
+
+**Migrating from Kubernetes 1.33 → 1.34**
+
+On Kubernetes 1.33 (alpha), the feature is off by default. To use the seamless overlay switch while still on 1.33, or to ensure the admission webhook is available when upgrading to 1.34, explicitly enable `MutatingAdmissionPolicy` in the shoot spec:
+
+```yaml
+spec:
+  kubernetes:
+    version: 1.34.3
+    kubeAPIServer:
+      featureGates:
+        MutatingAdmissionPolicy: true
+      runtimeConfig:
+        admissionregistration.k8s.io/v1alpha1: true
+        admissionregistration.k8s.io/v1beta1: true
+```
+
+Both `v1alpha1` and `v1beta1` runtimeConfig entries are required because 1.33 serves the API under `v1alpha1`, while 1.34 promotes it to `v1beta1`. Enabling both ensures a smooth transition across the upgrade.
+
+**Migrating from Kubernetes 1.35 → 1.36**
+
+On 1.35 (beta) the feature is already on by default, so no extra configuration is needed. The seamless overlay switch activates automatically. If for any reason `MutatingAdmissionPolicy` was explicitly disabled on 1.35, remove that override before or during the upgrade to 1.36, where it becomes GA and can no longer be disabled:
+
+```yaml
+spec:
+  kubernetes:
+    version: 1.36.0
+    kubeAPIServer:
+      featureGates:
+        # Remove or omit any prior: MutatingAdmissionPolicy: false
+```
 
 ##### Behavior
 
