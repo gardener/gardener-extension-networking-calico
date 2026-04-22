@@ -222,8 +222,12 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	kubeProxyEnabled := true
-	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil && cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil {
-		kubeProxyEnabled = *cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled
+	var kubeProxyMode *v1beta1.ProxyMode
+	if cluster.Shoot.Spec.Kubernetes.KubeProxy != nil {
+		if cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled != nil {
+			kubeProxyEnabled = *cluster.Shoot.Spec.Kubernetes.KubeProxy.Enabled
+		}
+		kubeProxyMode = cluster.Shoot.Spec.Kubernetes.KubeProxy.Mode
 	}
 
 	// Create shoot chart renderer
@@ -244,6 +248,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		cluster.Shoot.Spec.Kubernetes.Version,
 		gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
 		kubeProxyEnabled,
+		kubeProxyMode,
 		features.FeatureGate.Enabled(features.NonPrivilegedCalicoNode),
 		cluster.Shoot.Spec.Networking.Nodes,
 		podCIDRs,

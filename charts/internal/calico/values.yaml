@@ -41,6 +41,8 @@ config:
       enabled: "true"
     bpf:
       enabled: "false"
+    nftables:
+      enabled: false
     bpfKubeProxyIPTablesCleanup:
       enabled: "false"
   nonPrivileged: false

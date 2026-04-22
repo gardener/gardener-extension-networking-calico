@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
+	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	mockchartrenderer "github.com/gardener/gardener/pkg/chartrenderer/mock"
@@ -241,10 +242,11 @@ var _ = Describe("Chart package test", func() {
 
 	DescribeTable("#ComputeCalicoChartValues",
 		func(config func() *calicov1alpha1.NetworkConfig, configResult func() *calicov1alpha1.NetworkConfig, typhaEnabled bool, wantsVPA bool,
-			kubeProxyEnabled bool, mtu string, ipinip bool, bpf bool, pool string, birdExporterEnabled bool, multusEnabled bool, installCNIPlugins bool,
+			kubeProxyEnabled bool, mtu string, ipinip bool, bpf bool, kubeProxyMode *corev1beta1.ProxyMode, pool string, birdExporterEnabled bool, multusEnabled bool, installCNIPlugins bool,
 			modeFunc func() string, detectionMethodFunc func() *string, nodesFunc func() *string, additionalGlobalOptions map[string]string) {
-			values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, false, nodesFunc(), []string{network.Spec.PodCIDR}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
+			values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, kubeProxyMode, false, nodesFunc(), []string{network.Spec.PodCIDR}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
 			Expect(err).To(BeNil())
+
 			expected := map[string]interface{}{
 				"images": map[string]interface{}{
 					"calico-cni":              imagevector.CalicoCNIImage(kubernetesVersion),
@@ -296,6 +298,9 @@ var _ = Describe("Chart package test", func() {
 						"bpfKubeProxyIPTablesCleanup": map[string]interface{}{
 							"enabled": !kubeProxyEnabled,
 						},
+						"nftables": map[string]interface{}{
+							"enabled": kubeProxyMode != nil && *kubeProxyMode == corev1beta1.ProxyModeNFTables,
+						},
 					},
 					"ipv4": map[string]interface{}{
 						"enabled":             true,
@@ -344,72 +349,77 @@ var _ = Describe("Chart package test", func() {
 
 		Entry("empty network config should properly render calico chart values",
 			networkConfigNilFunc, networkConfigNilValuesFunc,
-			true, false, true, defaultMtu, true, false, string(poolIPIP), false, false, false,
+			true, false, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("empty network config should properly render calico chart values even without node cidr",
 			networkConfigNilFunc, networkConfigNilValuesFunc,
-			true, false, true, defaultMtu, true, false, string(poolIPIP), false, false, false,
+			true, false, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return nil }, nil),
 		Entry("should disable felix ip in ip and set pool mode to never when setting backend to none",
 			networkConfigBackendNoneFunc, networkConfigBackendNoneFunc,
-			true, false, true, defaultMtu, false, false, string(poolIPIP), false, false, false,
+			true, false, true, defaultMtu, false, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(never) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values",
 			networkConfigAllFunc, networkConfigAllFunc,
-			true, true, true, defaultMtu, true, false, string(poolVXlan), false, false, false,
+			true, true, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolVXlan), false, false, false,
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with mtu",
 			networkConfigAllMTUFunc, networkConfigAllMTUFunc,
-			true, false, true, mtuVar, true, false, string(poolVXlan), false, false, false,
+			true, false, true, mtuVar, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolVXlan), false, false, false,
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with serviceLoopPrevention",
 			networkConfigAllFelixFunc, networkConfigAllFelixFunc,
-			true, true, true, defaultMtu, true, false, string(poolVXlan), false, false, false,
+			true, true, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolVXlan), false, false, false,
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with ebpf dataplane enabled and kube-proxy disabled",
 			networkConfigAllEBPFDataplaneFunc, networkConfigAllEBPFDataplaneFunc,
-			true, false, false, defaultMtu, true, true, string(poolVXlan), false, false, false,
+			true, false, false, defaultMtu, true, true, nil, string(poolVXlan), false, false, false,
 			func() string { return string(*networkConfigAll.IPv4.Mode) }, func() *string { return networkConfigAll.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with overlay disabled",
 			networkConfigOverlayDisabledFunc, networkConfigOverlayDisabledFunc,
-			true, true, true, defaultMtu, false, false, string(poolIPIP), false, false, false,
+			true, true, true, defaultMtu, false, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(*networkConfigOverlayDisabled.IPv4.Mode) }, func() *string { return networkConfigOverlayDisabled.IPv4.AutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR, "overlayEnabled": "false", "snatToUpstreamDNSEnabled": "true"}),
 		Entry("should correctly compute all of the calico chart values with overlay disabled, but no node cidr",
 			networkConfigOverlayDisabledFunc, networkConfigOverlayDisabledFunc,
-			true, true, true, defaultMtu, false, false, string(poolIPIP), false, false, false,
+			true, true, true, defaultMtu, false, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(*networkConfigOverlayDisabled.IPv4.Mode) }, func() *string { return networkConfigOverlayDisabled.IPv4.AutoDetectionMethod },
 			func() *string { return nil }, map[string]string{"overlayEnabled": "false", "snatToUpstreamDNSEnabled": "true"}),
 		Entry("should respect deprecated fields in order to keep backwards compatibility",
 			networkConfigDeprecatedFunc, networkConfigDeprecatedFunc,
-			true, true, true, defaultMtu, true, false, string(poolIPIP), false, false, false,
+			true, true, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(*networkConfigDeprecated.IPIP) }, func() *string { return networkConfigDeprecated.IPAutoDetectionMethod },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with wireguard enabled",
 			networkConfigWireguardFunc, networkConfigWireguardFunc,
-			true, false, true, defaultMtu, true, false, string(poolIPIP), false, false, false,
+			true, false, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with bird-exporter enabled",
 			networkConfigBirdExporterFunc, networkConfigBirdExporterFunc,
-			true, false, true, defaultMtu, true, false, string(poolIPIP), true, false, false,
+			true, false, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), true, false, false,
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should correctly compute all of the calico chart values with multus enabled",
 			networkConfigMultusFunc, networkConfigMultusFunc,
-			true, false, true, defaultMtu, true, false, string(poolIPIP), false, true, true,
+			true, false, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, true, true,
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 		Entry("should not create VPA config for typha when typha is disabled",
 			networkConfigVPATyphaDisabledFunc, networkConfigVPATyphaDisabledFunc,
-			false, true, true, defaultMtu, true, false, string(poolIPIP), false, false, false,
+			false, true, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
+			func() string { return string(always) }, func() *string { return nil },
+			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
+		Entry("should set nftables to enabled if kube-proxy mode is nftables",
+			networkConfigNilFunc, networkConfigNilValuesFunc,
+			true, false, true, defaultMtu, true, false, pointer(corev1beta1.ProxyModeNFTables), string(poolIPIP), false, false, false,
 			func() string { return string(always) }, func() *string { return nil },
 			func() *string { return &nodeCIDR }, map[string]string{"nodeCIDR": nodeCIDR}),
 	)
@@ -418,7 +428,7 @@ var _ = Describe("Chart package test", func() {
 		var podCIDR = "12.0.0.0/8"
 		DescribeTable("should correctly compute calico chart values with non-privileged mode enabled",
 			func(config func() *calicov1alpha1.NetworkConfig, expectedResult bool) {
-				values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, true, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
+				values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, nil, true, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
 				Expect(err).To(BeNil())
 
 				actual, err := utils.GetFromValuesMap(values, "config", "nonPrivileged")
@@ -431,7 +441,7 @@ var _ = Describe("Chart package test", func() {
 		)
 
 		It("should error on invalid config value", func() {
-			_, err := ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, false, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
+			_, err := ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, nil, false, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 
@@ -449,7 +459,7 @@ var _ = Describe("Chart package test", func() {
 			It("should correctly configure for IPv4 networks", func() {
 				values, err := ComputeCalicoChartValues(
 					network,
-					nil, "", false, false, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
+					nil, "", false, false, nil, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -486,7 +496,7 @@ var _ = Describe("Chart package test", func() {
 				}
 				values, err := ComputeCalicoChartValues(
 					network, config,
-					"", false, false, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
+					"", false, false, nil, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -519,7 +529,7 @@ var _ = Describe("Chart package test", func() {
 				}
 				values, err := ComputeCalicoChartValues(
 					network, config,
-					"", false, false, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
+					"", false, false, nil, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -560,7 +570,7 @@ var _ = Describe("Chart package test", func() {
 			It("should correctly configure for IPv6 networks", func() {
 				values, err := ComputeCalicoChartValues(
 					network,
-					nil, "", false, false, false, nil, []string{"2001:0db8:85a3:0000::/56"}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv6},
+					nil, "", false, false, nil, false, nil, []string{"2001:0db8:85a3:0000::/56"}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv6},
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -598,7 +608,7 @@ var _ = Describe("Chart package test", func() {
 				}
 				values, err := ComputeCalicoChartValues(
 					network, config,
-					"", false, false, false, nil, []string{"2001:0db8:85a3:0000::/56"}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv6},
+					"", false, false, nil, false, nil, []string{"2001:0db8:85a3:0000::/56"}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv6},
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -642,7 +652,7 @@ var _ = Describe("Chart package test", func() {
 			It("should correctly configure for Dual-stack networks", func() {
 				values, err := ComputeCalicoChartValues(
 					network,
-					nil, "", false, false, false, nil, []string{"2001:0db8:85a3:0000::/56", podCIDR}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4, extensionsv1alpha1.IPFamilyIPv6},
+					nil, "", false, false, nil, false, nil, []string{"2001:0db8:85a3:0000::/56", podCIDR}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4, extensionsv1alpha1.IPFamilyIPv6},
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -672,6 +682,62 @@ var _ = Describe("Chart package test", func() {
 				))
 			})
 		})
+		Context("nftables", func() {
+			BeforeEach(func() {
+				network = &extensionsv1alpha1.Network{}
+			})
+			It("should not enable nftables if kube-proxy is in iptables mode", func() {
+				enablekubeproxy := true
+				kubeproxymode := corev1beta1.ProxyModeIPTables
+				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(
+					HaveKeyWithValue("felix", And(
+						HaveKeyWithValue("bpf", HaveKeyWithValue("enabled", false)),
+						HaveKeyWithValue("bpfKubeProxyIPTablesCleanup", HaveKeyWithValue("enabled", false)),
+						HaveKeyWithValue("nftables", HaveKeyWithValue("enabled", false)),
+					)),
+				)
+			})
+
+			It("should not enable nftables if kube-proxy is in ipvs mode", func() {
+				enablekubeproxy := true
+				kubeproxymode := corev1beta1.ProxyModeIPVS
+				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(
+					HaveKeyWithValue("felix", And(
+						HaveKeyWithValue("bpf", HaveKeyWithValue("enabled", false)),
+						HaveKeyWithValue("bpfKubeProxyIPTablesCleanup", HaveKeyWithValue("enabled", false)),
+						HaveKeyWithValue("nftables", HaveKeyWithValue("enabled", false)),
+					)),
+				)
+			})
+
+			It("should enable nftables if kube-proxy is in nftables mode", func() {
+				enablekubeproxy := true
+				kubeproxymode := corev1beta1.ProxyModeNFTables
+				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(values["config"]).To(
+					HaveKeyWithValue("felix", And(
+						HaveKeyWithValue("bpf", HaveKeyWithValue("enabled", false)),
+						HaveKeyWithValue("bpfKubeProxyIPTablesCleanup", HaveKeyWithValue("enabled", false)),
+						HaveKeyWithValue("nftables", HaveKeyWithValue("enabled", true)),
+					)),
+				)
+			})
+
+			It("should error out if kubeProxyMode is set but kube-proxy is not enabled", func() {
+				enablekubeproxy := false
+				kubeproxymode := corev1beta1.ProxyModeNFTables
+				_, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				Expect(err).To(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("#RenderCalicoChart", func() {
@@ -698,7 +764,7 @@ var _ = Describe("Chart package test", func() {
 					},
 				}, nil)
 
-				_, err := RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, false, nodes, nil, nil)
+				_, err := RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, nil, false, nodes, nil, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 			},
