@@ -179,12 +179,17 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		return fmt.Errorf("failed to parse shoot Kubernetes version %s: %w", cluster.Shoot.Spec.Kubernetes.Version, err)
 	}
 
-	newK8sGreaterEqual136, err := versionutils.CheckVersionMeetsConstraint(shootKubernetesVersion.String(), ">= 1.36")
+	newK8sGreaterEqual134, err := versionutils.CheckVersionMeetsConstraint(shootKubernetesVersion.String(), ">= 1.34")
 	if err != nil {
 		return fmt.Errorf("failed to check version constraint %w", err)
 	}
 
-	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) && (newK8sGreaterEqual136 || isMutatingAdmissionPolicyEnabled(cluster)) {
+	// For K8s >= 1.34, MutatingAdmissionPolicy is beta (enabled by default).
+	// Users can still explicitly disable it via feature gate until GA (>= 1.36).
+	mutatingAdmissionPolicyAvailable := newK8sGreaterEqual134 && !isMutatingAdmissionPolicyExplicitlyDisabled(cluster) ||
+		isMutatingAdmissionPolicyEnabled(cluster)
+
+	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) && mutatingAdmissionPolicyAvailable {
 		overlaySwitch, err := isOverlaySwitch(ctx, log, a.client, network)
 		if err != nil {
 			return fmt.Errorf("failed to detect pod overlay switch: %w", err)
@@ -456,6 +461,19 @@ func getDaemonSetFromManagedResource(ctx context.Context, c client.Client, names
 	}
 
 	return nil, fmt.Errorf("DaemonSet %q not found in ManagedResource %q", daemonSetName, mrName)
+}
+
+// isMutatingAdmissionPolicyExplicitlyDisabled returns true if the user has explicitly
+// set the MutatingAdmissionPolicy feature gate to false. This is relevant for
+// K8s >= 1.34 and < 1.36 where the feature is beta (on by default) but can be disabled.
+func isMutatingAdmissionPolicyExplicitlyDisabled(cluster *extensionscontroller.Cluster) bool {
+	if cluster.Shoot.Spec.Kubernetes.KubeAPIServer != nil &&
+		cluster.Shoot.Spec.Kubernetes.KubeAPIServer.FeatureGates != nil {
+		if enabled, ok := cluster.Shoot.Spec.Kubernetes.KubeAPIServer.FeatureGates["MutatingAdmissionPolicy"]; ok && !enabled {
+			return true
+		}
+	}
+	return false
 }
 
 func isMutatingAdmissionPolicyEnabled(cluster *extensionscontroller.Cluster) bool {
