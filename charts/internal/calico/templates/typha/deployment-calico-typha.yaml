@@ -18,7 +18,7 @@ metadata:
     k8s-app: calico-typha
     gardener.cloud/role: system-component
 spec:
-  revisionHistoryLimit: 5
+  revisionHistoryLimit: 2
   strategy:
     # Ensure that typha always stays available
     type: RollingUpdate
