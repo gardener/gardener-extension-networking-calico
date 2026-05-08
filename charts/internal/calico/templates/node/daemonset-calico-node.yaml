@@ -16,7 +16,7 @@ metadata:
     resources.gardener.cloud/preserve-resources: 'true'
   {{- end }}
 spec:
-  revisionHistoryLimit: 5
+  revisionHistoryLimit: 2
   selector:
     matchLabels:
       k8s-app: calico-node

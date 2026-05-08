@@ -10,7 +10,7 @@ metadata:
   labels:
     k8s-app: calico-typha-horizontal-autoscaler
 spec:
-  revisionHistoryLimit: 5
+  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
