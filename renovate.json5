@@ -31,8 +31,8 @@
     {
       // Group golang updates in one PR.
       "groupName": "golang",
-      "matchDatasources": ["docker", "go-version"],
-      "matchPackagePatterns": ["golang"],
+      "matchDatasources": ["docker", "golang-version"],
+      "matchPackagePatterns": ["go", "golang"],
       "automerge": true
     },
     {
