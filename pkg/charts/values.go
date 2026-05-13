@@ -5,6 +5,7 @@
 package charts
 
 import (
+	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,12 +25,13 @@ func RenderCalicoChart(
 	kubernetesVersion string,
 	wantsVPA bool,
 	kubeProxyEnabled bool,
+	kubeProxyMode *v1beta1.ProxyMode,
 	nonPrivileged bool,
 	nodeCIDR *string,
 	podCidrs []string,
 	ipFamilies []extensionsv1alpha1.IPFamily,
 ) ([]byte, error) {
-	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, nonPrivileged, nodeCIDR, podCidrs, ipFamilies)
+	values, err := ComputeCalicoChartValues(network, config, kubernetesVersion, wantsVPA, kubeProxyEnabled, kubeProxyMode, nonPrivileged, nodeCIDR, podCidrs, ipFamilies)
 	if err != nil {
 		return nil, err
 	}
