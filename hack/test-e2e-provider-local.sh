@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: 2023 SAP SE or an SAP affiliate company and Gardener contributors
+# SPDX-FileCopyrightText: 2025 SAP SE or an SAP affiliate company and Gardener contributors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -19,33 +19,26 @@ cd "$repo_root/gardener"
 git checkout "$gardener_version"
 source "$repo_root/gardener/hack/ci-common.sh"
 
-echo '172.18.255.1 api.e2e-default.local.external.local.gardener.cloud' >> /etc/hosts
-echo '172.18.255.1 api.e2e-force-del.local.external.local.gardener.cloud' >> /etc/hosts
-echo '127.0.0.1 garden.local.gardener.cloud' >> /etc/hosts
-echo '127.0.0.1 registry.local.gardener.cloud' >> /etc/hosts
-
+echo ">>>>>>>>>>>>>>>>>>>> kind-up"
 make kind-up
 trap '{
   cd "$repo_root/gardener"
   export_artifacts "gardener-local"
   make kind-down
 }' EXIT
-export KUBECONFIG=$repo_root/gardener/example/gardener-local/kind/local/kubeconfig
+export KUBECONFIG=$repo_root/gardener/dev-setup/gardenlet/components/kubeconfigs/seed-local/kubeconfig
+echo "<<<<<<<<<<<<<<<<<<<< kind-up done"
+
+echo ">>>>>>>>>>>>>>>>>>>> gardener-up"
 make gardener-up
+echo "<<<<<<<<<<<<<<<<<<<< gardener-up done"
 
 cd $repo_root
+echo ">>>>>>>>>>>>>>>>>>>> extension-up"
+make extension-up
+echo "<<<<<<<<<<<<<<<<<<<< extension-up done"
 
-version=$(git rev-parse HEAD)
-make docker-images
-docker tag europe-docker.pkg.dev/gardener-project/public/gardener/extensions/networking-calico:latest networking-calico-local:$version
-kind load docker-image networking-calico-local:$version --name gardener-local
-
-mkdir -p $repo_root/tmp
-cp -f $repo_root/example/controller-registration.yaml $repo_root/tmp/controller-registration.yaml
-yq -i e "(select (.helm.values.image) | .helm.values.image.tag) |= \"$version\"" $repo_root/tmp/controller-registration.yaml
-yq -i e '(select (.helm.values.image) | .helm.values.image.repository) |= "docker.io/library/networking-calico-local"' $repo_root/tmp/controller-registration.yaml
-
-kubectl apply --server-side --force-conflicts -f "$repo_root/tmp/controller-registration.yaml"
+export REPO_ROOT=$repo_root
 
 # reduce flakiness in contended pipelines
 export GOMEGA_DEFAULT_EVENTUALLY_TIMEOUT=5s
@@ -55,7 +48,9 @@ export GOMEGA_DEFAULT_EVENTUALLY_POLLING_INTERVAL=200ms
 export GOMEGA_DEFAULT_CONSISTENTLY_DURATION=5s
 export GOMEGA_DEFAULT_CONSISTENTLY_POLLING_INTERVAL=200ms
 
-ginkgo --timeout=1h --v --progress "$@" $repo_root/test/e2e/...
+ginkgo --timeout=1h --v --show-node-events "$@" $repo_root/test/e2e/...
 
+echo ">>>>>>>>>>>>>>>>>>>> kind-down"
 cd "$repo_root/gardener"
-make gardener-down
+make kind-down
+echo "<<<<<<<<<<<<<<<<<<<< kind-down done"
