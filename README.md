@@ -1,4 +1,4 @@
-# [Gardener Extension for Calico Networking](https://gardener.cloud)
+# Gardener Extension for Calico Networking
 
 [![REUSE status](https://api.reuse.software/badge/github.com/gardener/gardener-extension-networking-calico)](https://api.reuse.software/info/github.com/gardener/gardener-extension-networking-calico)
 [![Build](https://github.com/gardener/gardener-extension-networking-calico/actions/workflows/non-release.yaml/badge.svg)](https://github.com/gardener/gardener-extension-networking-calico/actions/workflows/non-release.yaml)
