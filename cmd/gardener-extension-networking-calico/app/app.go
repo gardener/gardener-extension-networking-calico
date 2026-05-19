@@ -133,7 +133,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			log := mgr.GetLogger()
 			log.Info("Adding controllers to manager")
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
-			reconcileOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.IgnoreOperationAnnotation, nil)
+			reconcileOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			calicoCtrlOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.Controller)
 
 			if err := controllerSwitches.Completed().AddToManager(ctx, mgr); err != nil {

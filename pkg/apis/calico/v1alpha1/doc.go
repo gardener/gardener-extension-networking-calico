@@ -7,7 +7,7 @@
 // +k8s:openapi-gen=true
 // +k8s:defaulter-gen=TypeMeta
 
-//go:generate gen-crd-api-reference-docs -api-dir . -config ../../../../hack/api-reference/calico.json -template-dir "$GARDENER_HACK_DIR/api-reference/template" -out-file ../../../../hack/api-reference/calico.md
+//go:generate crd-ref-docs --source-path=. --config=../../../../hack/api-reference/calico.yaml --renderer=markdown --templates-dir=$GARDENER_HACK_DIR/api-reference/template --log-level=ERROR --output-path=../../../../hack/api-reference/calico.md
 
 // Package v1alpha1 contains the configuration of the Calico Network Extension.
 // +groupName=calico.networking.extensions.gardener.cloud

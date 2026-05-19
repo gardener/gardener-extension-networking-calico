@@ -1,0 +1,126 @@
+apiVersion: skaffold/v4beta7
+kind: Config
+metadata:
+  name: networking-calico
+build:
+  insecureRegistries:
+    - registry.local.gardener.cloud:5001
+  tagPolicy:
+    customTemplate:
+      template: "{{.version}}-{{.sha}}"
+      components:
+        - name: version
+          envTemplate:
+            template: "{{.EXTENSION_VERSION}}"
+        - name: sha
+          gitCommit:
+            variant: AbbrevCommitSha
+  artifacts:
+    - image: local-skaffold/gardener-extension-networking-calico
+      ko:
+        dependencies:
+          paths:
+            - charts
+            - charts/internal
+            - cmd/gardener-extension-networking-calico
+            - cmd/gardener-extension-networking-calico/app
+            - imagevector
+            - imagevector/images.yaml
+            - pkg/apis/calico
+            - pkg/apis/calico/install
+            - pkg/apis/calico/v1alpha1
+            - pkg/apis/calico/v1alpha1/helper
+            - pkg/apis/calico/validation
+            - pkg/apis/config
+            - pkg/apis/config/install
+            - pkg/apis/config/loader
+            - pkg/apis/config/v1alpha1
+            - pkg/calico
+            - pkg/charts
+            - pkg/cmd
+            - pkg/controller
+            - pkg/features
+            - VERSION
+        ldflags:
+          - '{{.LD_FLAGS}}'
+        main: ./cmd/gardener-extension-networking-calico
+    - image: local-skaffold/gardener-extension-admission-calico
+      ko:
+        dependencies:
+          paths:
+            - charts
+            - charts/internal
+            - cmd/gardener-extension-admission-calico
+            - cmd/gardener-extension-admission-calico/app
+            - imagevector
+            - imagevector/images.yaml
+            - pkg/admission/cmd
+            - pkg/admission/validator
+            - pkg/apis
+            - pkg/apis/calico
+            - pkg/apis/calico/install
+            - pkg/apis/calico/validation
+            - pkg/apis/calico/v1alpha1
+            - pkg/apis/calico/v1alpha1/helper
+            - pkg/apis/config
+            - pkg/apis/config/install
+            - pkg/apis/config/loader
+            - pkg/apis/config/v1alpha1
+            - pkg/cmd
+            - pkg/controller
+            - pkg/features
+            - VERSION
+        ldflags:
+          - '{{.LD_FLAGS}}'
+        main: ./cmd/gardener-extension-admission-calico
+    - image: local-skaffold/gardener-extension-networking-calico/charts/calico-extension
+      custom:
+        buildCommand: |
+          bash {{.EXTENSION_GARDENER_DEV_SETUP_DIR}}/push-helm.sh charts/gardener-extension-networking-calico .skaffoldImage
+        dependencies:
+          paths:
+            - charts/gardener-extension-networking-calico
+            - charts/gardener-extension-networking-calico/templates
+      requires:
+        - image: local-skaffold/gardener-extension-networking-calico
+          alias: IMG
+    - image: local-skaffold/gardener-extension-networking-calico/charts/calico-admission-application
+      custom:
+        buildCommand: |
+          bash {{.EXTENSION_GARDENER_DEV_SETUP_DIR}}/push-helm.sh charts/gardener-extension-admission-calico/charts/application .skaffoldImage
+        dependencies:
+          paths:
+            - charts/gardener-extension-admission-calico/charts/application
+            - charts/gardener-extension-admission-calico/charts/application/templates
+      requires:
+        - image: local-skaffold/gardener-extension-admission-calico
+          alias: IMG
+    - image: local-skaffold/gardener-extension-networking-calico/charts/calico-admission-runtime
+      custom:
+        buildCommand: |
+          bash {{.EXTENSION_GARDENER_DEV_SETUP_DIR}}/push-helm.sh charts/gardener-extension-admission-calico/charts/runtime .skaffoldImage
+        dependencies:
+          paths:
+            - charts/gardener-extension-admission-calico/charts/runtime
+            - charts/gardener-extension-admission-calico/charts/runtime/templates
+      requires:
+        - image: local-skaffold/gardener-extension-admission-calico
+          alias: IMG
+resourceSelector:
+  allow:
+    # instruct skaffold to inject the built image reference into the image fields in our Extension object
+    - groupKind: Extension.operator.gardener.cloud
+      image:
+        - .spec.deployment.extension.helm.ociRepository.ref
+        - .spec.deployment.extension.values.image.ref
+        - .spec.deployment.admission.runtimeCluster.helm.ociRepository.ref
+        - .spec.deployment.admission.values.image.ref
+        - .spec.deployment.admission.virtualCluster.helm.ociRepository.ref
+manifests:
+  kustomize:
+    paths:
+      - dev/extension
+deploy:
+  kubectl:
+    flags:
+      apply: [--force-conflicts, --server-side]
