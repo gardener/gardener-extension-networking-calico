@@ -334,6 +334,13 @@ func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.Network
 		c.IPv4.Mode = calicov1alpha1.Never
 	}
 
+	// When overlay is explicitly disabled, IPIP serves no purpose. Disable it so Felix does
+	// not create a tunl0 device and does not subtract tunnel overhead from the MTU.
+	if config.Overlay != nil && !config.Overlay.Enabled {
+		c.Felix.IPInIP.Enabled = false
+		c.IPv4.Mode = calicov1alpha1.Never
+	}
+
 	if config.EbpfDataplane != nil && config.EbpfDataplane.Enabled {
 		c.Felix.BPF.Enabled = true
 		c.NonPrivileged = false
