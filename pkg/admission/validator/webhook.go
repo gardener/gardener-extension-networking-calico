@@ -29,7 +29,6 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	logger.Info("Setting up webhook", "name", Name)
 
 	return extensionswebhook.New(mgr, extensionswebhook.Args{
-		Provider:   calico.Name,
 		Name:       Name,
 		Path:       "/webhooks/validate",
 		Predicates: []predicate.Predicate{CalicoPredicate()},
