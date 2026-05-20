@@ -50,35 +50,37 @@ var _ = Describe("Chart package test", func() {
 		poolVXlan                                                  = calicov1alpha1.PoolVXLan
 		felixServiceLoopPreventionDisabled                         = calicov1alpha1.ServiceLoopPreventionDisabled
 
-		network                       *extensionsv1alpha1.Network
-		networkConfigNil              *calicov1alpha1.NetworkConfig
-		networkConfigNilValues        *calicov1alpha1.NetworkConfig
-		networkConfigBackendNone      *calicov1alpha1.NetworkConfig
-		networkConfigAll              *calicov1alpha1.NetworkConfig
-		networkConfigAllFelix         *calicov1alpha1.NetworkConfig
-		networkConfigAllMTU           *calicov1alpha1.NetworkConfig
-		networkConfigAllEBPFDataplane *calicov1alpha1.NetworkConfig
-		networkConfigDeprecated       *calicov1alpha1.NetworkConfig
-		networkConfigInvalid          *calicov1alpha1.NetworkConfig
-		networkConfigOverlayDisabled  *calicov1alpha1.NetworkConfig
-		networkConfigWireguard        *calicov1alpha1.NetworkConfig
-		networkConfigBirdExporter     *calicov1alpha1.NetworkConfig
-		networkConfigMultus           *calicov1alpha1.NetworkConfig
-		networkConfigVPATyphaDisabled *calicov1alpha1.NetworkConfig
+		network                          *extensionsv1alpha1.Network
+		networkConfigNil                 *calicov1alpha1.NetworkConfig
+		networkConfigNilValues           *calicov1alpha1.NetworkConfig
+		networkConfigBackendNone         *calicov1alpha1.NetworkConfig
+		networkConfigAll                 *calicov1alpha1.NetworkConfig
+		networkConfigAllFelix            *calicov1alpha1.NetworkConfig
+		networkConfigAllMTU              *calicov1alpha1.NetworkConfig
+		networkConfigAllEBPFDataplane    *calicov1alpha1.NetworkConfig
+		networkConfigDeprecated          *calicov1alpha1.NetworkConfig
+		networkConfigInvalid             *calicov1alpha1.NetworkConfig
+		networkConfigOverlayDisabled     *calicov1alpha1.NetworkConfig
+		networkConfigOverlayDisabledBird *calicov1alpha1.NetworkConfig
+		networkConfigWireguard           *calicov1alpha1.NetworkConfig
+		networkConfigBirdExporter        *calicov1alpha1.NetworkConfig
+		networkConfigMultus              *calicov1alpha1.NetworkConfig
+		networkConfigVPATyphaDisabled    *calicov1alpha1.NetworkConfig
 
-		networkConfigNilFunc              = func() *calicov1alpha1.NetworkConfig { return networkConfigNil }
-		networkConfigNilValuesFunc        = func() *calicov1alpha1.NetworkConfig { return networkConfigNilValues }
-		networkConfigBackendNoneFunc      = func() *calicov1alpha1.NetworkConfig { return networkConfigBackendNone }
-		networkConfigAllFunc              = func() *calicov1alpha1.NetworkConfig { return networkConfigAll }
-		networkConfigAllMTUFunc           = func() *calicov1alpha1.NetworkConfig { return networkConfigAllMTU }
-		networkConfigAllFelixFunc         = func() *calicov1alpha1.NetworkConfig { return networkConfigAllFelix }
-		networkConfigAllEBPFDataplaneFunc = func() *calicov1alpha1.NetworkConfig { return networkConfigAllEBPFDataplane }
-		networkConfigDeprecatedFunc       = func() *calicov1alpha1.NetworkConfig { return networkConfigDeprecated }
-		networkConfigOverlayDisabledFunc  = func() *calicov1alpha1.NetworkConfig { return networkConfigOverlayDisabled }
-		networkConfigWireguardFunc        = func() *calicov1alpha1.NetworkConfig { return networkConfigWireguard }
-		networkConfigBirdExporterFunc     = func() *calicov1alpha1.NetworkConfig { return networkConfigBirdExporter }
-		networkConfigMultusFunc           = func() *calicov1alpha1.NetworkConfig { return networkConfigMultus }
-		networkConfigVPATyphaDisabledFunc = func() *calicov1alpha1.NetworkConfig { return networkConfigVPATyphaDisabled }
+		networkConfigNilFunc                 = func() *calicov1alpha1.NetworkConfig { return networkConfigNil }
+		networkConfigNilValuesFunc           = func() *calicov1alpha1.NetworkConfig { return networkConfigNilValues }
+		networkConfigBackendNoneFunc         = func() *calicov1alpha1.NetworkConfig { return networkConfigBackendNone }
+		networkConfigAllFunc                 = func() *calicov1alpha1.NetworkConfig { return networkConfigAll }
+		networkConfigAllMTUFunc              = func() *calicov1alpha1.NetworkConfig { return networkConfigAllMTU }
+		networkConfigAllFelixFunc            = func() *calicov1alpha1.NetworkConfig { return networkConfigAllFelix }
+		networkConfigAllEBPFDataplaneFunc    = func() *calicov1alpha1.NetworkConfig { return networkConfigAllEBPFDataplane }
+		networkConfigDeprecatedFunc          = func() *calicov1alpha1.NetworkConfig { return networkConfigDeprecated }
+		networkConfigOverlayDisabledFunc     = func() *calicov1alpha1.NetworkConfig { return networkConfigOverlayDisabled }
+		networkConfigOverlayDisabledBirdFunc = func() *calicov1alpha1.NetworkConfig { return networkConfigOverlayDisabledBird }
+		networkConfigWireguardFunc           = func() *calicov1alpha1.NetworkConfig { return networkConfigWireguard }
+		networkConfigBirdExporterFunc        = func() *calicov1alpha1.NetworkConfig { return networkConfigBirdExporter }
+		networkConfigMultusFunc              = func() *calicov1alpha1.NetworkConfig { return networkConfigMultus }
+		networkConfigVPATyphaDisabledFunc    = func() *calicov1alpha1.NetworkConfig { return networkConfigVPATyphaDisabled }
 
 		objectMeta = metav1.ObjectMeta{
 			Name:      "foo",
@@ -195,6 +197,16 @@ var _ = Describe("Chart package test", func() {
 				AutoDetectionMethod: &autodetectionMethod,
 			},
 			IPAutoDetectionMethod: &autodetectionMethod,
+		}
+		// overlay disabled with bird backend and no explicit IPv4 config — the real-world case
+		// where Felix must not create a tunl0 device
+		networkConfigOverlayDisabledBird = &calicov1alpha1.NetworkConfig{
+			Overlay: &calicov1alpha1.Overlay{Enabled: false},
+			Backend: &backendBird,
+			IPAM: &calicov1alpha1.IPAM{
+				CIDR: &podCIDR,
+				Type: "host-local",
+			},
 		}
 		networkConfigVPATyphaDisabled = &calicov1alpha1.NetworkConfig{
 			Backend: &backendBird,
@@ -391,6 +403,11 @@ var _ = Describe("Chart package test", func() {
 			networkConfigOverlayDisabledFunc, networkConfigOverlayDisabledFunc,
 			true, true, true, defaultMtu, false, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
 			func() string { return string(*networkConfigOverlayDisabled.IPv4.Mode) }, func() *string { return networkConfigOverlayDisabled.IPv4.AutoDetectionMethod },
+			func() *string { return nil }, map[string]string{"overlayEnabled": "false", "snatToUpstreamDNSEnabled": "true"}),
+		Entry("should disable felix ip in ip when overlay is disabled with bird backend and no explicit IPv4 config",
+			networkConfigOverlayDisabledBirdFunc, networkConfigOverlayDisabledBirdFunc,
+			true, true, true, defaultMtu, false, false, pointer(corev1beta1.ProxyModeIPTables), string(poolIPIP), false, false, false,
+			func() string { return string(never) }, func() *string { return nil },
 			func() *string { return nil }, map[string]string{"overlayEnabled": "false", "snatToUpstreamDNSEnabled": "true"}),
 		Entry("should respect deprecated fields in order to keep backwards compatibility",
 			networkConfigDeprecatedFunc, networkConfigDeprecatedFunc,
