@@ -16,7 +16,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
-	releaseutil "helm.sh/helm/v3/pkg/releaseutil"
+	releaseutil "helm.sh/helm/v4/pkg/release/v1/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/gardener/gardener-extension-networking-calico/charts"
