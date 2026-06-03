@@ -4,7 +4,6 @@
 
 ENSURE_GARDENER_MOD         := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
 GARDENER_HACK_DIR    		:= $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
-GARDENER_DEV_SETUP_DIR      := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/dev-setup
 EXTENSION_PREFIX            := gardener-extension
 NAME                        := networking-calico
 ADMISSION_NAME              := admission-calico
@@ -164,7 +163,7 @@ extension-up: export EXTENSION_VERSION = $(VERSION)
 extension-up: export SKAFFOLD_DEFAULT_REPO = registry.local.gardener.cloud:5001
 extension-up: export SKAFFOLD_PUSH = true
 extension-up: export LD_FLAGS = $(shell bash $(GARDENER_HACK_DIR)/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION gardener-extension-networking-calico)
-extension-up: export EXTENSION_GARDENER_DEV_SETUP_DIR = $(GARDENER_DEV_SETUP_DIR)
+extension-up: export EXTENSION_GARDENER_HACK_DIR = $(GARDENER_HACK_DIR)
 extension-up: $(SKAFFOLD) $(HELM) $(KUBECTL)
 	$(REPO_ROOT)/hack/prepare-dev-extension.sh
 	$(SKAFFOLD) run --cache-artifacts=true

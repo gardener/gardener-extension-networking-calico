@@ -76,7 +76,7 @@ build:
     - image: local-skaffold/gardener-extension-networking-calico/charts/calico-extension
       custom:
         buildCommand: |
-          bash {{.EXTENSION_GARDENER_DEV_SETUP_DIR}}/push-helm.sh charts/gardener-extension-networking-calico .skaffoldImage
+          bash {{.EXTENSION_GARDENER_HACK_DIR}}/push-helm.sh charts/gardener-extension-networking-calico .skaffoldImage
         dependencies:
           paths:
             - charts/gardener-extension-networking-calico
@@ -87,7 +87,7 @@ build:
     - image: local-skaffold/gardener-extension-networking-calico/charts/calico-admission-application
       custom:
         buildCommand: |
-          bash {{.EXTENSION_GARDENER_DEV_SETUP_DIR}}/push-helm.sh charts/gardener-extension-admission-calico/charts/application .skaffoldImage
+          bash {{.EXTENSION_GARDENER_HACK_DIR}}/push-helm.sh charts/gardener-extension-admission-calico/charts/application .skaffoldImage
         dependencies:
           paths:
             - charts/gardener-extension-admission-calico/charts/application
@@ -98,7 +98,7 @@ build:
     - image: local-skaffold/gardener-extension-networking-calico/charts/calico-admission-runtime
       custom:
         buildCommand: |
-          bash {{.EXTENSION_GARDENER_DEV_SETUP_DIR}}/push-helm.sh charts/gardener-extension-admission-calico/charts/runtime .skaffoldImage
+          bash {{.EXTENSION_GARDENER_HACK_DIR}}/push-helm.sh charts/gardener-extension-admission-calico/charts/runtime .skaffoldImage
         dependencies:
           paths:
             - charts/gardener-extension-admission-calico/charts/runtime
