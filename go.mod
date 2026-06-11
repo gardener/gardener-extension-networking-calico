@@ -7,7 +7,7 @@ toolchain go1.26.4
 require (
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/elastic/crd-ref-docs v0.3.0
-	github.com/gardener/gardener v1.144.0
+	github.com/gardener/gardener v1.144.1
 	github.com/gardener/gardener/pkg/apis v1.143.1
 	github.com/go-logr/logr v1.4.3
 	github.com/onsi/ginkgo/v2 v2.29.0
@@ -74,7 +74,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gardener/cert-management v0.23.0 // indirect
-	github.com/gardener/etcd-druid/api v0.36.3 // indirect
+	github.com/gardener/etcd-druid/api v0.36.4 // indirect
 	github.com/gardener/machine-controller-manager v0.61.3 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
