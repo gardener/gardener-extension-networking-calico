@@ -184,7 +184,13 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		return fmt.Errorf("failed to check version constraint %w", err)
 	}
 
-	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) && (newK8sGreaterEqual136 || isMutatingAdmissionPolicyEnabled(cluster)) {
+	// MutatingAdmissionPolicy is GA (always on) starting with K8s 1.36. For earlier
+	// versions it is alpha (< 1.34) or beta (>= 1.34, < 1.36). Per KEP-3136 beta APIs
+	// are off by default, so 1.34 and 1.35 still require an explicit opt-in via the
+	// MutatingAdmissionPolicy feature gate plus a matching runtimeConfig entry.
+	mutatingAdmissionPolicyAvailable := newK8sGreaterEqual136 || isMutatingAdmissionPolicyEnabled(cluster)
+
+	if features.FeatureGate.Enabled(features.SeamlessOverlaySwitch) && mutatingAdmissionPolicyAvailable {
 		overlaySwitch, err := isOverlaySwitch(ctx, log, a.client, network)
 		if err != nil {
 			return fmt.Errorf("failed to detect pod overlay switch: %w", err)
