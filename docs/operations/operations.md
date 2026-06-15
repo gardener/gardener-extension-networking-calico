@@ -109,8 +109,8 @@ spec:
 
 ##### Behavior
 
-- **Enabled** (default): The extension validates that routes are created before disabling overlay. If routes are not ready, the reconciliation will fail with a retriable error, keeping overlay enabled until routes are confirmed.
-- **Disabled**: The extension will disable overlay immediately when requested, without checking for route readiness. This may result in temporary connectivity issues during the transition.
+- **`SeamlessOverlaySwitch` enabled**: The extension validates that routes are created before disabling overlay. If routes are not ready, the reconciliation will fail with a retriable error, keeping overlay enabled until routes are confirmed.
+- **`SeamlessOverlaySwitch` disabled**: The extension will disable overlay immediately when requested, without checking for route readiness. This may result in temporary connectivity issues during the transition.
 
 ##### Limitations
 
