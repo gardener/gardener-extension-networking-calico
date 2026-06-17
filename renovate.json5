@@ -45,6 +45,13 @@
       "automerge": true
     },
     {
+      // Automerge patch updates for alpine base images.
+      "matchDatasources": ["docker"],
+      "matchPackagePatterns": ["alpine"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
       // Ignore paths which most likely create false positives.
       "matchFileNames": [
         "chart/**",
