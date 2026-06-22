@@ -45,10 +45,9 @@ spec:
       serviceAccountName: {{ include "name" . }}
       containers:
       - name: {{ include "name" . }}
-        image: {{ include "image" . }}
+        image: {{ include "image" .Values.image }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command:
-        - /gardener-extension-networking-calico
+        args:
         - --max-concurrent-reconciles={{ .Values.controllers.concurrentSyncs }}
         - --heartbeat-namespace={{ .Release.Namespace }}
         - --heartbeat-renew-interval-seconds={{ .Values.controllers.heartbeat.renewIntervalSeconds }}
