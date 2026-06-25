@@ -52,6 +52,19 @@
       "automerge": true
     },
     {
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchPackagePatterns": [
+        "^actions/checkout$",
+        "^actions/setup-go$",
+      ],
+      "automerge": true
+    },
+    {
       // Ignore paths which most likely create false positives.
       "matchFileNames": [
         "chart/**",
