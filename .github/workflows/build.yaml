@@ -130,7 +130,7 @@ jobs:
       - prepare
     steps:
       - uses: gardener/cc-utils/.github/actions/trusted-checkout@v1
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7.0.0
         with:
           cache: false
           go-version-file: go.mod
