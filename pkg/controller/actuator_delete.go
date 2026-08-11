@@ -22,15 +22,22 @@ func (a *actuator) Delete(ctx context.Context, _ logr.Logger, network *extension
 		return err
 	}
 
-	// Then delete the managed resource along with its secrets
-	if err := managedresources.Delete(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, true); err != nil {
-		return err
+	// Then delete the managed resources along with their secrets
+	for _, name := range managedResourceNames {
+		if err := managedresources.Delete(ctx, a.client, network.Namespace, name, true); err != nil {
+			return err
+		}
 	}
 
 	if cluster != nil && !v1beta1helper.ShootNeedsForceDeletion(cluster.Shoot) {
 		timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
-		return managedresources.WaitUntilDeleted(timeoutCtx, a.client, network.Namespace, CalicoConfigManagedResourceName)
+
+		for _, name := range managedResourceNames {
+			if err := managedresources.WaitUntilDeleted(timeoutCtx, a.client, network.Namespace, name); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

@@ -5,6 +5,8 @@
 package validation_test
 
 import (
+	"strings"
+
 	"github.com/gardener/gardener/pkg/apis/core"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -17,6 +19,7 @@ import (
 
 	apiscalico "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/validation"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
 var _ = Describe("Network validation", func() {
@@ -191,6 +194,49 @@ var _ = Describe("Network validation", func() {
 		}, nil, field.NewPath("config"),
 			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.typha.memory"), "Detail": ContainSubstring("must be positive")})),
 				PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.autoScaling.resources.typha.memory"), "Detail": ContainSubstring("must be greater than or equal to 0")}))),
+		),
+		Entry("should allow a valid kubeAPIServerEndpoints config", &apiscalico.NetworkConfig{
+			KubeAPIServerEndpoints: &apiscalico.KubeAPIServerEndpoints{
+				Enabled: ptr.To(true),
+				Name:    ptr.To("my-apiserver-set"),
+				Labels:  map[string]string{"component": "apiserver"},
+			},
+		}, nil, field.NewPath("config"),
+			BeEmpty(),
+		),
+		Entry("should return error for an empty kubeAPIServerEndpoints name", &apiscalico.NetworkConfig{
+			KubeAPIServerEndpoints: &apiscalico.KubeAPIServerEndpoints{Name: ptr.To("")},
+		}, nil, field.NewPath("config"),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.kubeAPIServerEndpoints.name"), "Detail": ContainSubstring("must not be empty")}))),
+		),
+		Entry("should return error for an invalid kubeAPIServerEndpoints name", &apiscalico.NetworkConfig{
+			KubeAPIServerEndpoints: &apiscalico.KubeAPIServerEndpoints{Name: ptr.To("Invalid_Name")},
+		}, nil, field.NewPath("config"),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.kubeAPIServerEndpoints.name")}))),
+		),
+		Entry("should allow a kubeAPIServerEndpoints name of maximum length", &apiscalico.NetworkConfig{
+			KubeAPIServerEndpoints: &apiscalico.KubeAPIServerEndpoints{Name: ptr.To(strings.Repeat("a", 253))},
+		}, nil, field.NewPath("config"),
+			BeEmpty(),
+		),
+		Entry("should return error for a too long kubeAPIServerEndpoints name", &apiscalico.NetworkConfig{
+			KubeAPIServerEndpoints: &apiscalico.KubeAPIServerEndpoints{Name: ptr.To(strings.Repeat("a", 254))},
+		}, nil, field.NewPath("config"),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Field": Equal("config.kubeAPIServerEndpoints.name"), "Detail": ContainSubstring("must be no more than 253 characters"),
+			}))),
+		),
+		Entry("should return error for an invalid kubeAPIServerEndpoints label", &apiscalico.NetworkConfig{
+			KubeAPIServerEndpoints: &apiscalico.KubeAPIServerEndpoints{Labels: map[string]string{"in valid": "x"}},
+		}, nil, field.NewPath("config"),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Field": Equal("config.kubeAPIServerEndpoints.labels")}))),
+		),
+		Entry("should forbid overriding the reserved kubeAPIServerEndpoints label", &apiscalico.NetworkConfig{
+			KubeAPIServerEndpoints: &apiscalico.KubeAPIServerEndpoints{Labels: map[string]string{
+				calico.KubeAPIServerEndpointsLabelKey: "something-else",
+			}},
+		}, nil, field.NewPath("config"),
+			ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{"Detail": ContainSubstring("is reserved")}))),
 		),
 	)
 })

@@ -61,6 +61,10 @@ config:
   featureGates: {}
     # NonPrivilegedCalicoNode: false
     # SeamlessOverlaySwitch: false
+  ## landscape-wide default, can be overridden per shoot via the Network's providerConfig
+  ##
+  # kubeAPIServerEndpoints:
+  #   enabled: false
 
 gardener:
   version: ""
