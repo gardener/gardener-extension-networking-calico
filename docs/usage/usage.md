@@ -131,6 +131,103 @@ autoScaling:
 > If the resource requests are chosen too low, it might impact the stability/performance of the cluster.
 > Specifying the resource requests for any other autoscaling mode has no effect.
 
+## Restricting Access to the `kube-apiserver`
+
+In a Gardener shoot cluster, pods reach the `kube-apiserver` via two different paths, and Calico observes a different destination IP for each of them:
+
+1. **The in-cluster path.** Traffic to the `kubernetes` service in the `default` namespace is intercepted by the node-local `apiserver-proxy` and forwarded to the seed cluster. This path can be expressed in Calico policy with a [service based rule](https://docs.tigera.io/calico/latest/reference/resources/globalnetworkpolicy#servicematch).
+2. **The `KUBERNETES_SERVICE_HOST` path.** Gardener [injects the out-of-cluster API server address](https://github.com/gardener/gardener/blob/master/docs/usage/networking/shoot_kubernetes_service_host_injection.md) into all shoot pods, so traffic goes directly to the load balancer of the seed's istio ingress gateway. The IP address of that load balancer is not known inside the shoot cluster, so it cannot be referenced in a policy.
+
+To close that gap, the extension can maintain a Calico [`GlobalNetworkSet`](https://docs.tigera.io/calico/latest/reference/resources/globalnetworkset) in the shoot cluster which contains the IP address(es) of the `kube-apiserver` endpoint. The extension only provides this building block, it does **not** create any `NetworkPolicy` or `GlobalNetworkPolicy`.
+
+Enable it in the `NetworkingConfig`:
+
+```yaml
+apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
+kind: NetworkConfig
+kubeAPIServerEndpoints:
+  enabled: true
+  # name: gardener-kube-apiserver          # optional, this is the default
+  # labels:                                # optional additional labels
+  #   my-label: my-value
+```
+
+> ℹ️ The extension operator can also enable this landscape-wide. In that case the field only needs to be set in order to opt out of it (`enabled: false`).
+
+The resulting object looks as follows:
+
+```yaml
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: gardener-kube-apiserver
+  labels:
+    networking.gardener.cloud/endpoint: kube-apiserver
+  annotations:
+    networking.gardener.cloud/ports: "443"
+    networking.gardener.cloud/source: DNSRecord
+spec:
+  nets:
+  - 34.107.12.34/32
+```
+
+The label `networking.gardener.cloud/endpoint=kube-apiserver` is the contract for referencing the set. It is always present, cannot be overridden, and is the only label the extension sets. Note that the labels of a `GlobalNetworkSet` are selector input for Calico policies rather than mere bookkeeping, so anything added via the `labels` field can be matched by a `destination.selector` too - including selectors which do not mean to refer to this set.
+
+Since a `GlobalNetworkSet` holds CIDRs only, the ports the kube-apiserver is reachable at are published in the `networking.gardener.cloud/ports` annotation (comma separated). It is `443` unless one of the addresses the set was derived from specifies a different port.
+
+### Example policy
+
+Both paths have to be allowed, which requires two separate rules because `destination.services` cannot be combined with any other selection criteria in one egress rule:
+
+```yaml
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: allow-to-kube-apiserver
+spec:
+  order: 100
+  selector: all()
+  types:
+  - Egress
+  egress:
+  # 1) in-cluster path: cluster IP and endpoints of the `kubernetes` service
+  - action: Allow
+    protocol: TCP
+    destination:
+      services:
+        name: kubernetes
+        namespace: default
+  # 2) injected KUBERNETES_SERVICE_HOST path: the seed's istio ingress gateway
+  - action: Allow
+    protocol: TCP
+    destination:
+      selector: networking.gardener.cloud/endpoint == 'kube-apiserver'
+      ports:
+      - 443
+```
+
+The same rules work in a namespaced `NetworkPolicy`, except that the second one needs `namespaceSelector: global()` next to the `selector`, because a `GlobalNetworkSet` is not a namespaced resource:
+
+```yaml
+  - action: Allow
+    protocol: TCP
+    destination:
+      namespaceSelector: global()
+      selector: networking.gardener.cloud/endpoint == 'kube-apiserver'
+      ports:
+      - 443
+```
+
+### Things to keep in mind
+
+- **Restrict the port.** The load balancer of the istio ingress gateway is shared by all shoot clusters of a seed and also serves other ports, for example for the `apiserver-proxy` and the VPN connection. Always combine the rule with `protocol: TCP` and the port(s) from the annotation above.
+- **Check for warnings if a policy does not match.** If the extension cannot determine the IP addresses, it neither publishes an empty set nor fails the shoot reconciliation, but records a warning event on the `Network` resource in the seed. Ask your Gardener operator to check it if traffic to the kube-apiserver is unexpectedly blocked.
+- **Egress only.** Traffic from the `kube-apiserver` to a pod (webhooks, `kubectl exec`, `kubectl logs`, metrics) arrives through the VPN tunnel and therefore does *not* have the load balancer IP as source address. The set must not be used in `ingress` rules.
+- **No server-side defaulting.** Since the Calico API server is not deployed in shoot clusters, the CRD based API group `crd.projectcalico.org/v1` has to be used. It performs no defaulting and no validation of selector expressions, so `spec.types`, `spec.selector` and `spec.order` must be set explicitly. An invalid selector is accepted by the API server and only fails later in `calico-node`/`calico-typha`, where it may drop the whole policy - check their logs if a policy misbehaves, and consider staging new policies with `action: Log` first.
+- **The set is managed by Gardener.** It is deployed via a `ManagedResource`, so manual modifications are reverted. Use the `name` and `labels` fields of the `NetworkingConfig` for customization.
+- **`hostNetwork` pods are not covered.** They are not Calico workload endpoints, so Calico policies do not apply to them.
+- **DNS.** Pods usually also need egress to the cluster DNS. If [`NodeLocalDNS`](https://github.com/gardener/gardener/blob/master/docs/usage/networking/node-local-dns.md) is enabled, pods send their queries to a link-local address instead of the `kube-dns` cluster IP, so a rule matching the `kube-dns` service is not sufficient. See also the known limitations at the end of this document.
+
 ## Example `NetworkingConfig` manifest
 
 An example `NetworkingConfig` for the Calico extension looks as follows:
@@ -148,6 +245,8 @@ overlay:
   enabled: true
 autoScaling:
   mode: "vpa"
+kubeAPIServerEndpoints:
+  enabled: true
 ```
 
 ## Example `Shoot` manifest
@@ -202,6 +301,8 @@ spec:
         enabled: true
       typha:
         enabled: false
+      kubeAPIServerEndpoints:
+        enabled: true
   kubernetes:
     version: 1.32.0
   maintenance:

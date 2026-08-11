@@ -378,6 +378,73 @@ boolean
 </table>
 
 
+<h3 id="kubeapiserverendpoints">KubeAPIServerEndpoints
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#networkconfig">NetworkConfig</a>)
+</p>
+
+<p>
+KubeAPIServerEndpoints contains configuration for the Calico GlobalNetworkSet which holds the IP addresses of the
+shoot's kube-apiserver endpoint.
+
+The GlobalNetworkSet can be referenced from Calico (Global)NetworkPolicies in order to restrict egress traffic to the
+kube-apiserver. Note that the in-cluster path (the `kubernetes` service in the `default` namespace) is not part of
+this set and should be matched with a service based rule instead.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+boolean
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.<br />If not set, the landscape-wide default configured by the extension operator is used.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Name is the name of the GlobalNetworkSet. Defaults to "gardener-kube-apiserver".</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>labels</code></br>
+<em>
+object (keys:string, values:string)
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Labels are additional labels which are set on the GlobalNetworkSet. They are merged with the default label<br />"networking.gardener.cloud/endpoint=kube-apiserver" which cannot be overridden.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
 <h3 id="multus">Multus
 </h3>
 
@@ -641,6 +708,18 @@ boolean
 </td>
 <td>
 <p>ServiceLoopPrevention configures the Felix service loop prevention option.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>kubeAPIServerEndpoints</code></br>
+<em>
+<a href="#kubeapiserverendpoints">KubeAPIServerEndpoints</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>KubeAPIServerEndpoints configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP<br />addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.<br />The extension only provides the GlobalNetworkSet as a building block, it does not create any<br />(Global)NetworkPolicy.</p>
 </td>
 </tr>
 
