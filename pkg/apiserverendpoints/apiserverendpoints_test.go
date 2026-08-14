@@ -43,9 +43,9 @@ var _ = Describe("APIServerEndpoints", func() {
 		Entry("providerConfig opts in before the operator default",
 			&calicov1alpha1.KubeAPIServerEndpoints{Enabled: ptr.To(true)}, ptr.To(false), true),
 		Entry("providerConfig without enabled falls back to the operator default",
-			&calicov1alpha1.KubeAPIServerEndpoints{Name: ptr.To("my-set")}, ptr.To(true), true),
+			&calicov1alpha1.KubeAPIServerEndpoints{}, ptr.To(true), true),
 		Entry("providerConfig without enabled and no operator default",
-			&calicov1alpha1.KubeAPIServerEndpoints{Name: ptr.To("my-set")}, nil, false),
+			&calicov1alpha1.KubeAPIServerEndpoints{}, nil, false),
 	)
 
 	DescribeTable("#fromCluster",

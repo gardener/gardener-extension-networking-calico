@@ -6,13 +6,11 @@ package apiserverendpoints
 
 import (
 	"errors"
-	"maps"
 	"strconv"
 	"strings"
 
 	"sigs.k8s.io/yaml"
 
-	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
@@ -43,19 +41,10 @@ type globalNetworkSetSpec struct {
 	Nets []string `json:"nets"`
 }
 
-// Name returns the name of the GlobalNetworkSet.
-func Name(config *calicov1alpha1.KubeAPIServerEndpoints) string {
-	if config != nil && config.Name != nil && *config.Name != "" {
-		return *config.Name
-	}
-
-	return calico.KubeAPIServerEndpointsDefaultName
-}
-
 // RenderGlobalNetworkSet renders the GlobalNetworkSet holding the given endpoints as YAML. The result is a pure function
 // of its input, in particular it carries no timestamp: the bytes are hashed into an immutable ManagedResource secret, so
 // anything changing per reconciliation would re-apply the object in every shoot cluster.
-func RenderGlobalNetworkSet(config *calicov1alpha1.KubeAPIServerEndpoints, endpoints *Endpoints) ([]byte, error) {
+func RenderGlobalNetworkSet(endpoints *Endpoints) ([]byte, error) {
 	if endpoints == nil || len(endpoints.CIDRs) == 0 {
 		return nil, errors.New("refusing to render a GlobalNetworkSet without CIDRs")
 	}
@@ -64,8 +53,10 @@ func RenderGlobalNetworkSet(config *calicov1alpha1.KubeAPIServerEndpoints, endpo
 		APIVersion: globalNetworkSetAPIVersion,
 		Kind:       globalNetworkSetKind,
 		Metadata: globalNetworkSetMeta{
-			Name:   Name(config),
-			Labels: labels(config),
+			Name: calico.KubeAPIServerEndpointsName,
+			// The set carries exactly one label: labels are selector input for Calico policies, so anything added here
+			// would leak into policies which do not mean to refer to this set.
+			Labels: map[string]string{calico.KubeAPIServerEndpointsLabelKey: calico.KubeAPIServerEndpointsLabelValue},
 			Annotations: map[string]string{
 				annotationPorts:  joinPorts(endpoints.Ports),
 				annotationSource: string(endpoints.Source),
@@ -73,21 +64,6 @@ func RenderGlobalNetworkSet(config *calicov1alpha1.KubeAPIServerEndpoints, endpo
 		},
 		Spec: globalNetworkSetSpec{Nets: endpoints.CIDRs},
 	})
-}
-
-// labels merges the configured labels with the contract label, which cannot be overridden. Nothing else is added: the
-// labels of a GlobalNetworkSet are selector input for Calico policies, so any extra label leaks into policies which do
-// not mean to refer to this set.
-func labels(config *calicov1alpha1.KubeAPIServerEndpoints) map[string]string {
-	result := map[string]string{}
-
-	if config != nil {
-		maps.Copy(result, config.Labels)
-	}
-
-	result[calico.KubeAPIServerEndpointsLabelKey] = calico.KubeAPIServerEndpointsLabelValue
-
-	return result
 }
 
 func joinPorts(ports []int32) string {

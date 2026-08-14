@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
@@ -146,7 +145,7 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 			Expect(globalNetworkSet(c, mr)).To(SatisfyAll(
 				ContainSubstring("apiVersion: crd.projectcalico.org/v1"),
 				ContainSubstring("kind: GlobalNetworkSet"),
-				ContainSubstring("name: "+calico.KubeAPIServerEndpointsDefaultName),
+				ContainSubstring("name: "+calico.KubeAPIServerEndpointsName),
 				ContainSubstring(calico.KubeAPIServerEndpointsLabelKey+": "+calico.KubeAPIServerEndpointsLabelValue),
 				ContainSubstring("networking.gardener.cloud/source: DNSRecord"),
 				ContainSubstring(`networking.gardener.cloud/ports: "443"`),
@@ -190,25 +189,6 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 			Expect(globalNetworkSet(c, mr)).To(SatisfyAll(
 				ContainSubstring("- 34.107.12.34/32"),
 				ContainSubstring("- 2001:db8::1/128"),
-			))
-		})
-
-		It("should honour the configured name and labels", func() {
-			c := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(dnsRecord(extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")).Build()
-			a := newActuator(c, nil)
-
-			Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, networkConfig(&calicov1alpha1.KubeAPIServerEndpoints{
-				Enabled: ptr.To(true),
-				Name:    ptr.To("my-apiserver-set"),
-				Labels:  map[string]string{"component": "apiserver"},
-			}), cluster())).To(Succeed())
-
-			mr, err := managedResource(c)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(globalNetworkSet(c, mr)).To(SatisfyAll(
-				ContainSubstring("name: my-apiserver-set"),
-				ContainSubstring("component: apiserver"),
-				ContainSubstring(calico.KubeAPIServerEndpointsLabelKey+": "+calico.KubeAPIServerEndpointsLabelValue),
 			))
 		})
 
@@ -272,26 +252,6 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 			Expect(after.Spec.SecretRefs).To(Equal(before.Spec.SecretRefs))
 			Expect(secretNames(c)).To(HaveLen(1))
 			Expect(globalNetworkSet(c, after)).To(Equal(globalNetworkSet(c, before)))
-		})
-
-		It("should replace the object if the configured name changes", func() {
-			before, err := managedResource(c)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network,
-				networkConfig(&calicov1alpha1.KubeAPIServerEndpoints{Enabled: ptr.To(true), Name: ptr.To("renamed-set")}),
-				cluster())).To(Succeed())
-
-			after, err := managedResource(c)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(after.Spec.SecretRefs).NotTo(Equal(before.Spec.SecretRefs))
-
-			// Keeping the previous object around - for example by keying the secret data per object name - would make
-			// the gardener-resource-manager maintain both instead of removing the renamed one.
-			set := globalNetworkSet(c, after)
-			Expect(strings.Count(set, "kind: GlobalNetworkSet")).To(Equal(1))
-			Expect(set).To(ContainSubstring("name: renamed-set"))
-			Expect(set).NotTo(ContainSubstring("name: " + calico.KubeAPIServerEndpointsDefaultName))
 		})
 
 		It("should publish the new addresses if they changed", func() {
@@ -368,7 +328,7 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 					action:    gardencorev1beta1.EventActionReconcile,
 					note: "Could not determine the kube-apiserver endpoints (no kube-apiserver IP address could be " +
 						"determined from [abc.elb.eu-west-1.amazonaws.com]). The GlobalNetworkSet " +
-						`"` + calico.KubeAPIServerEndpointsDefaultName + `"` + " still holds the addresses of the last " +
+						`"` + calico.KubeAPIServerEndpointsName + `"` + " still holds the addresses of the last " +
 						"successful reconciliation and may be outdated.",
 				}))
 			})
@@ -398,18 +358,9 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 					action:    gardencorev1beta1.EventActionReconcile,
 					note: "Could not determine the kube-apiserver endpoints (no kube-apiserver IP address could be " +
 						"determined from [abc.elb.eu-west-1.amazonaws.com]). The GlobalNetworkSet " +
-						`"` + calico.KubeAPIServerEndpointsDefaultName + `"` + " is not deployed, hence Calico policies " +
+						`"` + calico.KubeAPIServerEndpointsName + `"` + " is not deployed, hence Calico policies " +
 						"referring to it match no address and block traffic to the kube-apiserver.",
 				}))
-			})
-
-			It("should name the configured GlobalNetworkSet in the event", func() {
-				Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network,
-					networkConfig(&calicov1alpha1.KubeAPIServerEndpoints{Enabled: ptr.To(true), Name: ptr.To("my-apiserver-set")}),
-					cluster())).To(Succeed())
-
-				Expect(recorder.events).To(HaveLen(1))
-				Expect(recorder.events[0].note).To(ContainSubstring(`"my-apiserver-set"`))
 			})
 
 			It("should fail if the existence of the managed resource cannot be determined", func() {

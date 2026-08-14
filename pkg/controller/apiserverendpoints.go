@@ -21,6 +21,7 @@ import (
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/apiserverendpoints"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
 const (
@@ -67,16 +68,16 @@ func (a *actuator) reconcileKubeAPIServerEndpoints(
 			return err
 		}
 
-		return a.reportUndeterminableKubeAPIServerEndpoints(ctx, log, network, config, err)
+		return a.reportUndeterminableKubeAPIServerEndpoints(ctx, log, network, err)
 	}
 
-	globalNetworkSet, err := apiserverendpoints.RenderGlobalNetworkSet(config, endpoints)
+	globalNetworkSet, err := apiserverendpoints.RenderGlobalNetworkSet(endpoints)
 	if err != nil {
 		return fmt.Errorf("could not render the kube-apiserver GlobalNetworkSet: %w", err)
 	}
 
-	log.V(1).Info("Deploying the kube-apiserver GlobalNetworkSet", "name", apiserverendpoints.Name(config),
-		"nets", endpoints.CIDRs, "ports", endpoints.Ports, "source", endpoints.Source)
+	log.V(1).Info("Deploying the kube-apiserver GlobalNetworkSet", "nets", endpoints.CIDRs,
+		"ports", endpoints.Ports, "source", endpoints.Source)
 
 	return managedresources.CreateForShoot(ctx, a.client, network.Namespace, KubeAPIServerEndpointsManagedResourceName,
 		managedResourceOrigin, false, map[string][]byte{kubeAPIServerEndpointsDataKey: globalNetworkSet})
@@ -89,7 +90,6 @@ func (a *actuator) reportUndeterminableKubeAPIServerEndpoints(
 	ctx context.Context,
 	log logr.Logger,
 	network *extensionsv1alpha1.Network,
-	config *calicov1alpha1.KubeAPIServerEndpoints,
 	reason error,
 ) error {
 	deployed, err := a.globalNetworkSetDeployed(ctx, network.Namespace)
@@ -97,7 +97,7 @@ func (a *actuator) reportUndeterminableKubeAPIServerEndpoints(
 		return err
 	}
 
-	name := apiserverendpoints.Name(config)
+	name := calico.KubeAPIServerEndpointsName
 
 	if deployed {
 		log.Info("Could not determine the kube-apiserver endpoints, keeping the previously deployed GlobalNetworkSet",

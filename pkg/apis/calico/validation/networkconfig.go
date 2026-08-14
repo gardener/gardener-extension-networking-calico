@@ -13,14 +13,11 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core"
 	kubernetescorevalidation "github.com/gardener/gardener/pkg/utils/validation/kubernetes/core"
 	v1 "k8s.io/api/core/v1"
-	apivalidation "k8s.io/apimachinery/pkg/api/validation"
-	metav1validation "k8s.io/apimachinery/pkg/apis/meta/v1/validation"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	apiscalico "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
 // ValidateNetworkConfig validates the network config.
@@ -52,38 +49,6 @@ func ValidateNetworkConfig(networkConfig *apiscalico.NetworkConfig, ipFamilies [
 
 	if networkConfig.IPAutoDetectionMethod != nil {
 		allErrs = append(allErrs, ValidateIPAutoDetectionMethod(*networkConfig.IPAutoDetectionMethod, fldPath.Child("ipAutoDetectionMethod"))...)
-	}
-
-	allErrs = append(allErrs, ValidateKubeAPIServerEndpoints(networkConfig.KubeAPIServerEndpoints, fldPath.Child("kubeAPIServerEndpoints"))...)
-
-	return allErrs
-}
-
-// ValidateKubeAPIServerEndpoints validates the kube-apiserver GlobalNetworkSet configuration in the network config.
-func ValidateKubeAPIServerEndpoints(endpoints *apiscalico.KubeAPIServerEndpoints, fldPath *field.Path) field.ErrorList {
-	allErrs := field.ErrorList{}
-
-	if endpoints == nil {
-		return allErrs
-	}
-
-	if endpoints.Name != nil {
-		if *endpoints.Name == "" {
-			allErrs = append(allErrs, field.Invalid(fldPath.Child("name"), *endpoints.Name, "name must not be empty"))
-		} else {
-			for _, msg := range apivalidation.NameIsDNSSubdomain(*endpoints.Name, false) {
-				allErrs = append(allErrs, field.Invalid(fldPath.Child("name"), *endpoints.Name, msg))
-			}
-		}
-	}
-
-	if endpoints.Labels != nil {
-		allErrs = append(allErrs, metav1validation.ValidateLabels(endpoints.Labels, fldPath.Child("labels"))...)
-
-		if _, ok := endpoints.Labels[calico.KubeAPIServerEndpointsLabelKey]; ok {
-			allErrs = append(allErrs, field.Forbidden(fldPath.Child("labels").Key(calico.KubeAPIServerEndpointsLabelKey),
-				fmt.Sprintf("label %q is reserved and always set by the extension", calico.KubeAPIServerEndpointsLabelKey)))
-		}
 	}
 
 	return allErrs
