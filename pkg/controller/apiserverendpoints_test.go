@@ -148,7 +148,6 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 				ContainSubstring("name: "+calico.KubeAPIServerEndpointsName),
 				ContainSubstring(calico.KubeAPIServerEndpointsLabelKey+": "+calico.KubeAPIServerEndpointsLabelValue),
 				ContainSubstring("networking.gardener.cloud/source: DNSRecord"),
-				ContainSubstring(`networking.gardener.cloud/ports: "443"`),
 				ContainSubstring("- 34.107.12.34/32"),
 			))
 			expectNoEvents()
@@ -208,21 +207,6 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 			))
 		})
 
-		It("should publish the port of the advertised address instead of assuming 443", func() {
-			c := fake.NewClientBuilder().WithScheme(testScheme).Build()
-			a := newActuator(c, nil)
-
-			Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, enabled,
-				cluster(gardencorev1beta1.ShootAdvertisedAddress{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1:6443"}),
-			)).To(Succeed())
-
-			mr, err := managedResource(c)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(globalNetworkSet(c, mr)).To(SatisfyAll(
-				ContainSubstring("- 172.18.255.1/32"),
-				ContainSubstring(`networking.gardener.cloud/ports: "6443"`),
-			))
-		})
 	})
 
 	Context("repeated reconciliation", func() {
@@ -327,7 +311,7 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 					reason:    EventKubeAPIServerEndpointsOutdated,
 					action:    gardencorev1beta1.EventActionReconcile,
 					note: "Could not determine the kube-apiserver endpoints (no kube-apiserver IP address could be " +
-						"determined from [abc.elb.eu-west-1.amazonaws.com]). The GlobalNetworkSet " +
+						"determined: none of [abc.elb.eu-west-1.amazonaws.com] is an IP address). The GlobalNetworkSet " +
 						`"` + calico.KubeAPIServerEndpointsName + `"` + " still holds the addresses of the last " +
 						"successful reconciliation and may be outdated.",
 				}))
@@ -357,7 +341,7 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 					reason:    EventKubeAPIServerEndpointsMissing,
 					action:    gardencorev1beta1.EventActionReconcile,
 					note: "Could not determine the kube-apiserver endpoints (no kube-apiserver IP address could be " +
-						"determined from [abc.elb.eu-west-1.amazonaws.com]). The GlobalNetworkSet " +
+						"determined: none of [abc.elb.eu-west-1.amazonaws.com] is an IP address). The GlobalNetworkSet " +
 						`"` + calico.KubeAPIServerEndpointsName + `"` + " is not deployed, hence Calico policies " +
 						"referring to it match no address and block traffic to the kube-apiserver.",
 				}))

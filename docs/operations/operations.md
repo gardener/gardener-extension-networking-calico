@@ -135,8 +135,6 @@ Shoots override this via `.spec.networking.providerConfig.kubeAPIServerEndpoints
 
 The addresses are read from the `DNSRecord`s labelled `gardener.cloud/role=controlplane` and `role in (internal, external)` in the shoot's control plane namespace. For `A`/`AAAA` records their `spec.values` already are the IP addresses of the seed's istio ingress gateway load balancer, and they are the write side of the very DNS entry shoot pods resolve - so the published set matches what pods observe, without the extension performing DNS lookups. If no usable `DNSRecord` exists (unmanaged DNS, local development setups), the kube-apiserver entries of `shoot.status.advertisedAddresses` are used instead.
 
-A `GlobalNetworkSet` holds CIDRs only, so the ports are published in the `networking.gardener.cloud/ports` annotation: `443` for `DNSRecord`s, which carry no port, and the URL's port for advertised addresses which specify one.
-
 ##### Update timing
 
 The set is recomputed during the `Network` reconciliation, i.e. once per shoot reconciliation (hourly by default, see `controllers.shoot.syncPeriod` in the gardenlet configuration). Nothing watches the `DNSRecord`s.
@@ -166,6 +164,6 @@ kubectl -n <control-plane-namespace> describe network calico-network
 kubectl -n <control-plane-namespace> get managedresource extension-networking-calico-apiserver-endpoints
 ```
 
-The rendered object carries the source and the ports as annotations, and intentionally no timestamp: its bytes are hashed into an immutable secret, so a timestamp would create a new secret and re-apply the object in every shoot on every reconciliation. Use the secret's `metadata.creationTimestamp` to see when the addresses last changed.
+The rendered object carries the source it was derived from as an annotation, and intentionally no timestamp: its bytes are hashed into an immutable secret, so a timestamp would create a new secret and re-apply the object in every shoot on every reconciliation. Use the secret's `metadata.creationTimestamp` to see when the addresses last changed.
 
 On a newly created shoot this `ManagedResource` can briefly report `ResourcesApplied=False` with `no matches for kind "GlobalNetworkSet"`, and with it `SystemComponentsHealthy=False` on the shoot, until the CRD is established - it ships in the calico chart, i.e. in a different `ManagedResource` which the gardener-resource-manager applies independently. No action is required, it retries.
