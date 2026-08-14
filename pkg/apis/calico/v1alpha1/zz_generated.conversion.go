@@ -303,8 +303,6 @@ func Convert_calico_IPv6_To_v1alpha1_IPv6(in *calico.IPv6, out *IPv6, s conversi
 
 func autoConvert_v1alpha1_KubeAPIServerEndpoints_To_calico_KubeAPIServerEndpoints(in *KubeAPIServerEndpoints, out *calico.KubeAPIServerEndpoints, s conversion.Scope) error {
 	out.Enabled = (*bool)(unsafe.Pointer(in.Enabled))
-	out.Name = (*string)(unsafe.Pointer(in.Name))
-	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
 	return nil
 }
 
@@ -315,8 +313,6 @@ func Convert_v1alpha1_KubeAPIServerEndpoints_To_calico_KubeAPIServerEndpoints(in
 
 func autoConvert_calico_KubeAPIServerEndpoints_To_v1alpha1_KubeAPIServerEndpoints(in *calico.KubeAPIServerEndpoints, out *KubeAPIServerEndpoints, s conversion.Scope) error {
 	out.Enabled = (*bool)(unsafe.Pointer(in.Enabled))
-	out.Name = (*string)(unsafe.Pointer(in.Name))
-	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
 	return nil
 }
 

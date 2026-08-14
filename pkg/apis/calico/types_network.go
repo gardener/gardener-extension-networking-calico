@@ -241,8 +241,4 @@ type KubeAPIServerEndpoints struct {
 	// Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.
 	// If not set, the landscape-wide default configured by the extension operator is used.
 	Enabled *bool
-	// Name is the name of the GlobalNetworkSet. Defaults to "gardener-kube-apiserver".
-	Name *string
-	// Labels are additional labels which are set on the GlobalNetworkSet.
-	Labels map[string]string
 }
