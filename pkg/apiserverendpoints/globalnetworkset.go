@@ -7,6 +7,7 @@ package apiserverendpoints
 import (
 	"errors"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
@@ -22,16 +23,10 @@ const (
 )
 
 type globalNetworkSet struct {
-	APIVersion string               `json:"apiVersion"`
-	Kind       string               `json:"kind"`
-	Metadata   globalNetworkSetMeta `json:"metadata"`
-	Spec       globalNetworkSetSpec `json:"spec"`
-}
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-type globalNetworkSetMeta struct {
-	Name        string            `json:"name"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	Spec globalNetworkSetSpec `json:"spec"`
 }
 
 type globalNetworkSetSpec struct {
@@ -47,9 +42,11 @@ func RenderGlobalNetworkSet(endpoints *Endpoints) ([]byte, error) {
 	}
 
 	return yaml.Marshal(&globalNetworkSet{
-		APIVersion: globalNetworkSetAPIVersion,
-		Kind:       globalNetworkSetKind,
-		Metadata: globalNetworkSetMeta{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: globalNetworkSetAPIVersion,
+			Kind:       globalNetworkSetKind,
+		},
+		ObjectMeta: metav1.ObjectMeta{
 			Name: calico.KubeAPIServerEndpointsName,
 			// The set carries exactly one label: labels are selector input for Calico policies, so anything added here
 			// would leak into policies which do not mean to refer to this set.
