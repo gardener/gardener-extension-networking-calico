@@ -187,16 +187,42 @@ var _ = Describe("APIServerEndpoints", func() {
 			Expect(err).NotTo(MatchError(ErrNoIPAddress))
 		})
 
-		It("should return ErrNoIPAddress if only hostnames are available", func() {
+		It("should return ErrUnsupportedHostname if the DNSRecords are CNAMEs", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
 				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
+				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
 			).Build()
 
 			endpoints, err := Collect(ctx, c, namespace, newCluster(nil))
 
-			Expect(err).To(MatchError(ErrNoIPAddress))
-			Expect(err).To(MatchError(ContainSubstring("abc.elb.eu-west-1.amazonaws.com")))
+			Expect(err).To(MatchError(ErrUnsupportedHostname))
+			Expect(err).NotTo(MatchError(ErrNoIPAddress))
+			// The hostname is named once, although both DNSRecords carry it.
+			Expect(err).To(MatchError(ContainSubstring("[abc.elb.eu-west-1.amazonaws.com]")))
 			Expect(endpoints).To(BeNil())
+		})
+
+		It("should prefer the A record if a CNAME record exists as well", func() {
+			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
+			).Build()
+
+			Expect(Collect(ctx, c, namespace, newCluster(nil))).To(Equal(&Endpoints{
+				CIDRs:  []string{"34.107.12.34/32"},
+				Source: SourceDNSRecord,
+			}))
+		})
+
+		It("should return ErrNoIPAddress, not ErrUnsupportedHostname, if only advertised hostnames exist", func() {
+			cluster := newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+				{Name: v1beta1constants.AdvertisedAddressExternal, URL: "https://api.foo.example.com"},
+			})
+
+			_, err := Collect(ctx, fake.NewClientBuilder().WithScheme(scheme).Build(), namespace, cluster)
+
+			Expect(err).To(MatchError(ErrNoIPAddress))
+			Expect(err).NotTo(MatchError(ErrUnsupportedHostname))
 		})
 	})
 })

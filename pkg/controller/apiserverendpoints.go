@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	v1beta1helper "github.com/gardener/gardener/pkg/api/core/v1beta1/helper"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
@@ -39,9 +40,10 @@ const (
 )
 
 // reconcileKubeAPIServerEndpoints deploys the GlobalNetworkSet containing the IP addresses of the shoot's
-// kube-apiserver endpoint, or removes it if the feature is disabled. Undeterminable addresses are not an error, since
-// failing here would block the shoot's reconciliation flow, including the initial creation where no DNSRecord exists
-// yet.
+// kube-apiserver endpoint, or removes it if the feature is disabled. A kube-apiserver exposed via a hostname is
+// reported as a configuration problem, since only disabling the feature can resolve it. Addresses which are merely not
+// published yet are no error at all: failing there would block the shoot's reconciliation flow, including the initial
+// creation.
 //
 // The GlobalNetworkSet CRD is part of the calico chart, i.e. of another managed resource which the
 // gardener-resource-manager applies independently of this one. This one may therefore report ResourcesApplied=False on
@@ -63,12 +65,18 @@ func (a *actuator) reconcileKubeAPIServerEndpoints(
 	}
 
 	endpoints, err := apiserverendpoints.Collect(ctx, a.apiReader, network.Namespace, cluster)
-	if err != nil {
-		if !errors.Is(err, apiserverendpoints.ErrNoIPAddress) {
-			return err
-		}
-
+	switch {
+	case err == nil:
+	case errors.Is(err, apiserverendpoints.ErrUnsupportedHostname):
+		// Nothing but disabling the feature can resolve this, so fail loudly rather than deploying nothing: the shoot
+		// owner asked for a GlobalNetworkSet which this landscape cannot provide.
+		return v1beta1helper.NewErrorWithCodes(fmt.Errorf("%w, hence no GlobalNetworkSet can be deployed - unset "+
+			"`kubeAPIServerEndpoints.enabled` for this shoot or disable it landscape-wide", err),
+			gardencorev1beta1.ErrorConfigurationProblem)
+	case errors.Is(err, apiserverendpoints.ErrNoIPAddress):
 		return a.reportUndeterminableKubeAPIServerEndpoints(ctx, log, network, err)
+	default:
+		return err
 	}
 
 	globalNetworkSet, err := apiserverendpoints.RenderGlobalNetworkSet(endpoints)

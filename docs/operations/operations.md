@@ -133,7 +133,7 @@ Shoots override this via `.spec.networking.providerConfig.kubeAPIServerEndpoints
 
 ##### Address source
 
-The addresses are read from the `DNSRecord`s labelled `gardener.cloud/role=controlplane` and `role in (internal, external)` in the shoot's control plane namespace. For `A`/`AAAA` records their `spec.values` already are the IP addresses of the seed's istio ingress gateway load balancer, and they are the write side of the very DNS entry shoot pods resolve - so the published set matches what pods observe, without the extension performing DNS lookups. If no usable `DNSRecord` exists (unmanaged DNS, local development setups), the kube-apiserver entries of `shoot.status.advertisedAddresses` are used instead.
+The addresses are read from the `DNSRecord`s labelled `gardener.cloud/role=controlplane` and `role in (internal, external)` in the shoot's control plane namespace. For `A`/`AAAA` records their `spec.values` already are the IP addresses of the seed's istio ingress gateway load balancer, and they are the write side of the very DNS entry shoot pods resolve - so the published set matches what pods observe, without the extension performing DNS lookups. If no `DNSRecord` exists (unmanaged DNS, local development setups), the kube-apiserver entries of `shoot.status.advertisedAddresses` are used instead.
 
 ##### Update timing
 
@@ -143,9 +143,23 @@ That is normally sufficient, because `DNSRecord.spec.values` is written by the s
 
 > ⚠️ Should pods be unable to reach the kube-apiserver after a control plane migration, after an `ExposureClass` or high availability change, or after the istio ingress gateway load balancer of a seed was recreated, trigger a reconciliation of the affected shoots: `kubectl -n garden-<project> annotate shoot <name> gardener.cloud/operation=reconcile`. If the shoot's `lastOperation.state` is `Failed`, `gardener.cloud/operation=retry` is required instead - `reconcile` is ignored in that state.
 
-##### If the addresses cannot be determined
+##### Unsupported: `kube-apiserver` exposed via a hostname
 
-Landscapes exposing the istio ingress gateway via a **hostname** instead of an IP address (for example an AWS NLB) produce `CNAME` `DNSRecord`s, which cannot be turned into IP addresses without a DNS lookup - not implemented. The extension then leaves a previously published set untouched. It never publishes an empty set and never fails the `Network` reconciliation, because both are worse than a temporarily outdated set: an empty set silently breaks every policy referencing it, and a failure would block the whole shoot flow, including the initial creation where no `DNSRecord` exists yet. This is also why the set lives in its own `ManagedResource` instead of in the calico chart, from which a missing object would be deleted again.
+Landscapes exposing the istio ingress gateway via a **hostname** instead of an IP address (for example an AWS NLB) cannot be supported: a `GlobalNetworkSet` holds CIDRs, and resolving the hostname is not implemented - the published set would drift from what pods resolve, and keeping it in sync would make the extension a DNS client.
+
+gardenlet derives the `DNSRecord` type from the address it publishes, so such a landscape is recognisable without any lookup: the `DNSRecord`s are of type `CNAME`. In that case the extension **fails the reconciliation** of the `Network` resource with the error code `ERR_CONFIGURATION_PROBLEM`:
+
+```
+the kube-apiserver is exposed via a hostname instead of an IP address: [abc.elb.eu-west-1.amazonaws.com],
+hence no GlobalNetworkSet can be deployed - unset `kubeAPIServerEndpoints.enabled` for this shoot or
+disable it landscape-wide
+```
+
+The way out is to disable the feature, either for the shoot or landscape-wide. Note that a landscape-wide default of `enabled: true` therefore fails **every** shoot of such a landscape.
+
+##### If the addresses are not published yet
+
+A missing address is a different, transient situation: during the initial creation the load balancer address is not known yet, and there is nothing to publish. The extension neither fails nor publishes an empty set then, because failing would block the whole shoot flow and an empty set would silently break every policy referencing it. Any previously published set is left untouched - which is also why the set lives in its own `ManagedResource` instead of in the calico chart, from which a missing object would be deleted again.
 
 Since the reconciliation succeeds, the situation is reported as a warning event instead:
 
@@ -156,7 +170,7 @@ kubectl -n <control-plane-namespace> describe network calico-network
 | Reason | Meaning |
 | --- | --- |
 | `KubeAPIServerEndpointsOutdated` | A previously published `GlobalNetworkSet` is still in place. Policies keep working with the addresses of the last successful reconciliation and may be outdated. |
-| `KubeAPIServerEndpointsMissing` | No `GlobalNetworkSet` has been published at all, so policies referring to it match no address and **block** traffic to the kube-apiserver. Expected on `CNAME` landscapes, where the feature should not be enabled. |
+| `KubeAPIServerEndpointsMissing` | No `GlobalNetworkSet` has been published at all, so policies referring to it match no address and **block** traffic to the kube-apiserver. |
 
 ##### Inspecting the deployed set
 

@@ -24,8 +24,16 @@ import (
 	apisconfig "github.com/gardener/gardener-extension-networking-calico/pkg/apis/config"
 )
 
-// ErrNoIPAddress is returned if no IP address could be determined without performing a DNS lookup.
-var ErrNoIPAddress = errors.New("no kube-apiserver IP address could be determined")
+var (
+	// ErrNoIPAddress is returned if the addresses are not published yet, or if only advertised hostnames are known.
+	// Callers are expected to tolerate it, as it usually means that the shoot is still being created.
+	ErrNoIPAddress = errors.New("no kube-apiserver IP address could be determined")
+
+	// ErrUnsupportedHostname is returned if gardenlet publishes the kube-apiserver as a hostname rather than as an IP
+	// address, i.e. if the load balancer of the seed's istio ingress gateway is exposed by hostname. A GlobalNetworkSet
+	// holds CIDRs, so such a landscape cannot be supported without resolving the hostname.
+	ErrUnsupportedHostname = errors.New("the kube-apiserver is exposed via a hostname instead of an IP address")
+)
 
 // Source describes where the endpoints were obtained from.
 type Source string
@@ -35,8 +43,8 @@ const (
 	SourceAdvertisedAddresses Source = "AdvertisedAddresses"
 )
 
-// kubeAPIServerAddressNames are the shoot.status.advertisedAddresses entries which shoot pods can be sent to. Gardener
-// injects one of them as KUBERNETES_SERVICE_HOST, see Shoot.ComputeOutOfClusterAPIServerAddress. Notably neither
+// kubeAPIServerAddressNames are the shoot.status.advertisedAddresses entries which pods are sent to: gardener injects
+// one of them as KUBERNETES_SERVICE_HOST, see Shoot.ComputeOutOfClusterAPIServerAddress. Notably neither
 // `service-account-issuer` nor `wildcard-tls-seed-bound` is ever used for that.
 var kubeAPIServerAddressNames = sets.New(
 	v1beta1constants.AdvertisedAddressExternal,
@@ -47,8 +55,7 @@ var kubeAPIServerAddressNames = sets.New(
 // Endpoints are the kube-apiserver endpoints of a shoot as reachable from within the shoot cluster.
 type Endpoints struct {
 	// CIDRs are the IP addresses of the kube-apiserver as /32 respectively /128 CIDRs.
-	CIDRs []string
-	// Source describes where the addresses were obtained from.
+	CIDRs  []string
 	Source Source
 }
 
@@ -65,16 +72,25 @@ func Enabled(providerConfig *calicov1alpha1.KubeAPIServerEndpoints, operatorConf
 }
 
 // Collect returns the kube-apiserver endpoints of the shoot in the given control plane namespace, preferring the
-// DNSRecord resources over the shoot's advertised addresses. It wraps ErrNoIPAddress if none of the addresses is an IP
-// address.
+// DNSRecord resources over the shoot's advertised addresses.
+//
+// It wraps ErrUnsupportedHostname if the kube-apiserver is published as a hostname, which callers are expected to treat
+// as a configuration problem, and ErrNoIPAddress if no address is published (yet), which they are expected to tolerate.
 func Collect(ctx context.Context, c client.Reader, namespace string, cluster *extensionscontroller.Cluster) (*Endpoints, error) {
-	addresses, err := fromDNSRecords(ctx, c, namespace)
+	dnsRecords, err := fromDNSRecords(ctx, c, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not read DNSRecords: %w", err)
 	}
 
-	source := SourceDNSRecord
-	if len(addresses) == 0 {
+	addresses, source := dnsRecords.addresses, SourceDNSRecord
+
+	switch {
+	case len(addresses) > 0:
+	case len(dnsRecords.hostnames) > 0:
+		// The DNSRecord type is derived from the published address, so CNAME records state that the kube-apiserver has
+		// no IP address at all - as opposed to one which is not published yet.
+		return nil, fmt.Errorf("%w: %v", ErrUnsupportedHostname, sortAndCompact(dnsRecords.hostnames))
+	default:
 		addresses, source = fromCluster(cluster), SourceAdvertisedAddresses
 	}
 
@@ -104,9 +120,9 @@ func fromCluster(cluster *extensionscontroller.Cluster) []string {
 	return addresses
 }
 
-// toCIDRs turns the IP addresses among the given addresses into /32 respectively /128 CIDRs. Hostnames are skipped,
-// resolving them is not implemented - that is not an error the caller can act upon, so it is reported as
-// ErrNoIPAddress naming the addresses which were considered.
+// toCIDRs turns the IP addresses among the given addresses into /32 respectively /128 CIDRs, skipping hostnames. It
+// reports ErrNoIPAddress naming the addresses which were considered - hostnames only reach it from
+// shoot.status.advertisedAddresses, where they mean that the DNSRecords are not written yet.
 func toCIDRs(addresses []string) ([]string, error) {
 	if len(addresses) == 0 {
 		return nil, fmt.Errorf("%w: the shoot advertises no kube-apiserver address", ErrNoIPAddress)
@@ -124,7 +140,7 @@ func toCIDRs(addresses []string) ([]string, error) {
 	}
 
 	if len(cidrs) == 0 {
-		return nil, fmt.Errorf("%w: none of %v is an IP address", ErrNoIPAddress, addresses)
+		return nil, fmt.Errorf("%w: none of %v is an IP address", ErrNoIPAddress, sortAndCompact(addresses))
 	}
 
 	return sortAndCompact(cidrs), nil
