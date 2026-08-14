@@ -49,125 +49,86 @@ var _ = Describe("APIServerEndpoints", func() {
 	)
 
 	DescribeTable("#fromCluster",
-		func(cluster *extensionscontroller.Cluster, expected []endpoint) {
-			Expect(fromCluster(cluster)).To(Equal(expected))
+		func(addresses []gardencorev1beta1.ShootAdvertisedAddress, expected []string) {
+			Expect(fromCluster(newCluster(addresses))).To(Equal(expected))
 		},
-		Entry("nil cluster", nil, nil),
-		Entry("cluster without shoot", &extensionscontroller.Cluster{}, nil),
-		Entry("no address and no domain", newCluster(nil, nil), nil),
+		Entry("no address", nil, nil),
 		Entry("internal and external address",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+			[]gardencorev1beta1.ShootAdvertisedAddress{
 				{Name: v1beta1constants.AdvertisedAddressExternal, URL: "https://api.foo.example.com"},
 				{Name: v1beta1constants.AdvertisedAddressInternal, URL: "https://api.foo.bar.internal.example.com"},
-			}, nil),
-			[]endpoint{{host: "api.foo.bar.internal.example.com", port: 443}, {host: "api.foo.example.com", port: 443}}),
+			},
+			[]string{"api.foo.example.com", "api.foo.bar.internal.example.com"}),
+		Entry("unmanaged address, the only one which can be an IP address",
+			[]gardencorev1beta1.ShootAdvertisedAddress{
+				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1"},
+			},
+			[]string{"172.18.255.1"}),
 		Entry("service-account-issuer is ignored",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+			[]gardencorev1beta1.ShootAdvertisedAddress{
 				{Name: v1beta1constants.AdvertisedAddressServiceAccountIssuer, URL: "https://discovery.example.com/issuer"},
 				{Name: v1beta1constants.AdvertisedAddressInternal, URL: "https://api.foo.bar.internal.example.com"},
-			}, nil),
-			[]endpoint{{host: "api.foo.bar.internal.example.com", port: 443}}),
-		Entry("port is preserved",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+			},
+			[]string{"api.foo.bar.internal.example.com"}),
+		Entry("wildcard-tls-seed-bound is ignored, KUBERNETES_SERVICE_HOST never points there",
+			[]gardencorev1beta1.ShootAdvertisedAddress{
+				{Name: v1beta1constants.AdvertisedAddressWildcardTLSSeedBound, URL: "https://api.foo.seed.example.com"},
+			},
+			nil),
+		Entry("port is stripped",
+			[]gardencorev1beta1.ShootAdvertisedAddress{
 				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1:6443"},
-			}, nil),
-			[]endpoint{{host: "172.18.255.1", port: 6443}}),
+			},
+			[]string{"172.18.255.1"}),
 		Entry("IPv6 literal",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+			[]gardencorev1beta1.ShootAdvertisedAddress{
 				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://[2001:db8::1]:443"},
-			}, nil),
-			[]endpoint{{host: "2001:db8::1", port: 443}}),
-		Entry("duplicates are removed",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
-				{Name: v1beta1constants.AdvertisedAddressExternal, URL: "https://api.foo.example.com"},
-				{Name: v1beta1constants.AdvertisedAddressWildcardTLSSeedBound, URL: "https://api.foo.example.com"},
-			}, nil),
-			[]endpoint{{host: "api.foo.example.com", port: 443}}),
-		Entry("the same host on different ports is kept",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
-				{Name: v1beta1constants.AdvertisedAddressExternal, URL: "https://172.18.255.1"},
-				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1:6443"},
-			}, nil),
-			[]endpoint{{host: "172.18.255.1", port: 443}, {host: "172.18.255.1", port: 6443}}),
+			},
+			[]string{"2001:db8::1"}),
 		Entry("address without a scheme",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+			[]gardencorev1beta1.ShootAdvertisedAddress{
 				{Name: v1beta1constants.AdvertisedAddressInternal, URL: "api.foo.example.com"},
-			}, nil),
-			[]endpoint{{host: "api.foo.example.com", port: 443}}),
+			},
+			[]string{"api.foo.example.com"}),
 		Entry("unparsable address is dropped",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+			[]gardencorev1beta1.ShootAdvertisedAddress{
 				{Name: v1beta1constants.AdvertisedAddressInternal, URL: "https://[::1"},
-			}, nil),
+			},
 			nil),
-		Entry("address with an out-of-range port is dropped",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
-				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1:99999"},
-			}, nil),
-			nil),
-		Entry("fall back to api.<domain>", newCluster(nil, ptr.To("foo.bar.example.com")),
-			[]endpoint{{host: "api.foo.bar.example.com", port: 443}}),
-		Entry("no fall back if an address exists",
-			newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
-				{Name: v1beta1constants.AdvertisedAddressInternal, URL: "https://api.internal.example.com"},
-			}, ptr.To("foo.bar.example.com")),
-			[]endpoint{{host: "api.internal.example.com", port: 443}}),
 	)
 
-	DescribeTable("#endpointFromURL",
-		func(rawURL string, expected endpoint, expectedOK bool) {
-			result, ok := endpointFromURL(rawURL)
+	DescribeTable("#toCIDRs",
+		func(addresses, expected []string) {
+			cidrs, err := toCIDRs(addresses)
 
-			Expect(ok).To(Equal(expectedOK))
-			Expect(result).To(Equal(expected))
-		},
-		Entry("host without port", "https://api.foo.example.com", endpoint{host: "api.foo.example.com", port: 443}, true),
-		Entry("host with port", "https://api.foo.example.com:6443", endpoint{host: "api.foo.example.com", port: 6443}, true),
-		Entry("IPv4 with port", "https://172.18.255.1:6443", endpoint{host: "172.18.255.1", port: 6443}, true),
-		Entry("IPv6 with port", "https://[2001:db8::1]:8443", endpoint{host: "2001:db8::1", port: 8443}, true),
-		Entry("without scheme", "172.18.255.1:6443", endpoint{host: "172.18.255.1", port: 6443}, true),
-		Entry("unparsable URL", "https://[::1", endpoint{}, false),
-		Entry("empty URL", "", endpoint{}, false),
-		Entry("port zero", "https://172.18.255.1:0", endpoint{}, false),
-		Entry("port out of range", "https://172.18.255.1:65536", endpoint{}, false),
-		Entry("port exceeding int32", "https://172.18.255.1:99999999999", endpoint{}, false),
-	)
-
-	DescribeTable("#newEndpoints",
-		func(endpoints []endpoint, expected *Endpoints, expectErrNoIPAddress bool) {
-			result, err := newEndpoints(endpoints, SourceDNSRecord)
-
-			if expectErrNoIPAddress {
+			if expected == nil {
 				Expect(err).To(MatchError(ErrNoIPAddress))
 			} else {
 				Expect(err).NotTo(HaveOccurred())
 			}
-			Expect(result).To(Equal(expected))
+			Expect(cidrs).To(Equal(expected))
 		},
-		Entry("IPv4", []endpoint{{host: "34.107.12.34", port: 443}},
-			&Endpoints{CIDRs: []string{"34.107.12.34/32"}, Ports: []int32{443}, Source: SourceDNSRecord}, false),
-		Entry("IPv6", []endpoint{{host: "2001:db8::1", port: 443}},
-			&Endpoints{CIDRs: []string{"2001:db8::1/128"}, Ports: []int32{443}, Source: SourceDNSRecord}, false),
-		Entry("dual-stack", []endpoint{{host: "34.107.12.34", port: 443}, {host: "2001:db8::1", port: 443}},
-			&Endpoints{CIDRs: []string{"2001:db8::1/128", "34.107.12.34/32"}, Ports: []int32{443}, Source: SourceDNSRecord}, false),
-		Entry("sorted and deduplicated",
-			[]endpoint{{host: "34.107.12.34", port: 443}, {host: "10.0.0.1", port: 443}, {host: "34.107.12.34", port: 443}},
-			&Endpoints{CIDRs: []string{"10.0.0.1/32", "34.107.12.34/32"}, Ports: []int32{443}, Source: SourceDNSRecord}, false),
-		Entry("multiple ports are collected",
-			[]endpoint{{host: "34.107.12.34", port: 6443}, {host: "10.0.0.1", port: 443}},
-			&Endpoints{CIDRs: []string{"10.0.0.1/32", "34.107.12.34/32"}, Ports: []int32{443, 6443}, Source: SourceDNSRecord}, false),
-		Entry("hostnames are skipped",
-			[]endpoint{{host: "api.foo.example.com", port: 443}, {host: "34.107.12.34", port: 6443}},
-			&Endpoints{CIDRs: []string{"34.107.12.34/32"}, Ports: []int32{6443}, Source: SourceDNSRecord}, false),
-		Entry("only hostnames", []endpoint{{host: "api.foo.example.com", port: 443}}, nil, true),
-		Entry("no endpoints", nil, nil, true),
+		Entry("IPv4", []string{"34.107.12.34"}, []string{"34.107.12.34/32"}),
+		Entry("IPv6", []string{"2001:db8::1"}, []string{"2001:db8::1/128"}),
+		Entry("dual-stack", []string{"34.107.12.34", "2001:db8::1"}, []string{"2001:db8::1/128", "34.107.12.34/32"}),
+		Entry("sorted and deduplicated", []string{"34.107.12.34", "10.0.0.1", "34.107.12.34"},
+			[]string{"10.0.0.1/32", "34.107.12.34/32"}),
+		Entry("hostnames are skipped", []string{"api.foo.example.com", "34.107.12.34"}, []string{"34.107.12.34/32"}),
+		Entry("only hostnames", []string{"api.foo.example.com"}, nil),
+		Entry("no addresses", nil, nil),
 	)
 
-	It("should mention the rejected hosts in the ErrNoIPAddress error", func() {
-		_, err := newEndpoints([]endpoint{{host: "api.foo.example.com", port: 443}}, SourceDNSRecord)
+	DescribeTable("#toCIDRs error message",
+		func(addresses []string, expected string) {
+			_, err := toCIDRs(addresses)
 
-		Expect(err).To(MatchError(ErrNoIPAddress))
-		Expect(err).To(MatchError(ContainSubstring("api.foo.example.com")))
-	})
+			Expect(err).To(MatchError(ErrNoIPAddress))
+			Expect(err).To(MatchError(ContainSubstring(expected)))
+		},
+		Entry("no address at all", nil, "the shoot advertises no kube-apiserver address"),
+		Entry("names the addresses which were considered", []string{"api.foo.example.com"},
+			"none of [api.foo.example.com] is an IP address"),
+	)
 
 	Describe("#Collect", func() {
 		const namespace = "shoot--foo--bar"
@@ -180,29 +141,35 @@ var _ = Describe("APIServerEndpoints", func() {
 			).Build()
 			cluster := newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
 				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1"},
-			}, nil)
+			})
 
-			endpoints, err := Collect(ctx, c, namespace, cluster)
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(endpoints).To(Equal(&Endpoints{
+			Expect(Collect(ctx, c, namespace, cluster)).To(Equal(&Endpoints{
 				CIDRs:  []string{"34.107.12.34/32"},
-				Ports:  []int32{443},
 				Source: SourceDNSRecord,
 			}))
 		})
 
 		It("should fall back to the advertised addresses if no DNSRecord exists", func() {
 			cluster := newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
-				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1:6443"},
-			}, nil)
+				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1"},
+			})
 
-			endpoints, err := Collect(ctx, fake.NewClientBuilder().WithScheme(scheme).Build(), namespace, cluster)
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(endpoints).To(Equal(&Endpoints{
+			Expect(Collect(ctx, fake.NewClientBuilder().WithScheme(scheme).Build(), namespace, cluster)).To(Equal(&Endpoints{
 				CIDRs:  []string{"172.18.255.1/32"},
-				Ports:  []int32{6443},
+				Source: SourceAdvertisedAddresses,
+			}))
+		})
+
+		It("should fall back if the DNSRecord has no values yet", func() {
+			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA),
+			).Build()
+			cluster := newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
+				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1"},
+			})
+
+			Expect(Collect(ctx, c, namespace, cluster)).To(Equal(&Endpoints{
+				CIDRs:  []string{"172.18.255.1/32"},
 				Source: SourceAdvertisedAddresses,
 			}))
 		})
@@ -214,28 +181,10 @@ var _ = Describe("APIServerEndpoints", func() {
 				},
 			})
 
-			_, err := Collect(ctx, c, namespace, newCluster(nil, nil))
+			_, err := Collect(ctx, c, namespace, newCluster(nil))
 
 			Expect(err).To(MatchError(ContainSubstring("could not read DNSRecords")))
 			Expect(err).NotTo(MatchError(ErrNoIPAddress))
-		})
-
-		It("should fall back if the DNSRecord has no values yet", func() {
-			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA),
-			).Build()
-			cluster := newCluster([]gardencorev1beta1.ShootAdvertisedAddress{
-				{Name: v1beta1constants.AdvertisedAddressUnmanaged, URL: "https://172.18.255.1"},
-			}, nil)
-
-			endpoints, err := Collect(ctx, c, namespace, cluster)
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(endpoints).To(Equal(&Endpoints{
-				CIDRs:  []string{"172.18.255.1/32"},
-				Ports:  []int32{443},
-				Source: SourceAdvertisedAddresses,
-			}))
 		})
 
 		It("should return ErrNoIPAddress if only hostnames are available", func() {
@@ -243,30 +192,18 @@ var _ = Describe("APIServerEndpoints", func() {
 				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
 			).Build()
 
-			endpoints, err := Collect(ctx, c, namespace, newCluster(nil, nil))
+			endpoints, err := Collect(ctx, c, namespace, newCluster(nil))
 
 			Expect(err).To(MatchError(ErrNoIPAddress))
 			Expect(err).To(MatchError(ContainSubstring("abc.elb.eu-west-1.amazonaws.com")))
 			Expect(endpoints).To(BeNil())
 		})
-
-		It("should name the expected kube-apiserver domain if the shoot advertises no address at all", func() {
-			c := fake.NewClientBuilder().WithScheme(scheme).Build()
-
-			_, err := Collect(ctx, c, namespace, newCluster(nil, ptr.To("foo.bar.example.com")))
-
-			Expect(err).To(MatchError(ErrNoIPAddress))
-			Expect(err).To(MatchError(ContainSubstring("api.foo.bar.example.com")))
-		})
 	})
 })
 
-func newCluster(addresses []gardencorev1beta1.ShootAdvertisedAddress, domain *string) *extensionscontroller.Cluster {
+func newCluster(addresses []gardencorev1beta1.ShootAdvertisedAddress) *extensionscontroller.Cluster {
 	shoot := &gardencorev1beta1.Shoot{}
 	shoot.Status.AdvertisedAddresses = addresses
-	if domain != nil {
-		shoot.Spec.DNS = &gardencorev1beta1.DNS{Domain: domain}
-	}
 
 	return &extensionscontroller.Cluster{Shoot: shoot}
 }

@@ -7,18 +7,15 @@
 package apiserverendpoints
 
 import (
-	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"net/netip"
 	"net/url"
 	"slices"
-	"strconv"
 	"strings"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	v1beta1helper "github.com/gardener/gardener/pkg/api/core/v1beta1/helper"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,10 +27,6 @@ import (
 // ErrNoIPAddress is returned if no IP address could be determined without performing a DNS lookup.
 var ErrNoIPAddress = errors.New("no kube-apiserver IP address could be determined")
 
-// defaultPort is assumed for addresses without a port: the seed's istio ingress gateway serves the kube-apiserver
-// on 443.
-const defaultPort int32 = 443
-
 // Source describes where the endpoints were obtained from.
 type Source string
 
@@ -42,30 +35,21 @@ const (
 	SourceAdvertisedAddresses Source = "AdvertisedAddresses"
 )
 
-// kubeAPIServerAddressNames are the shoot.status.advertisedAddresses entries which advertise the kube-apiserver.
-// Notably `service-account-issuer` does not. Only `unmanaged` can hold an IP address, the others are hostnames which
-// newEndpoints drops again - they are collected so that ErrNoIPAddress names them.
+// kubeAPIServerAddressNames are the shoot.status.advertisedAddresses entries which shoot pods can be sent to. Gardener
+// injects one of them as KUBERNETES_SERVICE_HOST, see Shoot.ComputeOutOfClusterAPIServerAddress. Notably neither
+// `service-account-issuer` nor `wildcard-tls-seed-bound` is ever used for that.
 var kubeAPIServerAddressNames = sets.New(
 	v1beta1constants.AdvertisedAddressExternal,
 	v1beta1constants.AdvertisedAddressInternal,
 	v1beta1constants.AdvertisedAddressUnmanaged,
-	v1beta1constants.AdvertisedAddressWildcardTLSSeedBound,
 )
 
 // Endpoints are the kube-apiserver endpoints of a shoot as reachable from within the shoot cluster.
 type Endpoints struct {
 	// CIDRs are the IP addresses of the kube-apiserver as /32 respectively /128 CIDRs.
 	CIDRs []string
-	// Ports are the ports the kube-apiserver is reachable at.
-	Ports []int32
-	// Source describes where the endpoints were obtained from.
+	// Source describes where the addresses were obtained from.
 	Source Source
-}
-
-// endpoint is a single kube-apiserver endpoint. The host is either an IP address or a hostname.
-type endpoint struct {
-	host string
-	port int32
 }
 
 // Enabled returns whether the GlobalNetworkSet shall be deployed:
@@ -81,122 +65,88 @@ func Enabled(providerConfig *calicov1alpha1.KubeAPIServerEndpoints, operatorConf
 }
 
 // Collect returns the kube-apiserver endpoints of the shoot in the given control plane namespace, preferring the
-// DNSRecord resources over the shoot's advertised addresses. It wraps ErrNoIPAddress if only hostnames were found.
+// DNSRecord resources over the shoot's advertised addresses. It wraps ErrNoIPAddress if none of the addresses is an IP
+// address.
 func Collect(ctx context.Context, c client.Reader, namespace string, cluster *extensionscontroller.Cluster) (*Endpoints, error) {
-	endpoints, err := fromDNSRecords(ctx, c, namespace)
+	addresses, err := fromDNSRecords(ctx, c, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not read DNSRecords: %w", err)
 	}
 
 	source := SourceDNSRecord
-	if len(endpoints) == 0 {
-		endpoints, source = fromCluster(cluster), SourceAdvertisedAddresses
+	if len(addresses) == 0 {
+		addresses, source = fromCluster(cluster), SourceAdvertisedAddresses
 	}
 
-	return newEndpoints(endpoints, source)
+	cidrs, err := toCIDRs(addresses)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Endpoints{CIDRs: cidrs, Source: source}, nil
 }
 
-// fromCluster returns the kube-apiserver endpoints from shoot.status.advertisedAddresses, falling back to
-// `api.<shoot.spec.dns.domain>`. It is only used for shoots without a usable DNSRecord, e.g. with unmanaged DNS.
-func fromCluster(cluster *extensionscontroller.Cluster) []endpoint {
-	if cluster == nil || cluster.Shoot == nil {
-		return nil
-	}
-
-	var endpoints []endpoint
+// fromCluster returns the kube-apiserver addresses from shoot.status.advertisedAddresses. It is only used for shoots
+// without a usable DNSRecord, e.g. with unmanaged DNS, where the address of the kube-apiserver service is advertised
+// directly and hence can be an IP address.
+func fromCluster(cluster *extensionscontroller.Cluster) []string {
+	var addresses []string
 
 	for _, advertisedAddress := range cluster.Shoot.Status.AdvertisedAddresses {
 		if !kubeAPIServerAddressNames.Has(advertisedAddress.Name) {
 			continue
 		}
-		if e, ok := endpointFromURL(advertisedAddress.URL); ok {
-			endpoints = append(endpoints, e)
+		if host := hostFromURL(advertisedAddress.URL); host != "" {
+			addresses = append(addresses, host)
 		}
 	}
 
-	// `api.<domain>` is a hostname, so it never contributes an address. It only makes ErrNoIPAddress name the domain
-	// the kube-apiserver is expected at.
-	if len(endpoints) == 0 && cluster.Shoot.Spec.DNS != nil && cluster.Shoot.Spec.DNS.Domain != nil && *cluster.Shoot.Spec.DNS.Domain != "" {
-		endpoints = append(endpoints, endpoint{host: v1beta1helper.GetAPIServerDomain(*cluster.Shoot.Spec.DNS.Domain), port: defaultPort})
-	}
-
-	return sortAndCompactEndpoints(endpoints)
+	return addresses
 }
 
-// newEndpoints turns the given endpoints into /32 respectively /128 CIDRs and the set of ports they are reachable at.
-// Hostnames are skipped, resolving them is not implemented.
-func newEndpoints(endpoints []endpoint, source Source) (*Endpoints, error) {
-	result := &Endpoints{Source: source}
+// toCIDRs turns the IP addresses among the given addresses into /32 respectively /128 CIDRs. Hostnames are skipped,
+// resolving them is not implemented - that is not an error the caller can act upon, so it is reported as
+// ErrNoIPAddress naming the addresses which were considered.
+func toCIDRs(addresses []string) ([]string, error) {
+	if len(addresses) == 0 {
+		return nil, fmt.Errorf("%w: the shoot advertises no kube-apiserver address", ErrNoIPAddress)
+	}
 
-	for _, e := range endpoints {
-		addr, err := netip.ParseAddr(e.host)
+	var cidrs []string
+
+	for _, address := range addresses {
+		addr, err := netip.ParseAddr(address)
 		if err != nil {
 			continue
 		}
 
-		result.CIDRs = append(result.CIDRs, netip.PrefixFrom(addr, addr.BitLen()).String())
-		result.Ports = append(result.Ports, e.port)
+		cidrs = append(cidrs, netip.PrefixFrom(addr, addr.BitLen()).String())
 	}
 
-	if len(result.CIDRs) == 0 {
-		return nil, fmt.Errorf("%w from %v", ErrNoIPAddress, hosts(endpoints))
+	if len(cidrs) == 0 {
+		return nil, fmt.Errorf("%w: none of %v is an IP address", ErrNoIPAddress, addresses)
 	}
 
-	result.CIDRs = sortAndCompact(result.CIDRs)
-	result.Ports = sortAndCompact(result.Ports)
-
-	return result, nil
+	return sortAndCompact(cidrs), nil
 }
 
-// endpointFromURL extracts the host and port from the given URL. A missing scheme is tolerated, a missing port defaults
-// to defaultPort, and URLs without a host or with an invalid port are rejected.
-func endpointFromURL(rawURL string) (endpoint, bool) {
+// hostFromURL returns the host of the given URL, tolerating a missing scheme and stripping a port. It returns an empty
+// string if the URL has no host.
+func hostFromURL(rawURL string) string {
 	if !strings.Contains(rawURL, "://") {
 		rawURL = "https://" + rawURL
 	}
 
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		return endpoint{}, false
+		return ""
 	}
 
-	host := u.Hostname()
-	if host == "" {
-		return endpoint{}, false
-	}
-
-	port := defaultPort
-	if rawPort := u.Port(); rawPort != "" {
-		parsedPort, err := strconv.ParseInt(rawPort, 10, 32)
-		if err != nil || parsedPort < 1 || parsedPort > 65535 {
-			return endpoint{}, false
-		}
-		port = int32(parsedPort)
-	}
-
-	return endpoint{host: host, port: port}, true
-}
-
-func hosts(endpoints []endpoint) []string {
-	result := make([]string, 0, len(endpoints))
-	for _, e := range endpoints {
-		result = append(result, e.host)
-	}
-
-	return result
-}
-
-// sortAndCompactEndpoints sorts by host and port and removes duplicates, in place.
-func sortAndCompactEndpoints(endpoints []endpoint) []endpoint {
-	slices.SortFunc(endpoints, func(a, b endpoint) int {
-		return cmp.Or(cmp.Compare(a.host, b.host), cmp.Compare(a.port, b.port))
-	})
-
-	return slices.Compact(endpoints)
+	return u.Hostname()
 }
 
 // sortAndCompact sorts the given values and removes duplicates, in place.
-func sortAndCompact[S ~[]E, E cmp.Ordered](values S) S {
+func sortAndCompact(values []string) []string {
 	slices.Sort(values)
 	return slices.Compact(values)
 }

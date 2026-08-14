@@ -76,8 +76,7 @@ func (a *actuator) reconcileKubeAPIServerEndpoints(
 		return fmt.Errorf("could not render the kube-apiserver GlobalNetworkSet: %w", err)
 	}
 
-	log.V(1).Info("Deploying the kube-apiserver GlobalNetworkSet", "nets", endpoints.CIDRs,
-		"ports", endpoints.Ports, "source", endpoints.Source)
+	log.V(1).Info("Deploying the kube-apiserver GlobalNetworkSet", "nets", endpoints.CIDRs, "source", endpoints.Source)
 
 	return managedresources.CreateForShoot(ctx, a.client, network.Namespace, KubeAPIServerEndpointsManagedResourceName,
 		managedResourceOrigin, false, map[string][]byte{kubeAPIServerEndpointsDataKey: globalNetworkSet})
