@@ -24,33 +24,33 @@ var _ = Describe("DNSRecord", func() {
 	var ctx = context.Background()
 
 	DescribeTable("#fromDNSRecords",
-		func(dnsRecords []client.Object, expected []endpoint) {
+		func(dnsRecords []client.Object, expected []string) {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecords...).Build()
 
-			endpoints, err := fromDNSRecords(ctx, c, namespace)
+			addresses, err := fromDNSRecords(ctx, c, namespace)
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(endpoints).To(Equal(expected))
+			Expect(addresses).To(Equal(expected))
 		},
 		Entry("no DNSRecord", nil, nil),
 		Entry("A record",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")},
-			[]endpoint{{host: "34.107.12.34", port: 443}}),
+			[]string{"34.107.12.34"}),
 		Entry("AAAA record",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
-			[]endpoint{{host: "2001:db8::1", port: 443}}),
+			[]string{"2001:db8::1"}),
 		Entry("multiple values",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34", "34.107.12.35")},
-			[]endpoint{{host: "34.107.12.34", port: 443}, {host: "34.107.12.35", port: 443}}),
-		Entry("internal and external record are deduplicated",
+			[]string{"34.107.12.34", "34.107.12.35"}),
+		Entry("internal and external record are both collected, toCIDRs deduplicates",
 			[]client.Object{
 				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
 				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
 			},
-			[]endpoint{{host: "34.107.12.34", port: 443}}),
+			[]string{"34.107.12.34", "34.107.12.34"}),
 		Entry("CNAME record yields a hostname",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com")},
-			[]endpoint{{host: "abc.elb.eu-west-1.amazonaws.com", port: 443}}),
+			[]string{"abc.elb.eu-west-1.amazonaws.com"}),
 		Entry("ingress record of the nginx-ingress addon is ignored",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordIngress, extensionsv1alpha1.DNSRecordTypeA, "1.2.3.4")},
 			nil),

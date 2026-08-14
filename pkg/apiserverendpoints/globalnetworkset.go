@@ -6,8 +6,6 @@ package apiserverendpoints
 
 import (
 	"errors"
-	"strconv"
-	"strings"
 
 	"sigs.k8s.io/yaml"
 
@@ -20,7 +18,6 @@ const (
 	globalNetworkSetAPIVersion = "crd.projectcalico.org/v1"
 	globalNetworkSetKind       = "GlobalNetworkSet"
 
-	annotationPorts  = "networking.gardener.cloud/ports"
 	annotationSource = "networking.gardener.cloud/source"
 )
 
@@ -56,21 +53,9 @@ func RenderGlobalNetworkSet(endpoints *Endpoints) ([]byte, error) {
 			Name: calico.KubeAPIServerEndpointsName,
 			// The set carries exactly one label: labels are selector input for Calico policies, so anything added here
 			// would leak into policies which do not mean to refer to this set.
-			Labels: map[string]string{calico.KubeAPIServerEndpointsLabelKey: calico.KubeAPIServerEndpointsLabelValue},
-			Annotations: map[string]string{
-				annotationPorts:  joinPorts(endpoints.Ports),
-				annotationSource: string(endpoints.Source),
-			},
+			Labels:      map[string]string{calico.KubeAPIServerEndpointsLabelKey: calico.KubeAPIServerEndpointsLabelValue},
+			Annotations: map[string]string{annotationSource: string(endpoints.Source)},
 		},
 		Spec: globalNetworkSetSpec{Nets: endpoints.CIDRs},
 	})
-}
-
-func joinPorts(ports []int32) string {
-	result := make([]string, 0, len(ports))
-	for _, port := range ports {
-		result = append(result, strconv.FormatInt(int64(port), 10))
-	}
-
-	return strings.Join(result, ",")
 }

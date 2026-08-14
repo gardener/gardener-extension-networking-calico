@@ -30,7 +30,9 @@ rules:
   resources:
   - dnsrecords
   verbs:
+  - get
   - list
+  - watch
 - apiGroups:
   - coordination.k8s.io
   resources:
