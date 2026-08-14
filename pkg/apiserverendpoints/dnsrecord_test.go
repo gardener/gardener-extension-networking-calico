@@ -24,42 +24,48 @@ var _ = Describe("DNSRecord", func() {
 	var ctx = context.Background()
 
 	DescribeTable("#fromDNSRecords",
-		func(dnsRecords []client.Object, expected []string) {
+		func(dnsRecords []client.Object, expected dnsRecordValues) {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecords...).Build()
 
-			addresses, err := fromDNSRecords(ctx, c, namespace)
+			values, err := fromDNSRecords(ctx, c, namespace)
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(addresses).To(Equal(expected))
+			Expect(values).To(Equal(expected))
 		},
-		Entry("no DNSRecord", nil, nil),
+		Entry("no DNSRecord", nil, dnsRecordValues{}),
 		Entry("A record",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")},
-			[]string{"34.107.12.34"}),
+			dnsRecordValues{addresses: []string{"34.107.12.34"}}),
 		Entry("AAAA record",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
-			[]string{"2001:db8::1"}),
+			dnsRecordValues{addresses: []string{"2001:db8::1"}}),
 		Entry("multiple values",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34", "34.107.12.35")},
-			[]string{"34.107.12.34", "34.107.12.35"}),
+			dnsRecordValues{addresses: []string{"34.107.12.34", "34.107.12.35"}}),
 		Entry("internal and external record are both collected, toCIDRs deduplicates",
 			[]client.Object{
 				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
 				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
 			},
-			[]string{"34.107.12.34", "34.107.12.34"}),
-		Entry("CNAME record yields a hostname",
+			dnsRecordValues{addresses: []string{"34.107.12.34", "34.107.12.34"}}),
+		Entry("CNAME record is reported as a hostname, not as an address",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com")},
-			[]string{"abc.elb.eu-west-1.amazonaws.com"}),
+			dnsRecordValues{hostnames: []string{"abc.elb.eu-west-1.amazonaws.com"}}),
+		Entry("A and CNAME record are reported separately",
+			[]client.Object{
+				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
+			},
+			dnsRecordValues{addresses: []string{"34.107.12.34"}, hostnames: []string{"abc.elb.eu-west-1.amazonaws.com"}}),
 		Entry("ingress record of the nginx-ingress addon is ignored",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordIngress, extensionsv1alpha1.DNSRecordTypeA, "1.2.3.4")},
-			nil),
+			dnsRecordValues{}),
 		Entry("TXT record is ignored",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeTXT, "some-text")},
-			nil),
+			dnsRecordValues{}),
 		Entry("record without values is ignored",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA)},
-			nil),
+			dnsRecordValues{}),
 	)
 
 	It("should propagate an error while listing", func() {
@@ -79,7 +85,7 @@ var _ = Describe("DNSRecord", func() {
 		dnsRecord.Namespace = "shoot--other--cluster"
 		c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecord).Build()
 
-		Expect(fromDNSRecords(ctx, c, namespace)).To(BeNil())
+		Expect(fromDNSRecords(ctx, c, namespace)).To(Equal(dnsRecordValues{}))
 	})
 
 	It("should ignore DNSRecords without the controlplane garden role", func() {
@@ -87,7 +93,7 @@ var _ = Describe("DNSRecord", func() {
 		delete(dnsRecord.Labels, v1beta1constants.GardenRole)
 		c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecord).Build()
 
-		Expect(fromDNSRecords(ctx, c, namespace)).To(BeNil())
+		Expect(fromDNSRecords(ctx, c, namespace)).To(Equal(dnsRecordValues{}))
 	})
 })
 

@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	v1beta1helper "github.com/gardener/gardener/pkg/api/core/v1beta1/helper"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -257,6 +258,53 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 		})
 	})
 
+	Context("the kube-apiserver is exposed via a hostname", func() {
+		var (
+			c client.WithWatch
+			a *actuator
+		)
+
+		BeforeEach(func() {
+			c = fake.NewClientBuilder().WithScheme(testScheme).WithObjects(
+				dnsRecord(extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
+			).Build()
+			a = newActuator(c, nil)
+		})
+
+		It("should fail with a configuration problem naming the hostname and the way out", func() {
+			err := a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, enabled, cluster())
+
+			Expect(err).To(MatchError(ContainSubstring("the kube-apiserver is exposed via a hostname instead of an IP address")))
+			Expect(err).To(MatchError(ContainSubstring("abc.elb.eu-west-1.amazonaws.com")))
+			Expect(err).To(MatchError(ContainSubstring("kubeAPIServerEndpoints.enabled")))
+			Expect(v1beta1helper.ExtractErrorCodes(err)).To(ConsistOf(gardencorev1beta1.ErrorConfigurationProblem))
+		})
+
+		It("should not deploy anything and not record an event, the error is reported via the Network", func() {
+			Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, enabled, cluster())).NotTo(Succeed())
+
+			_, err := managedResource(c)
+			Expect(apierrors.IsNotFound(err)).To(BeTrue())
+			expectNoEvents()
+		})
+
+		It("should leave a previously deployed GlobalNetworkSet untouched", func() {
+			Expect(c.Create(ctx, &resourcesv1alpha1.ManagedResource{
+				ObjectMeta: metav1.ObjectMeta{Name: KubeAPIServerEndpointsManagedResourceName, Namespace: namespace},
+			})).To(Succeed())
+
+			Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, enabled, cluster())).NotTo(Succeed())
+
+			_, err := managedResource(c)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should not fail if the feature is disabled", func() {
+			Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network,
+				networkConfig(&calicov1alpha1.KubeAPIServerEndpoints{Enabled: ptr.To(false)}), cluster())).To(Succeed())
+		})
+	})
+
 	Context("addresses cannot be determined", func() {
 		var (
 			c client.WithWatch
@@ -270,21 +318,6 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 
 				// Deploy an initial GlobalNetworkSet which must survive the subsequent reconciliations.
 				Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, enabled, cluster())).To(Succeed())
-			})
-
-			It("should keep the previously deployed GlobalNetworkSet if only a CNAME record exists", func() {
-				before, err := managedResource(c)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(c.Delete(ctx, dnsRecord(extensionsv1alpha1.DNSRecordTypeA))).To(Succeed())
-				Expect(c.Create(ctx, dnsRecord(extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"))).To(Succeed())
-
-				Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, enabled, cluster())).To(Succeed())
-
-				after, err := managedResource(c)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(after.Spec.SecretRefs).To(Equal(before.Spec.SecretRefs))
-				Expect(globalNetworkSet(c, after)).To(ContainSubstring("- 34.107.12.34/32"))
 			})
 
 			It("should keep the previously deployed GlobalNetworkSet if no address exists at all", func() {
@@ -302,7 +335,6 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 
 			It("should record a warning event stating that the set may be outdated", func() {
 				Expect(c.Delete(ctx, dnsRecord(extensionsv1alpha1.DNSRecordTypeA))).To(Succeed())
-				Expect(c.Create(ctx, dnsRecord(extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"))).To(Succeed())
 
 				Expect(a.reconcileKubeAPIServerEndpoints(ctx, logr.Discard(), network, enabled, cluster())).To(Succeed())
 
@@ -311,7 +343,7 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 					reason:    EventKubeAPIServerEndpointsOutdated,
 					action:    gardencorev1beta1.EventActionReconcile,
 					note: "Could not determine the kube-apiserver endpoints (no kube-apiserver IP address could be " +
-						"determined: none of [abc.elb.eu-west-1.amazonaws.com] is an IP address). The GlobalNetworkSet " +
+						"determined: the shoot advertises no kube-apiserver address). The GlobalNetworkSet " +
 						`"` + calico.KubeAPIServerEndpointsName + `"` + " still holds the addresses of the last " +
 						"successful reconciliation and may be outdated.",
 				}))
@@ -320,9 +352,7 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 
 		Context("without a previously deployed GlobalNetworkSet", func() {
 			BeforeEach(func() {
-				c = fake.NewClientBuilder().WithScheme(testScheme).WithObjects(
-					dnsRecord(extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
-				).Build()
+				c = fake.NewClientBuilder().WithScheme(testScheme).Build()
 				a = newActuator(c, nil)
 			})
 
@@ -341,7 +371,7 @@ var _ = Describe("#reconcileKubeAPIServerEndpoints", func() {
 					reason:    EventKubeAPIServerEndpointsMissing,
 					action:    gardencorev1beta1.EventActionReconcile,
 					note: "Could not determine the kube-apiserver endpoints (no kube-apiserver IP address could be " +
-						"determined: none of [abc.elb.eu-west-1.amazonaws.com] is an IP address). The GlobalNetworkSet " +
+						"determined: the shoot advertises no kube-apiserver address). The GlobalNetworkSet " +
 						`"` + calico.KubeAPIServerEndpointsName + `"` + " is not deployed, hence Calico policies " +
 						"referring to it match no address and block traffic to the kube-apiserver.",
 				}))
