@@ -26,6 +26,14 @@ rules:
   - patch
   - update
 - apiGroups:
+  - extensions.gardener.cloud
+  resources:
+  - dnsrecords
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - coordination.k8s.io
   resources:
   - leases
@@ -70,6 +78,13 @@ rules:
   - patch
   - update
   - delete
+- apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 - apiGroups:
   - monitoring.coreos.com
   resources:

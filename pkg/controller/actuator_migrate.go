@@ -16,8 +16,10 @@ import (
 // Migrate implements Network.Actuator.
 func (a *actuator) Migrate(ctx context.Context, log logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
 	// Keep objects for shoot managed resources so that they are not deleted from the shoot during the migration
-	if err := managedresources.SetKeepObjects(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, true); err != nil {
-		return err
+	for _, name := range managedResourceNames {
+		if err := managedresources.SetKeepObjects(ctx, a.client, network.Namespace, name, true); err != nil {
+			return err
+		}
 	}
 
 	return a.Delete(ctx, log, network, cluster)

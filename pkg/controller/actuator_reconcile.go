@@ -265,7 +265,11 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	data := map[string][]byte{chartspkg.CalicoConfigKey: calicoChart}
-	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, "extension-networking-calico", false, data); err != nil {
+	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, managedResourceOrigin, false, data); err != nil {
+		return err
+	}
+
+	if err := a.reconcileKubeAPIServerEndpoints(ctx, log, network, networkConfig, cluster); err != nil {
 		return err
 	}
 
