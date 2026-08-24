@@ -21,7 +21,7 @@ data:
     featureGates:
 {{ toYaml .Values.config.featureGates | indent 6 }}
 {{- end }}
-{{- if .Values.config.kubeAPIServerEndpoints }}
-    kubeAPIServerEndpoints:
-{{ toYaml .Values.config.kubeAPIServerEndpoints | indent 6 }}
+{{- if .Values.config.kubeAPIServerGlobalNetworkSet }}
+    kubeAPIServerGlobalNetworkSet:
+{{ toYaml .Values.config.kubeAPIServerGlobalNetworkSet | indent 6 }}
 {{- end }}

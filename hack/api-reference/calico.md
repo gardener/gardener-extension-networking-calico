@@ -378,7 +378,7 @@ boolean
 </table>
 
 
-<h3 id="kubeapiserverendpoints">KubeAPIServerEndpoints
+<h3 id="kubeapiserverglobalnetworkset">KubeAPIServerGlobalNetworkSet
 </h3>
 
 
@@ -387,7 +387,7 @@ boolean
 </p>
 
 <p>
-KubeAPIServerEndpoints contains configuration for the Calico GlobalNetworkSet which holds the IP addresses of the
+KubeAPIServerGlobalNetworkSet contains configuration for the Calico GlobalNetworkSet which holds the IP addresses of the
 shoot's kube-apiserver endpoint.
 
 The GlobalNetworkSet is named "gardener-kube-apiserver" and carries the label
@@ -690,14 +690,14 @@ boolean
 </tr>
 <tr>
 <td>
-<code>kubeAPIServerEndpoints</code></br>
+<code>kubeAPIServerGlobalNetworkSet</code></br>
 <em>
-<a href="#kubeapiserverendpoints">KubeAPIServerEndpoints</a>
+<a href="#kubeapiserverglobalnetworkset">KubeAPIServerGlobalNetworkSet</a>
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>KubeAPIServerEndpoints configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP<br />addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.<br />The extension only provides the GlobalNetworkSet as a building block, it does not create any<br />(Global)NetworkPolicy.</p>
+<p>KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP<br />addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.<br />The extension only provides the GlobalNetworkSet as a building block, it does not create any<br />(Global)NetworkPolicy.</p>
 </td>
 </tr>
 

@@ -145,7 +145,7 @@ Enable it in the `NetworkingConfig`:
 ```yaml
 apiVersion: calico.networking.extensions.gardener.cloud/v1alpha1
 kind: NetworkConfig
-kubeAPIServerEndpoints:
+kubeAPIServerGlobalNetworkSet:
   enabled: true
 ```
 
@@ -239,7 +239,7 @@ overlay:
   enabled: true
 autoScaling:
   mode: "vpa"
-kubeAPIServerEndpoints:
+kubeAPIServerGlobalNetworkSet:
   enabled: true
 ```
 
@@ -295,7 +295,7 @@ spec:
         enabled: true
       typha:
         enabled: false
-      kubeAPIServerEndpoints:
+      kubeAPIServerGlobalNetworkSet:
         enabled: true
   kubernetes:
     version: 1.32.0
