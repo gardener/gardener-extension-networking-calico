@@ -93,7 +93,6 @@
     "k8s.io/component-base",
     "k8s.io/utils",
     "sigs.k8s.io/controller-runtime",
-    "sigs.k8s.io/yaml",
     "cel.dev/expr",
     "dario.cat/mergo",
     "github.com/BurntSushi/toml",
@@ -299,5 +298,6 @@
     "sigs.k8s.io/json",
     "sigs.k8s.io/randfill",
     "sigs.k8s.io/structured-merge-diff/v6",
+    "sigs.k8s.io/yaml",
   ]
 }
