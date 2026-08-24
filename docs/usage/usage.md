@@ -160,14 +160,14 @@ metadata:
   name: gardener-kube-apiserver
   labels:
     networking.gardener.cloud/endpoint: kube-apiserver
-  annotations:
-    networking.gardener.cloud/source: DNSRecord
 spec:
   nets:
   - 34.107.12.34/32
 ```
 
 The name `gardener-kube-apiserver` and the label `networking.gardener.cloud/endpoint=kube-apiserver` form the contract for referencing the set. Neither is configurable, so that policies can rely on them, and the label is the only one the extension sets - the labels of a `GlobalNetworkSet` are selector input for Calico policies rather than mere bookkeeping, so any additional one would be matched by a `destination.selector` too.
+
+If the addresses cannot be determined, the extension does **not** publish an incomplete set, since that would match nothing and thereby block the traffic your policies mean to allow. It fails the shoot reconciliation instead, stating why.
 
 ### Example policy
 
@@ -215,7 +215,7 @@ The same rules work in a namespaced `NetworkPolicy`, except that the second one 
 ### Things to keep in mind
 
 - **Restrict the port.** The load balancer of the istio ingress gateway is shared by all shoot clusters of a seed and also serves other ports, for example for the `apiserver-proxy` and the VPN connection. Always combine the rule with `protocol: TCP` and `ports: [443]`, the port the istio ingress gateway serves the kube-apiserver on.
-- **Not every landscape can provide the set.** Where the `kube-apiserver` is exposed via a hostname rather than an IP address, it cannot be expressed as a `GlobalNetworkSet` and enabling the feature makes the shoot reconciliation fail with `ERR_CONFIGURATION_PROBLEM`, telling you to disable it again. If the addresses are merely not published yet, the reconciliation succeeds and a warning event is recorded on the `Network` resource in the seed - ask your Gardener operator to check it if traffic to the kube-apiserver is unexpectedly blocked.
+- **Not every landscape can provide the set.** Where the `kube-apiserver` is exposed via a hostname rather than an IP address, it cannot be expressed as a `GlobalNetworkSet`, and enabling the feature makes the shoot reconciliation fail with `ERR_CONFIGURATION_PROBLEM` telling you to disable it again. The same applies to shoots whose kube-apiserver has no managed DNS at all.
 - **Egress only.** Traffic from the `kube-apiserver` to a pod (webhooks, `kubectl exec`, `kubectl logs`, metrics) arrives through the VPN tunnel and therefore does *not* have the load balancer IP as source address. The set must not be used in `ingress` rules.
 - **No server-side defaulting.** Since the Calico API server is not deployed in shoot clusters, the CRD based API group `crd.projectcalico.org/v1` has to be used. It performs no defaulting and no validation of selector expressions, so `spec.types`, `spec.selector` and `spec.order` must be set explicitly. An invalid selector is accepted by the API server and only fails later in `calico-node`/`calico-typha`, where it may drop the whole policy - check their logs if a policy misbehaves, and consider staging new policies with `action: Log` first.
 - **The set is managed by Gardener.** It is deployed via a `ManagedResource`, so manual modifications are reverted.
