@@ -41,6 +41,7 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/charts"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/apiserverendpoints"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	chartspkg "github.com/gardener/gardener-extension-networking-calico/pkg/charts"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
@@ -247,6 +248,17 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		podCIDRs = cluster.Shoot.Status.Networking.Pods
 	}
 
+	var kubeAPIServerCIDRs []string
+	if apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerEndpointsConfig) {
+		// Deliberately fails the reconciliation if the addresses cannot be determined: a GlobalNetworkSet without them
+		// matches nothing, hence every policy referring to it would silently block traffic to the kube-apiserver.
+		if kubeAPIServerCIDRs, err = apiserverendpoints.CIDRs(ctx, a.apiReader, network.Namespace); err != nil {
+			return err
+		}
+
+		log.V(1).Info("Adding the kube-apiserver GlobalNetworkSet to the calico chart", "nets", kubeAPIServerCIDRs)
+	}
+
 	calicoChart, err := chartspkg.RenderCalicoChart(
 		chartRenderer,
 		network,
@@ -259,6 +271,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		cluster.Shoot.Spec.Networking.Nodes,
 		podCIDRs,
 		ipFamilies,
+		kubeAPIServerCIDRs,
 	)
 	if err != nil {
 		return err
@@ -266,10 +279,6 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 
 	data := map[string][]byte{chartspkg.CalicoConfigKey: calicoChart}
 	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, managedResourceOrigin, false, data); err != nil {
-		return err
-	}
-
-	if err := a.reconcileKubeAPIServerEndpoints(ctx, log, network, networkConfig, cluster); err != nil {
 		return err
 	}
 

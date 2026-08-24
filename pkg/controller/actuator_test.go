@@ -30,14 +30,10 @@ var _ = Describe("managed resource lifecycle", func() {
 		network = &extensionsv1alpha1.Network{ObjectMeta: metav1.ObjectMeta{Name: "calico-network", Namespace: namespace}}
 		cluster = &extensionscontroller.Cluster{Shoot: &gardencorev1beta1.Shoot{}}
 
-		newClientWithManagedResources = func() client.WithWatch {
-			builder := fake.NewClientBuilder().WithScheme(testScheme)
-			for _, name := range managedResourceNames {
-				builder = builder.WithObjects(&resourcesv1alpha1.ManagedResource{
-					ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace},
-				})
-			}
-			return builder.Build()
+		newClientWithManagedResource = func() client.WithWatch {
+			return fake.NewClientBuilder().WithScheme(testScheme).WithObjects(&resourcesv1alpha1.ManagedResource{
+				ObjectMeta: metav1.ObjectMeta{Name: CalicoConfigManagedResourceName, Namespace: namespace},
+			}).Build()
 		}
 
 		get = func(c client.Client, name string) (*resourcesv1alpha1.ManagedResource, error) {
@@ -47,46 +43,38 @@ var _ = Describe("managed resource lifecycle", func() {
 		}
 	)
 
-	It("should cover all managed resources this extension deploys", func() {
-		Expect(managedResourceNames).To(ConsistOf(CalicoConfigManagedResourceName, KubeAPIServerEndpointsManagedResourceName))
-	})
-
-	It("should delete all managed resources on Delete", func() {
-		c := newClientWithManagedResources()
+	It("should delete the managed resource on Delete", func() {
+		c := newClientWithManagedResource()
 
 		Expect((&actuator{client: c, apiReader: c}).Delete(ctx, logr.Discard(), network, cluster)).To(Succeed())
 
-		for _, name := range managedResourceNames {
-			_, err := get(c, name)
-			Expect(apierrors.IsNotFound(err)).To(BeTrue(), "managed resource %s should be gone", name)
-		}
+		_, err := get(c, CalicoConfigManagedResourceName)
+		Expect(apierrors.IsNotFound(err)).To(BeTrue(), "the managed resource should be gone")
 	})
 
-	It("should delete all managed resources on ForceDelete", func() {
-		c := newClientWithManagedResources()
+	It("should delete the managed resource on ForceDelete", func() {
+		c := newClientWithManagedResource()
 
 		Expect((&actuator{client: c, apiReader: c}).ForceDelete(ctx, logr.Discard(), network, cluster)).To(Succeed())
 
-		for _, name := range managedResourceNames {
-			_, err := get(c, name)
-			Expect(apierrors.IsNotFound(err)).To(BeTrue(), "managed resource %s should be gone", name)
-		}
+		_, err := get(c, CalicoConfigManagedResourceName)
+		Expect(apierrors.IsNotFound(err)).To(BeTrue(), "the managed resource should be gone")
 	})
 
-	It("should succeed on Delete if the managed resources do not exist", func() {
+	It("should succeed on Delete if the managed resource does not exist", func() {
 		c := fake.NewClientBuilder().WithScheme(testScheme).Build()
 
 		Expect((&actuator{client: c, apiReader: c}).Delete(ctx, logr.Discard(), network, cluster)).To(Succeed())
 	})
 
-	It("should succeed on Migrate if the managed resources do not exist", func() {
+	It("should succeed on Migrate if the managed resource does not exist", func() {
 		c := fake.NewClientBuilder().WithScheme(testScheme).Build()
 
 		Expect((&actuator{client: c, apiReader: c}).Migrate(ctx, logr.Discard(), network, cluster)).To(Succeed())
 	})
 
-	It("should keep the objects of all managed resources on Migrate", func() {
-		c := newClientWithManagedResources()
+	It("should keep the objects of the managed resource on Migrate", func() {
+		c := newClientWithManagedResource()
 		keepObjects := map[string]*bool{}
 
 		// Record the keepObjects flag before Migrate deletes the managed resources.
@@ -104,8 +92,6 @@ var _ = Describe("managed resource lifecycle", func() {
 
 		Expect((&actuator{client: c, apiReader: c}).Migrate(ctx, logr.Discard(), network, cluster)).To(Succeed())
 
-		for _, name := range managedResourceNames {
-			Expect(keepObjects).To(HaveKeyWithValue(name, ptr.To(true)), "keepObjects should have been set for %s", name)
-		}
+		Expect(keepObjects).To(HaveKeyWithValue(CalicoConfigManagedResourceName, ptr.To(true)))
 	})
 })

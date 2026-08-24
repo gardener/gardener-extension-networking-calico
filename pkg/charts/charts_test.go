@@ -18,6 +18,7 @@ import (
 	"go.uber.org/mock/gomock"
 	releaseutil "helm.sh/helm/v4/pkg/release/v1/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/version"
 
 	"github.com/gardener/gardener-extension-networking-calico/charts"
 	"github.com/gardener/gardener-extension-networking-calico/imagevector"
@@ -256,7 +257,7 @@ var _ = Describe("Chart package test", func() {
 		func(config func() *calicov1alpha1.NetworkConfig, configResult func() *calicov1alpha1.NetworkConfig, typhaEnabled bool, wantsVPA bool,
 			kubeProxyEnabled bool, mtu string, ipinip bool, bpf bool, kubeProxyMode *corev1beta1.ProxyMode, pool string, birdExporterEnabled bool, multusEnabled bool, installCNIPlugins bool,
 			modeFunc func() string, detectionMethodFunc func() *string, nodesFunc func() *string, additionalGlobalOptions map[string]string) {
-			values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, kubeProxyMode, false, nodesFunc(), []string{network.Spec.PodCIDR}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
+			values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, wantsVPA, kubeProxyEnabled, kubeProxyMode, false, nodesFunc(), []string{network.Spec.PodCIDR}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4}, nil)
 			Expect(err).To(BeNil())
 
 			expected := map[string]interface{}{
@@ -445,7 +446,7 @@ var _ = Describe("Chart package test", func() {
 		var podCIDR = "12.0.0.0/8"
 		DescribeTable("should correctly compute calico chart values with non-privileged mode enabled",
 			func(config func() *calicov1alpha1.NetworkConfig, expectedResult bool) {
-				values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, nil, true, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
+				values, err := ComputeCalicoChartValues(network, config(), kubernetesVersion, true, true, nil, true, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4}, nil)
 				Expect(err).To(BeNil())
 
 				actual, err := utils.GetFromValuesMap(values, "config", "nonPrivileged")
@@ -458,7 +459,7 @@ var _ = Describe("Chart package test", func() {
 		)
 
 		It("should error on invalid config value", func() {
-			_, err := ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, nil, false, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4})
+			_, err := ComputeCalicoChartValues(network, networkConfigInvalid, kubernetesVersion, true, true, nil, false, &nodeCIDR, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4}, nil)
 			Expect(err).To(Equal(fmt.Errorf("error when generating calico config: unsupported value for backend: invalid")))
 		})
 
@@ -477,6 +478,7 @@ var _ = Describe("Chart package test", func() {
 				values, err := ComputeCalicoChartValues(
 					network,
 					nil, "", false, false, nil, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
+					nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -514,6 +516,7 @@ var _ = Describe("Chart package test", func() {
 				values, err := ComputeCalicoChartValues(
 					network, config,
 					"", false, false, nil, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
+					nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -547,6 +550,7 @@ var _ = Describe("Chart package test", func() {
 				values, err := ComputeCalicoChartValues(
 					network, config,
 					"", false, false, nil, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4},
+					nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -588,6 +592,7 @@ var _ = Describe("Chart package test", func() {
 				values, err := ComputeCalicoChartValues(
 					network,
 					nil, "", false, false, nil, false, nil, []string{"2001:0db8:85a3:0000::/56"}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv6},
+					nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -626,6 +631,7 @@ var _ = Describe("Chart package test", func() {
 				values, err := ComputeCalicoChartValues(
 					network, config,
 					"", false, false, nil, false, nil, []string{"2001:0db8:85a3:0000::/56"}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv6},
+					nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -670,6 +676,7 @@ var _ = Describe("Chart package test", func() {
 				values, err := ComputeCalicoChartValues(
 					network,
 					nil, "", false, false, nil, false, nil, []string{"2001:0db8:85a3:0000::/56", podCIDR}, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4, extensionsv1alpha1.IPFamilyIPv6},
+					nil,
 				)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -706,7 +713,7 @@ var _ = Describe("Chart package test", func() {
 			It("should not enable nftables if kube-proxy is in iptables mode", func() {
 				enablekubeproxy := true
 				kubeproxymode := corev1beta1.ProxyModeIPTables
-				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(values["config"]).To(
@@ -721,7 +728,7 @@ var _ = Describe("Chart package test", func() {
 			It("should not enable nftables if kube-proxy is in ipvs mode", func() {
 				enablekubeproxy := true
 				kubeproxymode := corev1beta1.ProxyModeIPVS
-				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(values["config"]).To(
@@ -736,7 +743,7 @@ var _ = Describe("Chart package test", func() {
 			It("should enable nftables if kube-proxy is in nftables mode", func() {
 				enablekubeproxy := true
 				kubeproxymode := corev1beta1.ProxyModeNFTables
-				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				values, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(values["config"]).To(
@@ -751,7 +758,7 @@ var _ = Describe("Chart package test", func() {
 			It("should error out if kubeProxyMode is set but kube-proxy is not enabled", func() {
 				enablekubeproxy := false
 				kubeproxymode := corev1beta1.ProxyModeNFTables
-				_, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil)
+				_, err := ComputeCalicoChartValues(network, nil, kubernetesVersion, false, enablekubeproxy, &kubeproxymode, false, nil, nil, nil, nil)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -772,6 +779,42 @@ var _ = Describe("Chart package test", func() {
 				return releaseutil.Manifest{Name: fmt.Sprintf("test/templates/%s", name), Content: testManifestContent}
 			}
 		})
+		Describe("kube-apiserver GlobalNetworkSet", func() {
+			renderChart := func(kubeAPIServerCIDRs []string) string {
+				renderer := chartrenderer.NewWithServerVersion(&version.Info{GitVersion: kubernetesVersion})
+
+				manifest, err := RenderCalicoChart(renderer, network, networkConfigNil, kubernetesVersion, false, true,
+					nil, false, nil, nil, []extensionsv1alpha1.IPFamily{extensionsv1alpha1.IPFamilyIPv4}, kubeAPIServerCIDRs)
+				Expect(err).NotTo(HaveOccurred())
+
+				return string(manifest)
+			}
+
+			It("should not render it if no CIDRs are given", func() {
+				manifest := renderChart(nil)
+
+				// The CRD is always part of the chart, the object is not.
+				Expect(manifest).To(ContainSubstring("globalnetworksets.crd.projectcalico.org"))
+				Expect(manifest).NotTo(ContainSubstring("name: gardener-kube-apiserver"))
+			})
+
+			It("should render it next to the CRD it needs", func() {
+				manifest := renderChart([]string{"34.107.12.34/32", "2001:db8::1/128"})
+
+				Expect(manifest).To(ContainSubstring("globalnetworksets.crd.projectcalico.org"))
+				Expect(manifest).To(ContainSubstring(`apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: gardener-kube-apiserver
+  labels:
+    networking.gardener.cloud/endpoint: kube-apiserver
+spec:
+  nets:
+  - 34.107.12.34/32
+  - 2001:db8::1/128`))
+			})
+		})
+
 		DescribeTable("Render Calico charts correctly",
 			func(nodes *string) {
 				mockChartRenderer.EXPECT().RenderEmbeddedFS(charts.InternalChart, calico.CalicoChartPath, calico.ReleaseName, metav1.NamespaceSystem, gomock.Any()).Return(&chartrenderer.RenderedChart{
@@ -781,7 +824,7 @@ var _ = Describe("Chart package test", func() {
 					},
 				}, nil)
 
-				_, err := RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, nil, false, nodes, nil, nil)
+				_, err := RenderCalicoChart(mockChartRenderer, network, networkConfigNil, kubernetesVersion, false, true, nil, false, nodes, nil, nil, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 			},

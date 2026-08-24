@@ -51,6 +51,9 @@ var _ = Describe("DNSRecord", func() {
 		Entry("CNAME record is reported as a hostname, not as an address",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com")},
 			dnsRecordValues{hostnames: []string{"abc.elb.eu-west-1.amazonaws.com"}}),
+		Entry("AAAA record is an address too",
+			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
+			dnsRecordValues{addresses: []string{"2001:db8::1"}}),
 		Entry("A and CNAME record are reported separately",
 			[]client.Object{
 				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),

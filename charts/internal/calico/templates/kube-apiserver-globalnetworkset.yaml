@@ -1,0 +1,16 @@
+{{- if .Values.kubeAPIServerEndpoints }}
+---
+# Holds the IP addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster, so that
+# Calico policies can restrict egress traffic to it. The name and the label are the contract such policies refer to.
+# The CRD based API group is used because this extension does not deploy the Calico API server, hence
+# `projectcalico.org/v3` does not exist in shoot clusters.
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  name: gardener-kube-apiserver
+  labels:
+    networking.gardener.cloud/endpoint: kube-apiserver
+spec:
+  nets:
+{{ toYaml .Values.kubeAPIServerEndpoints.nets | indent 2 }}
+{{- end }}
