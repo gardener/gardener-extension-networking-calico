@@ -22,9 +22,9 @@ import (
 
 // Enabled returns whether the GlobalNetworkSet shall be deployed:
 // providerConfig.enabled ?? operatorConfig.enabled ?? false.
-func Enabled(networkConfig *calicov1alpha1.NetworkConfig, operatorConfig *apisconfig.KubeAPIServerEndpointsConfiguration) bool {
-	if networkConfig != nil && networkConfig.KubeAPIServerEndpoints != nil && networkConfig.KubeAPIServerEndpoints.Enabled != nil {
-		return *networkConfig.KubeAPIServerEndpoints.Enabled
+func Enabled(networkConfig *calicov1alpha1.NetworkConfig, operatorConfig *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration) bool {
+	if networkConfig != nil && networkConfig.KubeAPIServerGlobalNetworkSet != nil && networkConfig.KubeAPIServerGlobalNetworkSet.Enabled != nil {
+		return *networkConfig.KubeAPIServerGlobalNetworkSet.Enabled
 	}
 	if operatorConfig != nil && operatorConfig.Enabled != nil {
 		return *operatorConfig.Enabled
@@ -52,7 +52,7 @@ func CIDRs(ctx context.Context, c client.Reader, namespace string) ([]string, er
 			// has no IP address at all - as opposed to one which is not published yet.
 			return nil, v1beta1helper.NewErrorWithCodes(fmt.Errorf("the kube-apiserver is exposed via the hostname(s) "+
 				"%v instead of an IP address, which a GlobalNetworkSet cannot hold - unset "+
-				"`kubeAPIServerEndpoints.enabled` for this shoot or disable it landscape-wide",
+				"`kubeAPIServerGlobalNetworkSet.enabled` for this shoot or disable it landscape-wide",
 				sortAndCompact(dnsRecords.hostnames)), gardencorev1beta1.ErrorConfigurationProblem)
 		}
 

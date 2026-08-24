@@ -1,4 +1,4 @@
-{{- if .Values.kubeAPIServerEndpoints }}
+{{- if .Values.kubeAPIServerGlobalNetworkSet }}
 ---
 # Holds the IP addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster, so that
 # Calico policies can restrict egress traffic to it. The name and the label are the contract such policies refer to.
@@ -12,5 +12,5 @@ metadata:
     networking.gardener.cloud/endpoint: kube-apiserver
 spec:
   nets:
-{{ toYaml .Values.kubeAPIServerEndpoints.nets | indent 2 }}
+{{ toYaml .Values.kubeAPIServerGlobalNetworkSet.nets | indent 2 }}
 {{- end }}

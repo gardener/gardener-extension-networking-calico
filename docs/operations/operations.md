@@ -125,11 +125,11 @@ The feature is disabled by default. It can be enabled landscape-wide in the comp
 ```yaml
 apiVersion: calico.networking.extensions.config.gardener.cloud/v1alpha1
 kind: ControllerConfiguration
-kubeAPIServerEndpoints:
+kubeAPIServerGlobalNetworkSet:
   enabled: true
 ```
 
-Shoots override this via `.spec.networking.providerConfig.kubeAPIServerEndpoints.enabled`, so the effective value is `providerConfig.enabled ?? componentConfig.enabled ?? false`.
+Shoots override this via `.spec.networking.providerConfig.kubeAPIServerGlobalNetworkSet.enabled`, so the effective value is `providerConfig.enabled ?? componentConfig.enabled ?? false`.
 
 ##### Address source
 

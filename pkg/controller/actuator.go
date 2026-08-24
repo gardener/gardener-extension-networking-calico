@@ -38,8 +38,8 @@ type actuator struct {
 	chartRendererFactory extensionscontroller.ChartRendererFactory
 	chartApplier         gardenerkubernetes.ChartApplier
 
-	// kubeAPIServerEndpointsConfig is the landscape-wide configuration for the kube-apiserver GlobalNetworkSet.
-	kubeAPIServerEndpointsConfig *apisconfig.KubeAPIServerEndpointsConfiguration
+	// kubeAPIServerGlobalNetworkSetConfig is the landscape-wide configuration for the kube-apiserver GlobalNetworkSet.
+	kubeAPIServerGlobalNetworkSetConfig *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Network resources.
@@ -47,14 +47,14 @@ func NewActuator(
 	mgr manager.Manager,
 	chartApplier gardenerkubernetes.ChartApplier,
 	chartRendererFactory extensionscontroller.ChartRendererFactory,
-	kubeAPIServerEndpointsConfig *apisconfig.KubeAPIServerEndpointsConfiguration,
+	kubeAPIServerGlobalNetworkSetConfig *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration,
 ) network.Actuator {
 	return &actuator{
-		client:                       mgr.GetClient(),
-		apiReader:                    mgr.GetAPIReader(),
-		restConfig:                   mgr.GetConfig(),
-		chartApplier:                 chartApplier,
-		chartRendererFactory:         chartRendererFactory,
-		kubeAPIServerEndpointsConfig: kubeAPIServerEndpointsConfig,
+		client:                              mgr.GetClient(),
+		apiReader:                           mgr.GetAPIReader(),
+		restConfig:                          mgr.GetConfig(),
+		chartApplier:                        chartApplier,
+		chartRendererFactory:                chartRendererFactory,
+		kubeAPIServerGlobalNetworkSetConfig: kubeAPIServerGlobalNetworkSetConfig,
 	}
 }

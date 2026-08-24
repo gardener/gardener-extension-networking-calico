@@ -249,7 +249,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	var kubeAPIServerCIDRs []string
-	if apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerEndpointsConfig) {
+	if apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) {
 		// Deliberately fails the reconciliation if the addresses cannot be determined: a GlobalNetworkSet without them
 		// matches nothing, hence every policy referring to it would silently block traffic to the kube-apiserver.
 		if kubeAPIServerCIDRs, err = apiserverendpoints.CIDRs(ctx, a.apiReader, network.Namespace); err != nil {

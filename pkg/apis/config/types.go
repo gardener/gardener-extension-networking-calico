@@ -20,14 +20,14 @@ type ControllerConfiguration struct {
 	// or disable alpha/experimental features.
 	// Default: nil
 	FeatureGates map[string]bool
-	// KubeAPIServerEndpoints contains the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which
+	// KubeAPIServerGlobalNetworkSet contains the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which
 	// is deployed into shoot clusters.
-	KubeAPIServerEndpoints *KubeAPIServerEndpointsConfiguration
+	KubeAPIServerGlobalNetworkSet *KubeAPIServerGlobalNetworkSetConfiguration
 }
 
-// KubeAPIServerEndpointsConfiguration contains the landscape-wide configuration for the kube-apiserver
+// KubeAPIServerGlobalNetworkSetConfiguration contains the landscape-wide configuration for the kube-apiserver
 // GlobalNetworkSet.
-type KubeAPIServerEndpointsConfiguration struct {
+type KubeAPIServerGlobalNetworkSetConfiguration struct {
 	// Enabled is the landscape-wide default which determines whether the GlobalNetworkSet is deployed into shoot
 	// clusters. It can be overridden per shoot via the Network resource's providerConfig.
 	Enabled *bool

@@ -10,5 +10,5 @@ clientConnection:
 #   syncPeriod: 30s
 featureGates: {}
 # landscape-wide default for the kube-apiserver GlobalNetworkSet, overridable per shoot via the providerConfig
-# kubeAPIServerEndpoints:
+# kubeAPIServerGlobalNetworkSet:
 #   enabled: false

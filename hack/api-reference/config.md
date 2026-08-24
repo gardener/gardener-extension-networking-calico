@@ -53,14 +53,14 @@ object (keys:string, values:boolean)
 </tr>
 <tr>
 <td>
-<code>kubeAPIServerEndpoints</code></br>
+<code>kubeAPIServerGlobalNetworkSet</code></br>
 <em>
-<a href="#kubeapiserverendpointsconfiguration">KubeAPIServerEndpointsConfiguration</a>
+<a href="#kubeapiserverglobalnetworksetconfiguration">KubeAPIServerGlobalNetworkSetConfiguration</a>
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>KubeAPIServerEndpoints contains the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which<br />is deployed into shoot clusters.</p>
+<p>KubeAPIServerGlobalNetworkSet contains the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which<br />is deployed into shoot clusters.</p>
 </td>
 </tr>
 
@@ -68,7 +68,7 @@ object (keys:string, values:boolean)
 </table>
 
 
-<h3 id="kubeapiserverendpointsconfiguration">KubeAPIServerEndpointsConfiguration
+<h3 id="kubeapiserverglobalnetworksetconfiguration">KubeAPIServerGlobalNetworkSetConfiguration
 </h3>
 
 
@@ -77,7 +77,7 @@ object (keys:string, values:boolean)
 </p>
 
 <p>
-KubeAPIServerEndpointsConfiguration contains the landscape-wide configuration for the kube-apiserver
+KubeAPIServerGlobalNetworkSetConfiguration contains the landscape-wide configuration for the kube-apiserver
 GlobalNetworkSet.
 </p>
 

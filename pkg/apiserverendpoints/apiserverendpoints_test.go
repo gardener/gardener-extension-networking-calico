@@ -26,15 +26,15 @@ import (
 var _ = Describe("APIServerEndpoints", func() {
 	DescribeTable("#Enabled",
 		func(networkConfig *calicov1alpha1.NetworkConfig, operatorConfig *bool, expected bool) {
-			var operator *apisconfig.KubeAPIServerEndpointsConfiguration
+			var operator *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration
 			if operatorConfig != nil {
-				operator = &apisconfig.KubeAPIServerEndpointsConfiguration{Enabled: operatorConfig}
+				operator = &apisconfig.KubeAPIServerGlobalNetworkSetConfiguration{Enabled: operatorConfig}
 			}
 
 			Expect(Enabled(networkConfig, operator)).To(Equal(expected))
 		},
 		Entry("no config at all", nil, nil, false),
-		Entry("no kubeAPIServerEndpoints", &calicov1alpha1.NetworkConfig{}, nil, false),
+		Entry("no kubeAPIServerGlobalNetworkSet", &calicov1alpha1.NetworkConfig{}, nil, false),
 		Entry("providerConfig enabled", networkConfig(ptr.To(true)), nil, true),
 		Entry("providerConfig disabled", networkConfig(ptr.To(false)), nil, false),
 		Entry("operator default enabled", nil, ptr.To(true), true),
@@ -70,7 +70,7 @@ var _ = Describe("APIServerEndpoints", func() {
 			Expect(err).To(MatchError(ContainSubstring("exposed via the hostname(s)")))
 			// The hostname is named once, although both DNSRecords carry it.
 			Expect(err).To(MatchError(ContainSubstring("[abc.elb.eu-west-1.amazonaws.com]")))
-			Expect(err).To(MatchError(ContainSubstring("kubeAPIServerEndpoints.enabled")))
+			Expect(err).To(MatchError(ContainSubstring("kubeAPIServerGlobalNetworkSet.enabled")))
 			Expect(v1beta1helper.ExtractErrorCodes(err)).To(ConsistOf(gardencorev1beta1.ErrorConfigurationProblem))
 		})
 
@@ -126,5 +126,5 @@ var _ = Describe("APIServerEndpoints", func() {
 })
 
 func networkConfig(enabled *bool) *calicov1alpha1.NetworkConfig {
-	return &calicov1alpha1.NetworkConfig{KubeAPIServerEndpoints: &calicov1alpha1.KubeAPIServerEndpoints{Enabled: enabled}}
+	return &calicov1alpha1.NetworkConfig{KubeAPIServerGlobalNetworkSet: &calicov1alpha1.KubeAPIServerGlobalNetworkSet{Enabled: enabled}}
 }
