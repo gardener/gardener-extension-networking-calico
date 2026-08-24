@@ -42,7 +42,7 @@ var _ = Describe("DNSRecord", func() {
 		Entry("multiple values",
 			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34", "34.107.12.35")},
 			dnsRecordValues{addresses: []string{"34.107.12.34", "34.107.12.35"}}),
-		Entry("internal and external record are both collected, toCIDRs deduplicates",
+		Entry("internal and external record are both collected, CIDRs deduplicates",
 			[]client.Object{
 				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
 				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
