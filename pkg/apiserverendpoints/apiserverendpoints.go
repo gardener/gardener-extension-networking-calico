@@ -33,13 +33,11 @@ func Enabled(networkConfig *calicov1alpha1.NetworkConfig, operatorConfig *apisco
 }
 
 // CIDRs returns the IP addresses of the shoot's kube-apiserver endpoint as /32 respectively /128 CIDRs, read from the
-// DNSRecords in the given control plane namespace. They are the write side of exactly the DNS entry which shoot pods
-// later resolve, and for A/AAAA records their values already are the IP addresses, so no DNS lookup is needed.
+// DNSRecords in the given control plane namespace.
 //
-// It fails if the addresses cannot be determined, since a GlobalNetworkSet which does not hold them is worse than none
-// at all: it would silently match no address in the policies referring to it. If the kube-apiserver is exposed via a
-// hostname, the error is marked as a configuration problem - the landscape cannot support the feature at all, whereas
-// missing addresses may still be published later during the shoot's creation.
+// It fails rather than returning nothing, see the caller. A kube-apiserver exposed via a hostname is marked as a
+// configuration problem, because only disabling the feature can resolve it, while addresses which are not published
+// yet may still appear during the shoot's creation.
 func CIDRs(ctx context.Context, c client.Reader, namespace string) ([]string, error) {
 	dnsRecords, err := fromDNSRecords(ctx, c, namespace)
 	if err != nil {
@@ -48,8 +46,6 @@ func CIDRs(ctx context.Context, c client.Reader, namespace string) ([]string, er
 
 	if len(dnsRecords.addresses) == 0 {
 		if len(dnsRecords.hostnames) > 0 {
-			// The DNSRecord type is derived from the published address, so CNAME records state that the kube-apiserver
-			// has no IP address at all - as opposed to one which is not published yet.
 			return nil, v1beta1helper.NewErrorWithCodes(fmt.Errorf("the kube-apiserver is exposed via the hostname(s) "+
 				"%v instead of an IP address, which a GlobalNetworkSet cannot hold - unset "+
 				"`kubeAPIServerGlobalNetworkSet.enabled` for this shoot or disable it landscape-wide",
