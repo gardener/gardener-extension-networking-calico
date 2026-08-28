@@ -6,7 +6,7 @@ toolchain go1.26.7
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/gardener/gardener v1.148.4
+	github.com/gardener/gardener v1.148.5
 	github.com/gardener/gardener/hack/tools v1.149.3
 	github.com/gardener/gardener/pkg/apis v1.148.4
 	github.com/go-logr/logr v1.4.3
