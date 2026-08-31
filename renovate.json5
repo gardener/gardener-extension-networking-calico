@@ -29,6 +29,12 @@
       "automerge": false
     },
     {
+      // quay.io/calico/node publishes tags both with and without the "v" prefix; restrict to v-prefixed ones.
+      "matchPackageNames": ["quay.io/calico/node"],
+      "matchDatasources": ["docker"],
+      "allowedVersions": "/^v/"
+    },
+    {
       // Group golang updates in one PR.
       "groupName": "golang",
       "matchDatasources": ["docker", "golang-version"],
