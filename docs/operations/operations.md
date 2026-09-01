@@ -152,6 +152,8 @@ A `GlobalNetworkSet` which does not hold the addresses is worse than none at all
 
 gardenlet derives the `DNSRecord` type from the address it publishes, which is why a `CNAME` record states that there is no IP address, as opposed to one which is not published yet.
 
+Hibernated shoots are exempt. gardenlet destroys the kube-apiserver `DNSRecord`s while a shoot is hibernated, so the addresses cannot be determined, and failing would keep the shoot's reconciliation failing for as long as it stays hibernated. The set is left out of the calico chart meanwhile - a hibernated cluster runs no pods which could need it - and is published again with the first reconciliation after the wake-up, which recreates the `DNSRecord`s.
+
 ##### Inspecting the deployed set
 
 ```bash

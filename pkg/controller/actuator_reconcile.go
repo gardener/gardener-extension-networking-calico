@@ -248,14 +248,12 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		podCIDRs = cluster.Shoot.Status.Networking.Pods
 	}
 
-	var kubeAPIServerCIDRs []string
-	if apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) {
-		// Deliberately fails the reconciliation if the addresses cannot be determined: a GlobalNetworkSet without them
-		// matches nothing, hence every policy referring to it would silently block traffic to the kube-apiserver.
-		if kubeAPIServerCIDRs, err = apiserverendpoints.CIDRs(ctx, a.apiReader, network.Namespace); err != nil {
-			return err
-		}
+	kubeAPIServerCIDRs, err := a.desiredKubeAPIServerCIDRs(ctx, network.Namespace, cluster, networkConfig)
+	if err != nil {
+		return err
+	}
 
+	if len(kubeAPIServerCIDRs) > 0 {
 		log.V(1).Info("Adding the kube-apiserver GlobalNetworkSet to the calico chart", "nets", kubeAPIServerCIDRs)
 	}
 
@@ -287,6 +285,20 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	return a.updateProviderStatus(ctx, network, networkConfig)
+}
+
+// desiredKubeAPIServerCIDRs returns the addresses the kube-apiserver GlobalNetworkSet shall hold, or nothing if the set
+// is not desired. It fails if they cannot be determined although the set is desired, because a set without them matches
+// nothing and every policy referring to it would silently block traffic to the kube-apiserver.
+//
+// Hibernated shoots are exempt: gardenlet destroys their DNSRecords, they run no pods which could need the set, and
+// failing would keep their reconciliation failing until they wake up.
+func (a *actuator) desiredKubeAPIServerCIDRs(ctx context.Context, namespace string, cluster *extensionscontroller.Cluster, networkConfig *calicov1alpha1.NetworkConfig) ([]string, error) {
+	if !apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) || extensionscontroller.IsHibernated(cluster) {
+		return nil, nil
+	}
+
+	return apiserverendpoints.CIDRs(ctx, a.apiReader, namespace)
 }
 
 func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {
