@@ -148,7 +148,7 @@ A `GlobalNetworkSet` which does not hold the addresses is worse than none at all
 | situation | error code | meaning |
 | --- | --- | --- |
 | The `DNSRecord`s are of type `CNAME` | `ERR_CONFIGURATION_PROBLEM` | The kube-apiserver is exposed via a hostname, for example by an AWS NLB. A `GlobalNetworkSet` holds CIDRs and resolving the hostname is not implemented, so **this landscape cannot support the feature** - disable it for the shoot or landscape-wide. |
-| No `DNSRecord` publishes an address | none, retried | Either the addresses are not published yet, which resolves itself during the shoot's creation, or the kube-apiserver has no managed DNS at all - the latter includes the local development setup, where the feature cannot be used. |
+| No `DNSRecord` publishes an address | none, retried | Either the addresses are not published yet, which resolves itself during the shoot's creation, or the kube-apiserver has no managed DNS at all, i.e. the internal domain provider is `unmanaged`. |
 
 gardenlet derives the `DNSRecord` type from the address it publishes, which is why a `CNAME` record states that there is no IP address, as opposed to one which is not published yet.
 
