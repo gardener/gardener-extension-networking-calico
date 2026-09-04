@@ -2,7 +2,7 @@ module github.com/gardener/gardener-extension-networking-calico
 
 go 1.26.5
 
-toolchain go1.26.8
+toolchain go1.27.1
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0
