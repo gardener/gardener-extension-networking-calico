@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	apisconfig "github.com/gardener/gardener-extension-networking-calico/pkg/apis/config"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
@@ -30,6 +31,9 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
+	// KubeAPIServerGlobalNetworkSet is the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which is
+	// deployed into shoot clusters.
+	KubeAPIServerGlobalNetworkSet *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -46,7 +50,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 	}
 
 	return network.Add(mgr, network.AddArgs{
-		Actuator:          NewActuator(mgr, chartApplier, extensioncontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot)),
+		Actuator:          NewActuator(mgr, chartApplier, extensioncontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot), opts.KubeAPIServerGlobalNetworkSet),
 		ControllerOptions: opts.Controller,
 		Predicates:        network.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              calico.Type,

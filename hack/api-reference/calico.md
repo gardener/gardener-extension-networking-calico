@@ -378,6 +378,51 @@ boolean
 </table>
 
 
+<h3 id="kubeapiserverglobalnetworkset">KubeAPIServerGlobalNetworkSet
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#networkconfig">NetworkConfig</a>)
+</p>
+
+<p>
+KubeAPIServerGlobalNetworkSet contains configuration for the Calico GlobalNetworkSet which holds the IP addresses of the
+shoot's kube-apiserver endpoint.
+
+The GlobalNetworkSet is named "gardener-kube-apiserver" and carries the label
+"networking.gardener.cloud/endpoint=kube-apiserver". Neither is configurable: both form the contract by which Calico
+(Global)NetworkPolicies refer to it in order to restrict egress traffic to the kube-apiserver. Note that the
+in-cluster path (the `kubernetes` service in the `default` namespace) is not part of this set and should be matched
+with a service based rule instead.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+boolean
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.<br />If not set, the landscape-wide default configured by the extension operator is used.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
 <h3 id="multus">Multus
 </h3>
 
@@ -641,6 +686,18 @@ boolean
 </td>
 <td>
 <p>ServiceLoopPrevention configures the Felix service loop prevention option.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>kubeAPIServerGlobalNetworkSet</code></br>
+<em>
+<a href="#kubeapiserverglobalnetworkset">KubeAPIServerGlobalNetworkSet</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP<br />addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.<br />The extension only provides the GlobalNetworkSet as a building block, it does not create any<br />(Global)NetworkPolicy.</p>
 </td>
 </tr>
 

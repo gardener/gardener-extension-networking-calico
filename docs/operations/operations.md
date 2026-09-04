@@ -115,3 +115,49 @@ spec:
 ##### Limitations
 
 This validation only applies when switching from overlay-enabled to overlay-disabled. It does not affect other configuration changes.
+
+### `kube-apiserver` `GlobalNetworkSet`
+
+The extension can maintain a Calico `GlobalNetworkSet` named `gardener-kube-apiserver` in every shoot cluster, holding the IP address(es) of the shoot's `kube-apiserver` as reachable from within the shoot. Shoot owners reference it from their own Calico policies in order to restrict egress traffic to the `kube-apiserver`, see the [usage documentation](../usage/usage.md#restricting-access-to-the-kube-apiserver).
+
+The feature is disabled by default. It can be enabled landscape-wide in the component configuration:
+
+```yaml
+apiVersion: calico.networking.extensions.config.gardener.cloud/v1alpha1
+kind: ControllerConfiguration
+kubeAPIServerGlobalNetworkSet:
+  enabled: true
+```
+
+Shoots override this via `.spec.networking.providerConfig.kubeAPIServerGlobalNetworkSet.enabled`, so the effective value is `providerConfig.enabled ?? componentConfig.enabled ?? false`.
+
+##### Address source
+
+The addresses are read from the `DNSRecord`s labelled `gardener.cloud/role=controlplane` and `role in (internal, external)` in the shoot's control plane namespace. For `A`/`AAAA` records their `spec.values` already are the IP addresses of the seed's istio ingress gateway load balancer, and they are the write side of the very DNS entry shoot pods resolve - so the published set matches what pods observe, without the extension performing DNS lookups.
+
+The `GlobalNetworkSet` is part of the calico chart, hence of the same `ManagedResource` as the CRD it needs, and is recomputed during the `Network` reconciliation, i.e. once per shoot reconciliation (hourly by default, see `controllers.shoot.syncPeriod` in the gardenlet configuration). Nothing watches the `DNSRecord`s.
+
+That is normally sufficient, because `DNSRecord.spec.values` is written by the same flow, which updates it before the `Network`. The exception is a reconciliation failing *after* the `DNSRecord` was updated but *before* the `Network` was reconciled: DNS then points to the new address while the set still holds the previous one, and policy covered pods lose access to the kube-apiserver until the next successful reconciliation. The shoot is in `lastOperation.state: Error` meanwhile. The inverse is harmless - if the `DNSRecord` could not be updated either, DNS and the set stay consistent.
+
+> ⚠️ Should pods be unable to reach the kube-apiserver after a control plane migration, after an `ExposureClass` or high availability change, or after the istio ingress gateway load balancer of a seed was recreated, trigger a reconciliation of the affected shoots: `kubectl -n garden-<project> annotate shoot <name> gardener.cloud/operation=reconcile`. If the shoot's `lastOperation.state` is `Failed`, `gardener.cloud/operation=retry` is required instead - `reconcile` is ignored in that state.
+
+##### The reconciliation fails if the addresses cannot be determined
+
+A `GlobalNetworkSet` which does not hold the addresses is worse than none at all: it matches nothing, so every policy referring to it silently blocks traffic to the kube-apiserver. The extension therefore fails the reconciliation of the `Network` resource rather than publishing an incomplete set. Two cases are distinguished:
+
+| situation | error code | meaning |
+| --- | --- | --- |
+| The `DNSRecord`s are of type `CNAME` | `ERR_CONFIGURATION_PROBLEM` | The kube-apiserver is exposed via a hostname, for example by an AWS NLB. A `GlobalNetworkSet` holds CIDRs and resolving the hostname is not implemented, so **this landscape cannot support the feature** - disable it for the shoot or landscape-wide. |
+| No `DNSRecord` publishes an address | none, retried | Either the addresses are not published yet, which resolves itself during the shoot's creation, or the kube-apiserver has no managed DNS at all, i.e. the internal domain provider is `unmanaged`. |
+
+gardenlet derives the `DNSRecord` type from the address it publishes, which is why a `CNAME` record states that there is no IP address, as opposed to one which is not published yet.
+
+Hibernated shoots are exempt. gardenlet destroys the kube-apiserver `DNSRecord`s while a shoot is hibernated, so the addresses cannot be determined, and failing would keep the shoot's reconciliation failing for as long as it stays hibernated. The set is left out of the calico chart meanwhile - a hibernated cluster runs no pods which could need it - and is published again with the first reconciliation after the wake-up, which recreates the `DNSRecord`s.
+
+##### Inspecting the deployed set
+
+```bash
+kubectl -n <control-plane-namespace> get managedresource extension-networking-calico-config
+```
+
+The set is rendered into the calico chart, so it shares its `ManagedResource` and its secret with the rest of the calico deployment.

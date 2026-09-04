@@ -30,6 +30,7 @@ func (a *actuator) Delete(ctx context.Context, _ logr.Logger, network *extension
 	if cluster != nil && !v1beta1helper.ShootNeedsForceDeletion(cluster.Shoot) {
 		timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
+
 		return managedresources.WaitUntilDeleted(timeoutCtx, a.client, network.Namespace, CalicoConfigManagedResourceName)
 	}
 

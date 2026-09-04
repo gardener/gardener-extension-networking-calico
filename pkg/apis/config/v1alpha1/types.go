@@ -23,4 +23,18 @@ type ControllerConfiguration struct {
 	// Default: nil
 	// +optional
 	FeatureGates map[string]bool `json:"featureGates,omitempty"`
+	// KubeAPIServerGlobalNetworkSet contains the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which
+	// is deployed into shoot clusters.
+	// +optional
+	KubeAPIServerGlobalNetworkSet *KubeAPIServerGlobalNetworkSetConfiguration `json:"kubeAPIServerGlobalNetworkSet,omitempty"`
+}
+
+// KubeAPIServerGlobalNetworkSetConfiguration contains the landscape-wide configuration for the kube-apiserver
+// GlobalNetworkSet.
+type KubeAPIServerGlobalNetworkSetConfiguration struct {
+	// Enabled is the landscape-wide default which determines whether the GlobalNetworkSet is deployed into shoot
+	// clusters. It can be overridden per shoot via the Network resource's providerConfig.
+	// Default: false
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
 }

@@ -124,6 +124,10 @@ type NetworkConfig struct {
 
 	// ServiceLoopPrevention configures the Felix service loop prevention option.
 	ServiceLoopPrevention *ServiceLoopPrevention
+
+	// KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP
+	// addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.
+	KubeAPIServerGlobalNetworkSet *KubeAPIServerGlobalNetworkSet
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -230,3 +234,11 @@ const (
 	ServiceLoopPreventionDrop     ServiceLoopPrevention = "Drop"
 	ServiceLoopPreventionReject   ServiceLoopPrevention = "Reject"
 )
+
+// KubeAPIServerGlobalNetworkSet contains configuration for the Calico GlobalNetworkSet which holds the IP addresses of the
+// shoot's kube-apiserver endpoint.
+type KubeAPIServerGlobalNetworkSet struct {
+	// Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.
+	// If not set, the landscape-wide default configured by the extension operator is used.
+	Enabled *bool
+}

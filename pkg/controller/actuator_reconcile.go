@@ -41,6 +41,7 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/charts"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/apiserverendpoints"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 	chartspkg "github.com/gardener/gardener-extension-networking-calico/pkg/charts"
 	"github.com/gardener/gardener-extension-networking-calico/pkg/features"
@@ -247,6 +248,15 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		podCIDRs = cluster.Shoot.Status.Networking.Pods
 	}
 
+	kubeAPIServerCIDRs, err := a.desiredKubeAPIServerCIDRs(ctx, network.Namespace, cluster, networkConfig)
+	if err != nil {
+		return err
+	}
+
+	if len(kubeAPIServerCIDRs) > 0 {
+		log.V(1).Info("Adding the kube-apiserver GlobalNetworkSet to the calico chart", "nets", kubeAPIServerCIDRs)
+	}
+
 	calicoChart, err := chartspkg.RenderCalicoChart(
 		chartRenderer,
 		network,
@@ -259,13 +269,14 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		cluster.Shoot.Spec.Networking.Nodes,
 		podCIDRs,
 		ipFamilies,
+		kubeAPIServerCIDRs,
 	)
 	if err != nil {
 		return err
 	}
 
 	data := map[string][]byte{chartspkg.CalicoConfigKey: calicoChart}
-	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, "extension-networking-calico", false, data); err != nil {
+	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, managedResourceOrigin, false, data); err != nil {
 		return err
 	}
 
@@ -274,6 +285,20 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	return a.updateProviderStatus(ctx, network, networkConfig)
+}
+
+// desiredKubeAPIServerCIDRs returns the addresses the kube-apiserver GlobalNetworkSet shall hold, or nothing if the set
+// is not desired. It fails if they cannot be determined although the set is desired, because a set without them matches
+// nothing and every policy referring to it would silently block traffic to the kube-apiserver.
+//
+// Hibernated shoots are exempt: gardenlet destroys their DNSRecords, they run no pods which could need the set, and
+// failing would keep their reconciliation failing until they wake up.
+func (a *actuator) desiredKubeAPIServerCIDRs(ctx context.Context, namespace string, cluster *extensionscontroller.Cluster, networkConfig *calicov1alpha1.NetworkConfig) ([]string, error) {
+	if !apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) || extensionscontroller.IsHibernated(cluster) {
+		return nil, nil
+	}
+
+	return apiserverendpoints.CIDRs(ctx, a.apiReader, namespace)
 }
 
 func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {
