@@ -79,17 +79,17 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 				Type: &monitoringv1alpha1.ScrapeConfig{},
 				Name: "shoot-calico-felix",
 			},
-			{
-				Type: &monitoringv1alpha1.ScrapeConfig{},
-				Name: "shoot-calico-typha",
-			},
 		},
 	}
 
+	typhaEnabled := true
 	if network.Spec.ProviderConfig != nil && network.Spec.ProviderConfig.Raw != nil {
 		networkConfig, err := calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
 		if err != nil {
 			return err
+		}
+		if networkConfig.Typha != nil && !networkConfig.Typha.Enabled {
+			typhaEnabled = false
 		}
 		if networkConfig.BirdExporter != nil && networkConfig.BirdExporter.Enabled {
 			calicoControlPlaneMonitoringChart.Objects = append(calicoControlPlaneMonitoringChart.Objects, &chart.Object{
@@ -98,12 +98,23 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 			})
 		}
 	}
+	if typhaEnabled {
+		calicoControlPlaneMonitoringChart.Objects = append(calicoControlPlaneMonitoringChart.Objects, &chart.Object{
+			Type: &monitoringv1alpha1.ScrapeConfig{},
+			Name: "shoot-calico-typha",
+		})
+	}
 
 	if deleteChart {
 		return client.IgnoreNotFound(calicoControlPlaneMonitoringChart.Delete(ctx, seedClient, network.Namespace))
 	}
 
-	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", nil)
+	chartValues := map[string]any{
+		"typha": map[string]any{
+			"enabled": typhaEnabled,
+		},
+	}
+	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", chartValues)
 }
 
 // Reconcile implements Network.Actuator.
