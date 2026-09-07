@@ -35,13 +35,12 @@ func dnsRecordRoleRequirement() labels.Requirement {
 type dnsRecordValues struct {
 	// addresses are the values of the A and AAAA records, i.e. IP addresses.
 	addresses []string
-	// hostnames are the values of the CNAME records. A GlobalNetworkSet cannot express them.
+	// hostnames are the values of the CNAME records. They have to be resolved.
 	hostnames []string
 }
 
 // fromDNSRecords returns the kube-apiserver addresses published by gardenlet via DNSRecord resources in the given
-// control plane namespace. They are preferred over a DNS lookup because the DNSRecord is the write side of exactly the
-// DNS entry which shoot pods later resolve, and for A/AAAA records its values already are the IP addresses.
+// control plane namespace.
 func fromDNSRecords(ctx context.Context, c client.Reader, namespace string) (dnsRecordValues, error) {
 	dnsRecordList := &extensionsv1alpha1.DNSRecordList{}
 	if err := c.List(ctx, dnsRecordList,

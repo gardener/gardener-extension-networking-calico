@@ -5,6 +5,8 @@
 package controller
 
 import (
+	"net"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/network"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
@@ -15,6 +17,7 @@ import (
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	apisconfig "github.com/gardener/gardener-extension-networking-calico/pkg/apis/config"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/apiserverendpoints"
 )
 
 // managedResourceOrigin identifies this extension as the creator of the managed resource it deploys.
@@ -40,6 +43,8 @@ type actuator struct {
 
 	// kubeAPIServerGlobalNetworkSetConfig is the landscape-wide configuration for the kube-apiserver GlobalNetworkSet.
 	kubeAPIServerGlobalNetworkSetConfig *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration
+	// hostResolver resolves the kube-apiserver hostname where the seed's load balancer is exposed via a hostname.
+	hostResolver apiserverendpoints.HostResolver
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Network resources.
@@ -56,5 +61,6 @@ func NewActuator(
 		chartApplier:                        chartApplier,
 		chartRendererFactory:                chartRendererFactory,
 		kubeAPIServerGlobalNetworkSetConfig: kubeAPIServerGlobalNetworkSetConfig,
+		hostResolver:                        net.DefaultResolver,
 	}
 }

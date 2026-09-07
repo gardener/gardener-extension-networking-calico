@@ -11,13 +11,26 @@ import (
 	"fmt"
 	"net/netip"
 	"slices"
+	"time"
 
-	v1beta1helper "github.com/gardener/gardener/pkg/api/core/v1beta1/helper"
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"github.com/gardener/gardener/pkg/utils/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 	apisconfig "github.com/gardener/gardener-extension-networking-calico/pkg/apis/config"
+)
+
+// HostResolver resolves a hostname to its IP addresses. *net.Resolver implements it.
+type HostResolver interface {
+	LookupHost(ctx context.Context, host string) ([]string, error)
+}
+
+var (
+	// ResolveInterval is the interval between two attempts to resolve a hostname.
+	ResolveInterval = 2 * time.Second
+	// ResolveTimeout bounds the attempts to resolve a hostname. A hostname which cannot be resolved within it fails the
+	// reconciliation, which is retried by gardenlet.
+	ResolveTimeout = 30 * time.Second
 )
 
 // Enabled returns whether the GlobalNetworkSet shall be deployed:
@@ -32,41 +45,63 @@ func Enabled(networkConfig *calicov1alpha1.NetworkConfig, operatorConfig *apisco
 	return false
 }
 
-// CIDRs returns the IP addresses of the shoot's kube-apiserver endpoint as /32 respectively /128 CIDRs, read from the
-// DNSRecords in the given control plane namespace.
+// CIDRs returns the IP addresses of the shoot's kube-apiserver endpoint as /32 respectively /128 CIDRs, determined from
+// the DNSRecords in the given control plane namespace. The values of A and AAAA records are used as they are, the
+// hostnames of CNAME records are resolved.
 //
-// It fails rather than returning nothing, see the caller. A kube-apiserver exposed via a hostname is marked as a
-// configuration problem, because only disabling the feature can resolve it, while addresses which are not published
-// yet may still appear during the shoot's creation.
-func CIDRs(ctx context.Context, c client.Reader, namespace string) ([]string, error) {
+// It fails rather than returning nothing, see the caller. All failures are retryable: addresses which are not
+// published yet may still appear during the shoot's creation, and a hostname which cannot be resolved may become
+// resolvable.
+func CIDRs(ctx context.Context, c client.Reader, resolver HostResolver, namespace string) ([]string, error) {
 	dnsRecords, err := fromDNSRecords(ctx, c, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the kube-apiserver DNSRecords: %w", err)
 	}
 
-	if len(dnsRecords.addresses) == 0 {
-		if len(dnsRecords.hostnames) > 0 {
-			return nil, v1beta1helper.NewErrorWithCodes(fmt.Errorf("the kube-apiserver is exposed via the hostname(s) "+
-				"%v instead of an IP address, which a GlobalNetworkSet cannot hold - unset "+
-				"`kubeAPIServerGlobalNetworkSet.enabled` for this shoot or disable it landscape-wide",
-				sortAndCompact(dnsRecords.hostnames)), gardencorev1beta1.ErrorConfigurationProblem)
+	addresses := dnsRecords.addresses
+
+	for _, hostname := range sortAndCompact(dnsRecords.hostnames) {
+		resolved, err := resolve(ctx, resolver, hostname)
+		if err != nil {
+			return nil, err
 		}
 
+		addresses = append(addresses, resolved...)
+	}
+
+	if len(addresses) == 0 {
 		return nil, fmt.Errorf("the kube-apiserver DNSRecords do not publish an address yet")
 	}
 
 	var cidrs []string
 
-	for _, address := range dnsRecords.addresses {
+	for _, address := range addresses {
 		addr, err := netip.ParseAddr(address)
 		if err != nil {
-			return nil, fmt.Errorf("the kube-apiserver DNSRecords publish %q, which is not an IP address", address)
+			return nil, fmt.Errorf("the kube-apiserver DNSRecords yield %q, which is not an IP address", address)
 		}
 
 		cidrs = append(cidrs, netip.PrefixFrom(addr, addr.BitLen()).String())
 	}
 
 	return sortAndCompact(cidrs), nil
+}
+
+// resolve resolves the given hostname, retrying until ResolveTimeout.
+func resolve(ctx context.Context, resolver HostResolver, hostname string) ([]string, error) {
+	var addresses []string
+
+	if err := retry.UntilTimeout(ctx, ResolveInterval, ResolveTimeout, func(ctx context.Context) (bool, error) {
+		var err error
+		if addresses, err = resolver.LookupHost(ctx, hostname); err != nil {
+			return retry.MinorError(err)
+		}
+		return retry.Ok()
+	}); err != nil {
+		return nil, fmt.Errorf("could not resolve the kube-apiserver hostname %q: %w", hostname, err)
+	}
+
+	return addresses, nil
 }
 
 // sortAndCompact sorts the given values and removes duplicates, in place.

@@ -163,6 +163,24 @@ var _ = Describe("#desiredKubeAPIServerCIDRs", func() {
 		Expect(cidrs).To(ConsistOf("34.107.12.34/32"))
 	})
 
+	It("should resolve a hostname with the actuator's resolver", func() {
+		cnameRecord := dnsRecord.DeepCopy()
+		cnameRecord.Spec.RecordType = extensionsv1alpha1.DNSRecordTypeCNAME
+		cnameRecord.Spec.Values = []string{"abc.elb.eu-west-1.amazonaws.com"}
+		c := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(cnameRecord).Build()
+
+		a := newActuator(c)
+		a.hostResolver = hostResolverFunc(func(_ context.Context, host string) ([]string, error) {
+			Expect(host).To(Equal("abc.elb.eu-west-1.amazonaws.com"))
+			return []string{"52.1.2.3"}, nil
+		})
+
+		cidrs, err := a.desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(false, false), enabled)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cidrs).To(ConsistOf("52.1.2.3/32"))
+	})
+
 	It("should fail if the addresses cannot be determined and the shoot is awake", func() {
 		c := fake.NewClientBuilder().WithScheme(testScheme).Build()
 
@@ -209,3 +227,10 @@ var _ = Describe("#desiredKubeAPIServerCIDRs", func() {
 		Expect(cidrs).To(ConsistOf("34.107.12.34/32"))
 	})
 })
+
+// hostResolverFunc adapts a function to apiserverendpoints.HostResolver.
+type hostResolverFunc func(ctx context.Context, host string) ([]string, error)
+
+func (f hostResolverFunc) LookupHost(ctx context.Context, host string) ([]string, error) {
+	return f(ctx, host)
+}

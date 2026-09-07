@@ -374,7 +374,7 @@ func (a *actuator) desiredKubeAPIServerCIDRs(ctx context.Context, namespace stri
 		return nil, nil
 	}
 
-	return apiserverendpoints.CIDRs(ctx, a.apiReader, namespace)
+	return apiserverendpoints.CIDRs(ctx, a.apiReader, a.hostResolver, namespace)
 }
 
 func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {
