@@ -220,7 +220,7 @@ The same rules work in a namespaced `NetworkPolicy`, except that the second one 
 - **No server-side defaulting.** Since the Calico API server is not deployed in shoot clusters, the CRD based API group `crd.projectcalico.org/v1` has to be used. It performs no defaulting and no validation of selector expressions, so `spec.types`, `spec.selector` and `spec.order` must be set explicitly. An invalid selector is accepted by the API server and only fails later in `calico-node`/`calico-typha`, where it may drop the whole policy - check their logs if a policy misbehaves, and consider staging new policies with `action: Log` first.
 - **The set is managed by Gardener.** It is deployed via a `ManagedResource`, so manual modifications are reverted.
 - **`hostNetwork` pods are not covered.** They are not Calico workload endpoints, so Calico policies do not apply to them.
-- **DNS.** Pods usually also need egress to the cluster DNS. If [`NodeLocalDNS`](https://github.com/gardener/gardener/blob/master/docs/usage/networking/node-local-dns.md) is enabled, pods send their queries to a link-local address instead of the `kube-dns` cluster IP, so a rule matching the `kube-dns` service is not sufficient. See also the known limitations at the end of this document.
+- **DNS.** Pods usually also need egress to the cluster DNS, i.e. to `kube-dns` and, if enabled, to [`node-local-dns`](https://github.com/gardener/gardener/blob/master/docs/usage/networking/node-local-dns.md). The `NetworkPolicies` in the `kube-system` namespace of the shoot show which rules Gardener uses for that. See also the known limitations at the end of this document.
 
 ## Example `NetworkingConfig` manifest
 

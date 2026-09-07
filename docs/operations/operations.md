@@ -129,7 +129,7 @@ kubeAPIServerGlobalNetworkSet:
   enabled: true
 ```
 
-Shoots override this via `.spec.networking.providerConfig.kubeAPIServerGlobalNetworkSet.enabled`, so the effective value is `providerConfig.enabled ?? componentConfig.enabled ?? false`.
+Shoots override this via `.spec.networking.providerConfig.kubeAPIServerGlobalNetworkSet.enabled`. The value from the `providerConfig` applies if it is set, otherwise the value from the component configuration, otherwise the feature is disabled.
 
 ##### Address source
 
@@ -138,11 +138,11 @@ The addresses are read from the `DNSRecord`s labelled `gardener.cloud/role=contr
 - `A`/`AAAA` records: `spec.values` already are the IP addresses and are used as they are.
 - `CNAME` records: `spec.values` is the hostname of the load balancer, as used by infrastructures whose load balancers are exposed via hostnames. The extension resolves it during the reconciliation and publishes the resulting IP addresses. Resolution is retried within the reconciliation before it fails.
 
-The `GlobalNetworkSet` is part of the calico chart, hence of the same `ManagedResource` as the CRD it needs, and is recomputed during the `Network` reconciliation, i.e. once per shoot reconciliation (hourly by default, see `controllers.shoot.syncPeriod` in the gardenlet configuration). Nothing watches the `DNSRecord`s.
+The `GlobalNetworkSet` is part of the calico chart, hence of the same `ManagedResource` as the CRD it needs, and is recomputed with every shoot reconciliation. How often that happens depends on the gardenlet configuration (`controllers.shoot.syncPeriod`, `controllers.shoot.reconcileInMaintenanceOnly`) and on the shoot's maintenance time window - on landscapes which reconcile in the maintenance time window only, once a day. Nothing watches the `DNSRecord`s in between.
 
-For `A`/`AAAA` records that is normally sufficient, because `DNSRecord.spec.values` is written by the same flow, which updates it before the `Network`. The exception is a reconciliation failing *after* the `DNSRecord` was updated but *before* the `Network` was reconciled: DNS then points to the new address while the set still holds the previous one, and policy covered pods lose access to the kube-apiserver until the next successful reconciliation. The shoot is in `lastOperation.state: Error` meanwhile. The inverse is harmless - if the `DNSRecord` could not be updated either, DNS and the set stay consistent.
+For `A`/`AAAA` records that is sufficient, because `DNSRecord.spec.values` is written by the same shoot reconciliation, which updates it before the `Network`. The exception is a reconciliation failing *after* the `DNSRecord` was updated but *before* the `Network` was reconciled: DNS then points to the new address while the set still holds the previous one, and policy covered pods lose access to the kube-apiserver until the next successful reconciliation. The shoot is in `lastOperation.state: Error` meanwhile. The inverse is harmless - if the `DNSRecord` could not be updated either, DNS and the set stay consistent.
 
-For resolved hostnames the addresses can change without any change to the `DNSRecord`, so the set stays outdated until the next reconciliation.
+For resolved hostnames the addresses can change without any change to the `DNSRecord`, so the set stays outdated until the next shoot reconciliation - which may be a day away, see above.
 
 > ⚠️ Should pods be unable to reach the kube-apiserver after a control plane migration, after an `ExposureClass` or high availability change, after the istio ingress gateway load balancer of a seed was recreated, or after the addresses behind its hostname changed, trigger a reconciliation of the affected shoots: `kubectl -n garden-<project> annotate shoot <name> gardener.cloud/operation=reconcile`. If the shoot's `lastOperation.state` is `Failed`, `gardener.cloud/operation=retry` is required instead - `reconcile` is ignored in that state.
 
