@@ -126,7 +126,7 @@ type NetworkConfig struct {
 	ServiceLoopPrevention *ServiceLoopPrevention
 
 	// KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP
-	// addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.
+	// addresses of the load balancer in front of the shoot's kube-apiserver.
 	KubeAPIServerGlobalNetworkSet *KubeAPIServerGlobalNetworkSet
 }
 
@@ -237,6 +237,12 @@ const (
 
 // KubeAPIServerGlobalNetworkSet contains configuration for the Calico GlobalNetworkSet which holds the IP addresses of the
 // shoot's kube-apiserver endpoint.
+//
+// The GlobalNetworkSet is named "gardener-kube-apiserver" and carries the label
+// "networking.gardener.cloud/endpoint=kube-apiserver". Neither is configurable: both form the contract by which Calico
+// (Global)NetworkPolicies refer to it in order to restrict egress traffic to the kube-apiserver. Note that the
+// in-cluster path (the `kubernetes` service in the `default` namespace) is not part of this set and should be matched
+// with a service based rule instead.
 type KubeAPIServerGlobalNetworkSet struct {
 	// Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.
 	// If not set, the landscape-wide default configured by the extension operator is used.

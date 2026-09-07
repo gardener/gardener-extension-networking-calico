@@ -118,7 +118,7 @@ This validation only applies when switching from overlay-enabled to overlay-disa
 
 ### `kube-apiserver` `GlobalNetworkSet`
 
-The extension can maintain a Calico `GlobalNetworkSet` named `gardener-kube-apiserver` in every shoot cluster, holding the IP address(es) of the shoot's `kube-apiserver` as reachable from within the shoot. Shoot owners reference it from their own Calico policies in order to restrict egress traffic to the `kube-apiserver`, see the [usage documentation](../usage/usage.md#restricting-access-to-the-kube-apiserver).
+The extension can maintain a Calico `GlobalNetworkSet` named `gardener-kube-apiserver` in every shoot cluster, holding the IP address(es) of the load balancer in front of the shoot's `kube-apiserver`. Shoot owners reference it from their own Calico policies in order to restrict egress traffic to the `kube-apiserver`, see the [usage documentation](../usage/usage.md#restricting-access-to-the-kube-apiserver).
 
 The feature is disabled by default. It can be enabled landscape-wide in the component configuration:
 

@@ -146,7 +146,7 @@ type NetworkConfig struct {
 	ServiceLoopPrevention *ServiceLoopPrevention `json:"serviceLoopPrevention,omitempty"`
 
 	// KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP
-	// addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.
+	// addresses of the load balancer in front of the shoot's kube-apiserver.
 	// The extension only provides the GlobalNetworkSet as a building block, it does not create any
 	// (Global)NetworkPolicy.
 	// +optional

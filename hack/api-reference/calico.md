@@ -697,7 +697,7 @@ boolean
 </td>
 <td>
 <em>(Optional)</em>
-<p>KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP<br />addresses of the shoot's kube-apiserver endpoint as reachable from within the shoot cluster.<br />The extension only provides the GlobalNetworkSet as a building block, it does not create any<br />(Global)NetworkPolicy.</p>
+<p>KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP<br />addresses of the load balancer in front of the shoot's kube-apiserver.<br />The extension only provides the GlobalNetworkSet as a building block, it does not create any<br />(Global)NetworkPolicy.</p>
 </td>
 </tr>
 
