@@ -1,2 +1,4 @@
 typha:
-  enabled: true
+  enabled: false
+bird:
+  enabled: false
