@@ -120,7 +120,7 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 	}
 	for _, o := range calicoControlPlaneMonitoringChart.Objects {
 		if disabledScrapeConfigs[o.Name] {
-			if err := o.Delete(ctx, seedClient, network.Namespace); err != nil {
+			if err := client.IgnoreNotFound(o.Delete(ctx, seedClient, network.Namespace)); err != nil {
 				return err
 			}
 		}
