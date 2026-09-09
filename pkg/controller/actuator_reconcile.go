@@ -83,27 +83,50 @@ func applyMonitoringConfig(ctx context.Context, seedClient client.Client, chartA
 				Type: &monitoringv1alpha1.ScrapeConfig{},
 				Name: "shoot-calico-typha",
 			},
-		},
-	}
-
-	if network.Spec.ProviderConfig != nil && network.Spec.ProviderConfig.Raw != nil {
-		networkConfig, err := calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
-		if err != nil {
-			return err
-		}
-		if networkConfig.BirdExporter != nil && networkConfig.BirdExporter.Enabled {
-			calicoControlPlaneMonitoringChart.Objects = append(calicoControlPlaneMonitoringChart.Objects, &chart.Object{
+			{
 				Type: &monitoringv1alpha1.ScrapeConfig{},
 				Name: "shoot-calico-bird",
-			})
-		}
+			},
+		},
 	}
 
 	if deleteChart {
 		return client.IgnoreNotFound(calicoControlPlaneMonitoringChart.Delete(ctx, seedClient, network.Namespace))
 	}
 
-	return calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", nil)
+	typhaEnabled := true
+	birdEnabled := false
+	if network.Spec.ProviderConfig != nil && network.Spec.ProviderConfig.Raw != nil {
+		networkConfig, err := calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
+		if err != nil {
+			return err
+		}
+		typhaEnabled = networkConfig.Typha == nil || networkConfig.Typha.Enabled
+		birdEnabled = networkConfig.BirdExporter != nil && networkConfig.BirdExporter.Enabled
+	}
+
+	if err := calicoControlPlaneMonitoringChart.Apply(ctx, chartApplier, network.Namespace, nil, "", "", map[string]interface{}{
+		"typha": map[string]interface{}{"enabled": typhaEnabled},
+		"bird":  map[string]interface{}{"enabled": birdEnabled},
+	}); err != nil {
+		return err
+	}
+
+	// Applying the chart only creates or updates the objects it currently renders; a disabled component renders an
+	// empty template, so its previously created ScrapeConfig is not pruned. Delete those orphaned objects explicitly.
+	disabledScrapeConfigs := map[string]bool{
+		"shoot-calico-typha": !typhaEnabled,
+		"shoot-calico-bird":  !birdEnabled,
+	}
+	for _, o := range calicoControlPlaneMonitoringChart.Objects {
+		if disabledScrapeConfigs[o.Name] {
+			if err := client.IgnoreNotFound(o.Delete(ctx, seedClient, network.Namespace)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // Reconcile implements Network.Actuator.

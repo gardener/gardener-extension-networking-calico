@@ -1,0 +1,4 @@
+typha:
+  enabled: false
+bird:
+  enabled: false
