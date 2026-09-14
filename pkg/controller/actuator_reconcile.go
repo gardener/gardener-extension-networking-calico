@@ -327,9 +327,9 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 		if err != nil {
 			return fmt.Errorf("failed to get shoot client for calico-typha restart during HA transition: %w", err)
 		}
-		log.Info("Control plane HA transition detected, waiting for shoot API server watch cache before restarting calico-typha")
-		if err := waitForAPIServerWatchCacheWarm(ctx, log, shootClient); err != nil {
-			return fmt.Errorf("failed waiting for API server watch cache during HA transition: %w", err)
+		log.Info("Control plane HA transition detected, checking shoot API server watch cache before restarting calico-typha")
+		if err := ensureAPIServerWatchCacheWarm(ctx, shootClient); err != nil {
+			return fmt.Errorf("shoot API server watch cache not yet warm during HA transition, retrying: %w", err)
 		}
 	}
 

@@ -14,7 +14,6 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -33,25 +32,27 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 	typhaEnabled := isTyphaEnabled(network)
 
 	if typhaEnabled {
-		shootClient, err := a.getShootClient(ctx, cluster)
-		if err != nil {
-			return fmt.Errorf("failed to get shoot client for calico-typha restart: %w", err)
-		}
+		if _, alreadySet := network.Annotations[typhaRestartedAtAnnotation]; !alreadySet {
+			shootClient, err := a.getShootClient(ctx, cluster)
+			if err != nil {
+				return fmt.Errorf("failed to get shoot client for calico-typha restart: %w", err)
+			}
 
-		log.Info("Waiting for shoot API server watch cache to be warm before restarting calico-typha")
-		if err := waitForAPIServerWatchCacheWarm(ctx, log, shootClient); err != nil {
-			return fmt.Errorf("failed waiting for API server watch cache: %w", err)
-		}
+			log.Info("Checking shoot API server watch cache before restarting calico-typha")
+			if err := ensureAPIServerWatchCacheWarm(ctx, shootClient); err != nil {
+				return fmt.Errorf("shoot API server watch cache not yet warm, retrying: %w", err)
+			}
 
-		patch := client.MergeFrom(network.DeepCopy())
-		if network.Annotations == nil {
-			network.Annotations = map[string]string{}
+			patch := client.MergeFrom(network.DeepCopy())
+			if network.Annotations == nil {
+				network.Annotations = map[string]string{}
+			}
+			network.Annotations[typhaRestartedAtAnnotation] = time.Now().UTC().Format(time.RFC3339)
+			if err := a.client.Patch(ctx, network, patch); err != nil {
+				return fmt.Errorf("failed to annotate Network resource for calico-typha restart: %w", err)
+			}
+			log.Info("Annotated Network resource to trigger calico-typha rolling restart after control plane restore")
 		}
-		network.Annotations[typhaRestartedAtAnnotation] = time.Now().UTC().Format(time.RFC3339)
-		if err := a.client.Patch(ctx, network, patch); err != nil {
-			return fmt.Errorf("failed to annotate Network resource for calico-typha restart: %w", err)
-		}
-		log.Info("Annotated Network resource to trigger calico-typha rolling restart after control plane restore")
 	}
 
 	return a.Reconcile(ctx, log, network, cluster)
@@ -69,29 +70,22 @@ func isTyphaEnabled(network *extensionsv1alpha1.Network) bool {
 	return networkConfig.Typha == nil || networkConfig.Typha.Enabled
 }
 
-// waitForAPIServerWatchCacheWarm polls the shoot's WorkloadEndpoint list until the
-// resourceVersion is non-zero. WorkloadEndpoints are a Calico CRD, the exact resource
-// type Typha watches and CRD watch caches are warmed asynchronously after the API
-// server passes its readiness probe, so this check is more precise than polling built-in
-// types like Nodes whose caches are guaranteed warm by /readyz.
-// If the CRD is not yet registered (e.g. Calico not yet fully deployed), the List returns
-// an error and the loop retries, which is the correct behaviour.
-func waitForAPIServerWatchCacheWarm(ctx context.Context, log logr.Logger, shootClient client.Client) error {
-	return wait.PollUntilContextTimeout(ctx, 2*time.Second, 5*time.Minute, true, func(ctx context.Context) (bool, error) {
-		list := &unstructured.UnstructuredList{}
-		list.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   "crd.projectcalico.org",
-			Version: "v1",
-			Kind:    "WorkloadEndpointList",
-		})
-		if err := shootClient.List(ctx, list); err != nil {
-			log.Info("WorkloadEndpoint list not yet available, retrying", "error", err)
-			return false, nil
-		}
-		if rv := list.GetResourceVersion(); rv == "" || rv == "0" {
-			log.Info("API server watch cache not yet warm for WorkloadEndpoints (resourceVersion=0), retrying")
-			return false, nil
-		}
-		return true, nil
+// ensureAPIServerWatchCacheWarm checks once whether the shoot API server's watch cache for
+// WorkloadEndpoints (a Calico CRD) is warm. CRD caches are populated asynchronously after
+// the API server passes its readiness probe, so a non-zero resourceVersion confirms Typha
+// can safely reconnect. Returns an error if not yet ready so the reconciler requeues.
+func ensureAPIServerWatchCacheWarm(ctx context.Context, shootClient client.Client) error {
+	list := &unstructured.UnstructuredList{}
+	list.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "crd.projectcalico.org",
+		Version: "v1",
+		Kind:    "WorkloadEndpointList",
 	})
+	if err := shootClient.List(ctx, list); err != nil {
+		return fmt.Errorf("WorkloadEndpoint list not yet available: %w", err)
+	}
+	if rv := list.GetResourceVersion(); rv == "" || rv == "0" {
+		return fmt.Errorf("API server watch cache not yet warm for WorkloadEndpoints (resourceVersion=%q)", rv)
+	}
+	return nil
 }
