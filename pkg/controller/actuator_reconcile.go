@@ -319,9 +319,11 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 		desiredHAAnnotation = "true"
 	}
 
-	prev, exists := network.Annotations[calico.AnnotationControlPlaneHA]
-	needsTyphaRestart := exists && prev == "false" && isHA && isTyphaEnabled(network)
+	if network.Annotations[calico.AnnotationControlPlaneHA] == desiredHAAnnotation {
+		return nil
+	}
 
+	needsTyphaRestart := network.Annotations[calico.AnnotationControlPlaneHA] == "false" && isHA && isTyphaEnabled(network)
 	if needsTyphaRestart {
 		shootClient, err := a.getShootClient(ctx, cluster)
 		if err != nil {
@@ -331,10 +333,6 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 		if err := ensureAPIServerWatchCacheWarm(ctx, shootClient); err != nil {
 			return fmt.Errorf("shoot API server watch cache not yet warm during HA transition, retrying: %w", err)
 		}
-	}
-
-	if exists && prev == desiredHAAnnotation && !needsTyphaRestart {
-		return nil
 	}
 
 	patch := client.MergeFrom(network.DeepCopy())
