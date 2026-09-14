@@ -15,11 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
 
-const (
-	typhaRestartedAtAnnotation = "networking.calico.extensions.gardener.cloud/typha-migration-restart-at"
-	controlPlaneHAAnnotation   = "networking.calico.extensions.gardener.cloud/control-plane-ha"
+	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
 // Restore implements Network.Actuator.
@@ -32,7 +29,7 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 	typhaEnabled := isTyphaEnabled(network)
 
 	if typhaEnabled {
-		if _, alreadySet := network.Annotations[typhaRestartedAtAnnotation]; !alreadySet {
+		if _, alreadySet := network.Annotations[calico.AnnotationTyphaRestartedAt]; !alreadySet {
 			shootClient, err := a.getShootClient(ctx, cluster)
 			if err != nil {
 				return fmt.Errorf("failed to get shoot client for calico-typha restart: %w", err)
@@ -47,7 +44,7 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 			if network.Annotations == nil {
 				network.Annotations = map[string]string{}
 			}
-			network.Annotations[typhaRestartedAtAnnotation] = time.Now().UTC().Format(time.RFC3339)
+			network.Annotations[calico.AnnotationTyphaRestartedAt] = time.Now().UTC().Format(time.RFC3339)
 			if err := a.client.Patch(ctx, network, patch); err != nil {
 				return fmt.Errorf("failed to annotate Network resource for calico-typha restart: %w", err)
 			}

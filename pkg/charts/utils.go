@@ -326,7 +326,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 	if err != nil {
 		return nil, err
 	}
-	if val, ok := network.Annotations["networking.calico.extensions.gardener.cloud/typha-migration-restart-at"]; ok && val != "" {
+	if val, ok := network.Annotations[calico.AnnotationTyphaRestartedAt]; ok && val != "" {
 		result.Typha.RestartedAt = val
 	}
 	return result, nil

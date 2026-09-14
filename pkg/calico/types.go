@@ -13,6 +13,15 @@ import (
 const (
 	Name = "networking-calico"
 
+	// AnnotationTyphaRestartedAt is set on the Network resource to trigger a calico-typha rolling
+	// restart after a control plane migration or non-HA to HA transition. The value is an RFC3339
+	// timestamp that is propagated into the Typha pod template annotation.
+	AnnotationTyphaRestartedAt = "networking.calico.extensions.gardener.cloud/typha-migration-restart-at"
+
+	// AnnotationControlPlaneHA records whether the shoot control plane had HighAvailability enabled
+	// the last time the Network resource was reconciled. Used to detect non-HA to HA transitions.
+	AnnotationControlPlaneHA = "networking.calico.extensions.gardener.cloud/control-plane-ha"
+
 	// ImageNames
 	CNIImageName                                   = "calico-cni"
 	NodeImageName                                  = "calico-node"
