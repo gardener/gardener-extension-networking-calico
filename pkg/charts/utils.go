@@ -109,7 +109,8 @@ type monitoring struct {
 }
 
 type typha struct {
-	Enabled bool `json:"enabled"`
+	Enabled     bool   `json:"enabled"`
+	RestartedAt string `json:"restartedAt,omitempty"`
 }
 
 type birdExporter struct {
@@ -321,7 +322,14 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 	// will be overridden to false if config.EbpfDataplane.Enabled==true
 	c.NonPrivileged = nonPrivileged
 
-	return mergeCalicoValuesWithConfig(&c, config, isIPv4, isIPv6)
+	result, err := mergeCalicoValuesWithConfig(&c, config, isIPv4, isIPv6)
+	if err != nil {
+		return nil, err
+	}
+	if val, ok := network.Annotations["networking.calico.extensions.gardener.cloud/typha-migration-restart-at"]; ok && val != "" {
+		result.Typha.RestartedAt = val
+	}
+	return result, nil
 }
 
 func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.NetworkConfig, isIPv4, isIPv6 bool) (*calicoConfig, error) {

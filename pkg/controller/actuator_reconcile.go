@@ -11,6 +11,7 @@ import (
 	"net"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	extensionsconfig "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
@@ -259,6 +260,10 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		kubeProxyMode = cluster.Shoot.Spec.Kubernetes.KubeProxy.Mode
 	}
 
+	if err := a.handleHATransition(ctx, log, network, cluster); err != nil {
+		return err
+	}
+
 	// Create shoot chart renderer
 	chartRenderer, err := a.chartRendererFactory.NewChartRendererForShoot(cluster.Shoot.Spec.Kubernetes.Version)
 	if err != nil {
@@ -297,6 +302,51 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	return a.updateProviderStatus(ctx, network, networkConfig)
+}
+
+// handleHATransition detects a control plane transition from non-HA to HA by comparing the
+// current Shoot HighAvailability spec against the last-observed state stored on the Network
+// resource. When a transition is detected and Typha is enabled, it waits for the shoot API
+// server watch cache to warm up and then sets
+// the typha-migration-restart-at annotation so the next chart render triggers a rolling restart.
+// The observed HA state is always persisted so subsequent reconciles see no change.
+func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
+	isHA := cluster.Shoot.Spec.ControlPlane != nil &&
+		cluster.Shoot.Spec.ControlPlane.HighAvailability != nil
+
+	desiredHAAnnotation := "false"
+	if isHA {
+		desiredHAAnnotation = "true"
+	}
+
+	prev, exists := network.Annotations[controlPlaneHAAnnotation]
+	needsTyphaRestart := exists && prev == "false" && isHA && isTyphaEnabled(network)
+
+	if needsTyphaRestart {
+		shootClient, err := a.getShootClient(ctx, cluster)
+		if err != nil {
+			return fmt.Errorf("failed to get shoot client for calico-typha restart during HA transition: %w", err)
+		}
+		log.Info("Control plane HA transition detected, waiting for shoot API server watch cache before restarting calico-typha")
+		if err := waitForAPIServerWatchCacheWarm(ctx, log, shootClient); err != nil {
+			return fmt.Errorf("failed waiting for API server watch cache during HA transition: %w", err)
+		}
+	}
+
+	if exists && prev == desiredHAAnnotation && !needsTyphaRestart {
+		return nil
+	}
+
+	patch := client.MergeFrom(network.DeepCopy())
+	if network.Annotations == nil {
+		network.Annotations = map[string]string{}
+	}
+	network.Annotations[controlPlaneHAAnnotation] = desiredHAAnnotation
+	if needsTyphaRestart {
+		network.Annotations[typhaRestartedAtAnnotation] = time.Now().UTC().Format(time.RFC3339)
+		log.Info("Annotating Network resource to trigger calico-typha rolling restart after HA transition")
+	}
+	return a.client.Patch(ctx, network, patch)
 }
 
 func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {
