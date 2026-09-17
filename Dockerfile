@@ -30,7 +30,7 @@ ENTRYPOINT ["/gardener-extension-admission-calico"]
 
 ############# cni-plugins-builder
 FROM golang:1.26.8 AS cni-plugins-builder
-ARG CNI_PLUGINS_VERSION=v1.9.0
+ARG CNI_PLUGINS_VERSION=v1.9.1
 WORKDIR /
 RUN mkdir -p /usr/src/cni/bin && \
     curl -L -O https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-amd64-${CNI_PLUGINS_VERSION}.tgz && \
