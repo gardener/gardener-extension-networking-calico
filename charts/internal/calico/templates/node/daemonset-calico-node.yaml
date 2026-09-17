@@ -35,6 +35,12 @@ spec:
         gardener.cloud/role: system-component
       annotations:
         checksum/configmap-calico: {{ include (print $.Template.BasePath "/node/configmap-calico-config.yaml") . | sha256sum }}
+        {{- if .Values.config.calicoNode.restartedAt }}
+        networking.calico.extensions.gardener.cloud/calico-node-restarted-at: {{ .Values.config.calicoNode.restartedAt | quote }}
+        {{- if .Values.config.calicoNode.restartReason }}
+        networking.calico.extensions.gardener.cloud/calico-node-restart-reason: {{ .Values.config.calicoNode.restartReason | quote }}
+        {{- end }}
+        {{- end }}
     spec:
       nodeSelector:
         kubernetes.io/os: linux

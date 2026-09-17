@@ -30,7 +30,9 @@ import (
 var _ = Describe("isTyphaEnabled", func() {
 	It("returns true when ProviderConfig is nil", func() {
 		network := &extensionsv1alpha1.Network{}
-		Expect(isTyphaEnabled(network)).To(BeTrue())
+		enabled, err := isTyphaEnabled(network)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(enabled).To(BeTrue())
 	})
 
 	It("returns true when ProviderConfig.Raw is nil", func() {
@@ -41,22 +43,30 @@ var _ = Describe("isTyphaEnabled", func() {
 				},
 			},
 		}
-		Expect(isTyphaEnabled(network)).To(BeTrue())
+		enabled, err := isTyphaEnabled(network)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(enabled).To(BeTrue())
 	})
 
 	It("returns true when Typha field is absent in config", func() {
-		Expect(isTyphaEnabled(networkWithTyphaConfig(nil))).To(BeTrue())
+		enabled, err := isTyphaEnabled(networkWithTyphaConfig(nil))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(enabled).To(BeTrue())
 	})
 
 	It("returns true when Typha.Enabled is true", func() {
-		Expect(isTyphaEnabled(networkWithTyphaConfig(&calicov1alpha1.Typha{Enabled: true}))).To(BeTrue())
+		enabled, err := isTyphaEnabled(networkWithTyphaConfig(&calicov1alpha1.Typha{Enabled: true}))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(enabled).To(BeTrue())
 	})
 
 	It("returns false when Typha.Enabled is false", func() {
-		Expect(isTyphaEnabled(networkWithTyphaConfig(&calicov1alpha1.Typha{Enabled: false}))).To(BeFalse())
+		enabled, err := isTyphaEnabled(networkWithTyphaConfig(&calicov1alpha1.Typha{Enabled: false}))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(enabled).To(BeFalse())
 	})
 
-	It("returns true when ProviderConfig contains invalid JSON", func() {
+	It("returns an error when ProviderConfig contains invalid JSON", func() {
 		network := &extensionsv1alpha1.Network{
 			Spec: extensionsv1alpha1.NetworkSpec{
 				DefaultSpec: extensionsv1alpha1.DefaultSpec{
@@ -64,7 +74,8 @@ var _ = Describe("isTyphaEnabled", func() {
 				},
 			},
 		}
-		Expect(isTyphaEnabled(network)).To(BeTrue())
+		_, err := isTyphaEnabled(network)
+		Expect(err).To(HaveOccurred())
 	})
 })
 
@@ -235,3 +246,60 @@ func networkWithTyphaConfig(typha *calicov1alpha1.Typha) *extensionsv1alpha1.Net
 		},
 	}
 }
+
+var _ = Describe("Restore (calico-node path)", func() {
+	var (
+		ctx    context.Context
+		log    logr.Logger
+		scheme *runtime.Scheme
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		log = logr.Discard()
+		scheme = runtime.NewScheme()
+		utilruntime.Must(extensionsv1alpha1.AddToScheme(scheme))
+	})
+
+	newNetworkNoTypha := func(annotations map[string]string) *extensionsv1alpha1.Network {
+		n := networkWithTyphaConfig(&calicov1alpha1.Typha{Enabled: false})
+		n.Name = "network"
+		n.Namespace = "shoot--project--name"
+		n.Annotations = annotations
+		return n
+	}
+
+	newActuator := func(network *extensionsv1alpha1.Network) *actuator {
+		return &actuator{
+			client: fakeclient.NewClientBuilder().WithScheme(scheme).WithObjects(network).Build(),
+		}
+	}
+
+	clusterFor := func() *extensionscontroller.Cluster {
+		return &extensionscontroller.Cluster{
+			ObjectMeta: metav1.ObjectMeta{Name: "shoot--project--name"},
+			Shoot:      &gardencorev1beta1.Shoot{},
+		}
+	}
+
+	It("returns an error when the shoot client cannot be obtained (cache check blocked)", func() {
+		network := newNetworkNoTypha(nil)
+		act := newActuator(network)
+		err := act.Restore(ctx, log, network, clusterFor())
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("failed to get shoot client for calico-node restart"))
+	})
+
+	It("returns an error when annotation is already set from a prior CPM (fresh timestamp always attempted)", func() {
+		// With no "already set" guard, every Restore call attempts the restart.
+		// A pre-existing annotation does not suppress the restart — the shoot client
+		// error confirms the restart path is always entered.
+		network := newNetworkNoTypha(map[string]string{
+			calico.AnnotationCalicoNodeRestartedAt: "2026-09-01T10:00:00Z",
+		})
+		act := newActuator(network)
+		err := act.Restore(ctx, log, network, clusterFor())
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("failed to get shoot client for calico-node restart"))
+	})
+})

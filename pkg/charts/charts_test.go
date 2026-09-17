@@ -336,6 +336,7 @@ var _ = Describe("Chart package test", func() {
 						"enabled":           multusEnabled,
 						"installCNIPlugins": installCNIPlugins,
 					},
+					"calicoNode": map[string]interface{}{},
 				},
 			}
 			if config != nil && config() != nil {

@@ -323,7 +323,11 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 		return nil
 	}
 
-	needsTyphaRestart := network.Annotations[calico.AnnotationControlPlaneHA] == "false" && isHA && isTyphaEnabled(network)
+	typhaEnabled, err := isTyphaEnabled(network)
+	if err != nil {
+		log.Error(err, "Failed to decode NetworkConfig for HA transition, skipping Typha restart")
+	}
+	needsTyphaRestart := network.Annotations[calico.AnnotationControlPlaneHA] == "false" && isHA && typhaEnabled
 	if needsTyphaRestart {
 		shootClient, err := a.getShootClient(ctx, cluster)
 		if err != nil {
