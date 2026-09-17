@@ -109,8 +109,9 @@ type monitoring struct {
 }
 
 type typha struct {
-	Enabled     bool   `json:"enabled"`
-	RestartedAt string `json:"restartedAt,omitempty"`
+	Enabled       bool   `json:"enabled"`
+	RestartedAt   string `json:"restartedAt,omitempty"`
+	RestartReason string `json:"restartReason,omitempty"`
 }
 
 type birdExporter struct {
@@ -328,6 +329,7 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 	}
 	if val, ok := network.Annotations[calico.AnnotationTyphaRestartedAt]; ok && val != "" {
 		result.Typha.RestartedAt = val
+		result.Typha.RestartReason = network.Annotations[calico.AnnotationTyphaRestartReason]
 	}
 	return result, nil
 }

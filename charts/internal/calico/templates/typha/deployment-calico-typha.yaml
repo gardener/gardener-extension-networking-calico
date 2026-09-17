@@ -45,7 +45,10 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
         {{- if .Values.config.typha.restartedAt }}
-        networking.calico.extensions.gardener.cloud/restarted-at: {{ .Values.config.typha.restartedAt }}
+        networking.calico.extensions.gardener.cloud/typha-restarted-at: {{ .Values.config.typha.restartedAt }}
+        {{- if .Values.config.typha.restartReason }}
+        networking.calico.extensions.gardener.cloud/typha-restart-reason: {{ .Values.config.typha.restartReason }}
+        {{- end }}
         {{- end }}
       labels:
         networking.gardener.cloud/to-public-networks: allowed

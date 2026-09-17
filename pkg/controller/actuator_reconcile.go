@@ -342,6 +342,7 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 	network.Annotations[calico.AnnotationControlPlaneHA] = desiredHAAnnotation
 	if needsTyphaRestart {
 		network.Annotations[calico.AnnotationTyphaRestartedAt] = time.Now().UTC().Format(time.RFC3339)
+		network.Annotations[calico.AnnotationTyphaRestartReason] = calico.TyphaRestartReasonHATransition
 		log.Info("Annotating Network resource to trigger calico-typha rolling restart after HA transition")
 	}
 	return a.client.Patch(ctx, network, patch)

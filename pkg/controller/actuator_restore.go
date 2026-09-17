@@ -26,18 +26,18 @@ import (
 // Storing the timestamp on the Network resource means subsequent reconciles keep the same annotation
 // value and do not trigger further restarts.
 func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
-	typhaEnabled := isTyphaEnabled(network)
-
-	if typhaEnabled {
+	if isTyphaEnabled(network) {
 		if _, alreadySet := network.Annotations[calico.AnnotationTyphaRestartedAt]; !alreadySet {
 			shootClient, err := a.getShootClient(ctx, cluster)
 			if err != nil {
 				return fmt.Errorf("failed to get shoot client for calico-typha restart: %w", err)
 			}
 
-			log.Info("Checking shoot API server watch cache before restarting calico-typha")
+			log.Info("Waiting for shoot API server watch cache to be ready before restarting calico-typha")
 			if err := ensureAPIServerWatchCacheWarm(ctx, shootClient); err != nil {
-				return fmt.Errorf("shoot API server watch cache not yet warm, retrying: %w", err)
+				// Expected during shoot API server startup after a control plane migration;
+				// the reconciler will requeue until the cache is warm.
+				return fmt.Errorf("shoot API server not yet ready after control plane migration, requeueing: %w", err)
 			}
 
 			patch := client.MergeFrom(network.DeepCopy())
@@ -45,6 +45,7 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 				network.Annotations = map[string]string{}
 			}
 			network.Annotations[calico.AnnotationTyphaRestartedAt] = time.Now().UTC().Format(time.RFC3339)
+			network.Annotations[calico.AnnotationTyphaRestartReason] = calico.TyphaRestartReasonCPM
 			if err := a.client.Patch(ctx, network, patch); err != nil {
 				return fmt.Errorf("failed to annotate Network resource for calico-typha restart: %w", err)
 			}
@@ -68,21 +69,23 @@ func isTyphaEnabled(network *extensionsv1alpha1.Network) bool {
 }
 
 // ensureAPIServerWatchCacheWarm checks once whether the shoot API server's watch cache for
-// WorkloadEndpoints (a Calico CRD) is warm. CRD caches are populated asynchronously after
-// the API server passes its readiness probe, so a non-zero resourceVersion confirms Typha
-// can safely reconnect. Returns an error if not yet ready so the reconciler requeues.
+// FelixConfigurations is warm. The API server warms CRD watch caches asynchronously after
+// passing its readiness probe, so a non-zero resourceVersion on a Calico CRD confirms that
+// the caches Typha depends on are ready. FelixConfiguration is deployed by this extension's
+// chart and survives CPM via KeepObjects, so it is always available as a probe target.
+// Returns an error if not yet ready so the reconciler requeues.
 func ensureAPIServerWatchCacheWarm(ctx context.Context, shootClient client.Client) error {
 	list := &unstructured.UnstructuredList{}
 	list.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   "crd.projectcalico.org",
 		Version: "v1",
-		Kind:    "WorkloadEndpointList",
+		Kind:    "FelixConfigurationList",
 	})
 	if err := shootClient.List(ctx, list); err != nil {
-		return fmt.Errorf("WorkloadEndpoint list not yet available: %w", err)
+		return fmt.Errorf("FelixConfiguration list not yet available: %w", err)
 	}
 	if rv := list.GetResourceVersion(); rv == "" || rv == "0" {
-		return fmt.Errorf("API server watch cache not yet warm for WorkloadEndpoints (resourceVersion=%q)", rv)
+		return fmt.Errorf("API server watch cache not yet warm for Calico CRDs (resourceVersion=%q)", rv)
 	}
 	return nil
 }
