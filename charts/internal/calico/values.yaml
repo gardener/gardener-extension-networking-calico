@@ -23,6 +23,7 @@ config:
     enabled: true
   typha:
     enabled: true
+  calicoNode: {}
   ipv4:
     enabled: true
     pool: ipip # or vxlan

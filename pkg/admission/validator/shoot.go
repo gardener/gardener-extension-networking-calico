@@ -21,8 +21,8 @@ import (
 
 	"github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico"
 	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
+	calicov1alpha1helper "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1/helper"
 	calicovalidation "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/validation"
-	"github.com/gardener/gardener-extension-networking-calico/pkg/controller"
 )
 
 // NewShootValidator returns a new instance of a shoot validator.
@@ -81,7 +81,7 @@ func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 		if shoot.Spec.Networking.ProviderConfig != nil {
 			network := &extensionsv1alpha1.Network{}
 			network.Spec.ProviderConfig = shoot.Spec.Networking.ProviderConfig
-			networkConfig, err := controller.CalicoNetworkConfigFromNetworkResource(network)
+			networkConfig, err := calicov1alpha1helper.CalicoNetworkConfigFromNetworkResource(network)
 			if err != nil {
 				return err
 			}

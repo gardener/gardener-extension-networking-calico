@@ -33,6 +33,7 @@ type calicoConfig struct {
 	IPv6            ipv6                   `json:"ipv6"`
 	IPAM            ipam                   `json:"ipam"`
 	Typha           typha                  `json:"typha"`
+	Node            calicoNode             `json:"calicoNode"`
 	KubeControllers kubeControllers        `json:"kubeControllers"`
 	VethMTU         string                 `json:"veth_mtu"`
 	Monitoring      monitoring             `json:"monitoring"`
@@ -109,7 +110,14 @@ type monitoring struct {
 }
 
 type typha struct {
-	Enabled bool `json:"enabled"`
+	Enabled       bool   `json:"enabled"`
+	RestartedAt   string `json:"restartedAt,omitempty"`
+	RestartReason string `json:"restartReason,omitempty"`
+}
+
+type calicoNode struct {
+	RestartedAt   string `json:"restartedAt,omitempty"`
+	RestartReason string `json:"restartReason,omitempty"`
 }
 
 type birdExporter struct {
@@ -321,7 +329,19 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 	// will be overridden to false if config.EbpfDataplane.Enabled==true
 	c.NonPrivileged = nonPrivileged
 
-	return mergeCalicoValuesWithConfig(&c, config, isIPv4, isIPv6)
+	result, err := mergeCalicoValuesWithConfig(&c, config, isIPv4, isIPv6)
+	if err != nil {
+		return nil, err
+	}
+	if val, ok := network.Annotations[calico.AnnotationTyphaRestartedAt]; ok && val != "" {
+		result.Typha.RestartedAt = val
+		result.Typha.RestartReason = network.Annotations[calico.AnnotationTyphaRestartReason]
+	}
+	if val, ok := network.Annotations[calico.AnnotationCalicoNodeRestartedAt]; ok && val != "" {
+		result.Node.RestartedAt = val
+		result.Node.RestartReason = network.Annotations[calico.AnnotationCalicoNodeRestartReason]
+	}
+	return result, nil
 }
 
 func mergeCalicoValuesWithConfig(c *calicoConfig, config *calicov1alpha1.NetworkConfig, isIPv4, isIPv6 bool) (*calicoConfig, error) {
