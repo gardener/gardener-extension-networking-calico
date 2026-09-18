@@ -127,6 +127,8 @@ type NetworkConfig struct {
 
 	// KubeAPIServerGlobalNetworkSet configures a Calico GlobalNetworkSet in the shoot cluster which contains the IP
 	// addresses of the load balancer in front of the shoot's kube-apiserver.
+	// The extension only provides the GlobalNetworkSet as a building block, it does not create any
+	// (Global)NetworkPolicy.
 	KubeAPIServerGlobalNetworkSet *KubeAPIServerGlobalNetworkSet
 }
 

@@ -49,7 +49,7 @@ var _ = Describe("APIServerEndpoints", func() {
 	Describe("#DetermineCIDRs", func() {
 		const (
 			namespace = "shoot--foo--bar"
-			hostname  = "abc.elb.eu-west-1.amazonaws.com"
+			hostname  = "lb.example.com"
 		)
 
 		var (
@@ -68,11 +68,11 @@ var _ = Describe("APIServerEndpoints", func() {
 
 		It("should turn the A and AAAA record values into CIDRs, sorted and deduplicated", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
-				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1", "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1", "192.0.2.34"),
 			).Build()
 
-			Expect(DetermineCIDRs(ctx, c, noResolver, namespace)).To(Equal([]string{"2001:db8::1/128", "34.107.12.34/32"}))
+			Expect(DetermineCIDRs(ctx, c, noResolver, namespace)).To(Equal([]string{"192.0.2.34/32", "2001:db8::1/128"}))
 		})
 
 		It("should resolve the hostname of a CNAME record", func() {
@@ -80,30 +80,30 @@ var _ = Describe("APIServerEndpoints", func() {
 				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
-			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"52.1.2.3", "52.1.2.4"}}}
+			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"198.51.100.3", "198.51.100.4"}}}
 
-			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"52.1.2.3/32", "52.1.2.4/32"}))
+			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"198.51.100.3/32", "198.51.100.4/32"}))
 			// The hostname is resolved once, although both DNSRecords carry it.
 			Expect(resolver.calls).To(Equal(1))
 		})
 
 		It("should combine the addresses of A and CNAME records", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34"),
 				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
-			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"52.1.2.3", "34.107.12.34"}}}
+			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"198.51.100.3", "192.0.2.34"}}}
 
-			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"34.107.12.34/32", "52.1.2.3/32"}))
+			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"192.0.2.34/32", "198.51.100.3/32"}))
 		})
 
 		It("should retry resolving a hostname", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
 				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
-			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"52.1.2.3"}}, failFirst: 2}
+			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"198.51.100.3"}}, failFirst: 2}
 
-			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"52.1.2.3/32"}))
+			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"198.51.100.3/32"}))
 			Expect(resolver.calls).To(Equal(3), "two failed attempts and the successful one")
 		})
 

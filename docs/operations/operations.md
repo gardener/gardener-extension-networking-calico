@@ -154,8 +154,10 @@ Hibernated shoots are exempt. `gardenlet` destroys the `kube-apiserver` `DNSReco
 
 ##### Inspecting the deployed set
 
+The set is a regular resource in the shoot cluster:
+
 ```bash
-kubectl -n <control-plane-namespace> get managedresource extension-networking-calico-config
+kubectl get globalnetworkset gardener-kube-apiserver -o yaml
 ```
 
-The set is rendered into the calico chart, so it shares its `ManagedResource` and its secret with the rest of the calico deployment.
+Its source of truth is the `extension-networking-calico-config` `ManagedResource` in the shoot's control plane namespace, which the gardener-resource-manager applies and reverts manual changes to. If the set is missing or holds unexpected addresses, check the `Network` resource's status and the extension's logs in the control plane namespace - a failed reconciliation is the usual cause.

@@ -34,32 +34,32 @@ var _ = Describe("DNSRecord", func() {
 		},
 		Entry("no DNSRecord", nil, dnsRecordValues{}),
 		Entry("A record",
-			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")},
-			dnsRecordValues{addresses: []string{"34.107.12.34"}}),
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34")},
+			dnsRecordValues{addresses: []string{"192.0.2.34"}}),
 		Entry("AAAA record",
 			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
 			dnsRecordValues{addresses: []string{"2001:db8::1"}}),
 		Entry("multiple values",
-			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34", "34.107.12.35")},
-			dnsRecordValues{addresses: []string{"34.107.12.34", "34.107.12.35"}}),
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34", "192.0.2.35")},
+			dnsRecordValues{addresses: []string{"192.0.2.34", "192.0.2.35"}}),
 		Entry("internal and external record are both collected, CIDRs deduplicates",
 			[]client.Object{
-				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
-				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34"),
 			},
-			dnsRecordValues{addresses: []string{"34.107.12.34", "34.107.12.34"}}),
+			dnsRecordValues{addresses: []string{"192.0.2.34", "192.0.2.34"}}),
 		Entry("CNAME record is reported as a hostname, not as an address",
-			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com")},
-			dnsRecordValues{hostnames: []string{"abc.elb.eu-west-1.amazonaws.com"}}),
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "lb.example.com")},
+			dnsRecordValues{hostnames: []string{"lb.example.com"}}),
 		Entry("AAAA record is an address too",
 			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
 			dnsRecordValues{addresses: []string{"2001:db8::1"}}),
 		Entry("A and CNAME record are reported separately",
 			[]client.Object{
-				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
-				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, "lb.example.com"),
 			},
-			dnsRecordValues{addresses: []string{"34.107.12.34"}, hostnames: []string{"abc.elb.eu-west-1.amazonaws.com"}}),
+			dnsRecordValues{addresses: []string{"192.0.2.34"}, hostnames: []string{"lb.example.com"}}),
 		Entry("ingress record of the nginx-ingress addon is ignored",
 			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordIngress, extensionsv1alpha1.DNSRecordTypeA, "1.2.3.4")},
 			dnsRecordValues{}),
@@ -85,7 +85,7 @@ var _ = Describe("DNSRecord", func() {
 	})
 
 	It("should ignore DNSRecords in other namespaces", func() {
-		dnsRecord := newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")
+		dnsRecord := newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34")
 		dnsRecord.Namespace = "shoot--other--cluster"
 		c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecord).Build()
 
@@ -93,7 +93,7 @@ var _ = Describe("DNSRecord", func() {
 	})
 
 	It("should ignore DNSRecords without the controlplane garden role", func() {
-		dnsRecord := newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")
+		dnsRecord := newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "192.0.2.34")
 		delete(dnsRecord.Labels, v1beta1constants.GardenRole)
 		c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecord).Build()
 
