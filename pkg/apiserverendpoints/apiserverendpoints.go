@@ -36,7 +36,7 @@ var (
 )
 
 // Enabled returns whether the GlobalNetworkSet shall be deployed. The shoot's providerConfig takes precedence over the
-// operator's landscape-wide default; if neither sets it, the GlobalNetworkSet is not deployed.
+// operator's default; if neither sets it, the GlobalNetworkSet is not deployed.
 func Enabled(networkConfig *calicov1alpha1.NetworkConfig, operatorConfig *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration) bool {
 	if networkConfig != nil && networkConfig.KubeAPIServerGlobalNetworkSet != nil && networkConfig.KubeAPIServerGlobalNetworkSet.Enabled != nil {
 		return *networkConfig.KubeAPIServerGlobalNetworkSet.Enabled

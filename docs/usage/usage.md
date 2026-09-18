@@ -149,7 +149,7 @@ kubeAPIServerGlobalNetworkSet:
   enabled: true
 ```
 
-> ℹ️ The extension operator can also enable this landscape-wide. In that case the field only needs to be set in order to opt out of it (`enabled: false`).
+> ℹ️ The extension operator can also enable this by default for all shoots. In that case the field only needs to be set in order to opt out of it (`enabled: false`).
 
 The resulting object looks as follows:
 
