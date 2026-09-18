@@ -254,7 +254,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	if len(kubeAPIServerCIDRs) > 0 {
-		log.V(1).Info("Adding the kube-apiserver GlobalNetworkSet to the calico chart", "nets", kubeAPIServerCIDRs)
+		log.Info("Adding the kube-apiserver GlobalNetworkSet to the calico chart", "nets", kubeAPIServerCIDRs)
 	}
 
 	calicoChart, err := chartspkg.RenderCalicoChart(
