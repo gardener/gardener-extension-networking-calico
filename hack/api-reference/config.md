@@ -60,7 +60,7 @@ object (keys:string, values:boolean)
 </td>
 <td>
 <em>(Optional)</em>
-<p>KubeAPIServerGlobalNetworkSet contains the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which<br />is deployed into shoot clusters.</p>
+<p>KubeAPIServerGlobalNetworkSet contains the operator configuration for the kube-apiserver GlobalNetworkSet which<br />is deployed into shoot clusters.</p>
 </td>
 </tr>
 
@@ -77,7 +77,7 @@ object (keys:string, values:boolean)
 </p>
 
 <p>
-KubeAPIServerGlobalNetworkSetConfiguration contains the landscape-wide configuration for the kube-apiserver
+KubeAPIServerGlobalNetworkSetConfiguration contains the operator configuration for the kube-apiserver
 GlobalNetworkSet.
 </p>
 
@@ -99,7 +99,7 @@ boolean
 </td>
 <td>
 <em>(Optional)</em>
-<p>Enabled is the landscape-wide default which determines whether the GlobalNetworkSet is deployed into shoot<br />clusters. It can be overridden per shoot via the Network resource's providerConfig.<br />Default: false</p>
+<p>Enabled is the default for all shoots handled by this extension deployment. It determines whether the<br />GlobalNetworkSet is deployed into their clusters and can be overridden per shoot via the Network resource's<br />providerConfig.<br />Default: false</p>
 </td>
 </tr>
 

@@ -274,7 +274,7 @@ type Multus struct {
 // with a service based rule instead.
 type KubeAPIServerGlobalNetworkSet struct {
 	// Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.
-	// If not set, the landscape-wide default configured by the extension operator is used.
+	// If not set, the default configured by the extension operator is used.
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
 }

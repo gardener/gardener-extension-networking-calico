@@ -415,7 +415,7 @@ boolean
 </td>
 <td>
 <em>(Optional)</em>
-<p>Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.<br />If not set, the landscape-wide default configured by the extension operator is used.</p>
+<p>Enabled determines whether the GlobalNetworkSet is deployed into the shoot cluster.<br />If not set, the default configured by the extension operator is used.</p>
 </td>
 </tr>
 

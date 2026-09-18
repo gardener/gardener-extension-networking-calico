@@ -38,7 +38,7 @@ type actuator struct {
 	chartRendererFactory extensionscontroller.ChartRendererFactory
 	chartApplier         gardenerkubernetes.ChartApplier
 
-	// kubeAPIServerGlobalNetworkSetConfig is the landscape-wide configuration for the kube-apiserver GlobalNetworkSet.
+	// kubeAPIServerGlobalNetworkSetConfig is the operator configuration for the kube-apiserver GlobalNetworkSet.
 	kubeAPIServerGlobalNetworkSetConfig *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration
 	// hostResolver resolves the kube-apiserver hostname if the seed's load balancer is exposed via a hostname.
 	hostResolver apiserverendpoints.HostResolver

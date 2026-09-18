@@ -31,7 +31,7 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
-	// KubeAPIServerGlobalNetworkSet is the landscape-wide configuration for the kube-apiserver GlobalNetworkSet which is
+	// KubeAPIServerGlobalNetworkSet is the operator configuration for the kube-apiserver GlobalNetworkSet which is
 	// deployed into shoot clusters.
 	KubeAPIServerGlobalNetworkSet *apisconfig.KubeAPIServerGlobalNetworkSetConfiguration
 }
