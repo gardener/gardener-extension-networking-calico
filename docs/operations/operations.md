@@ -116,7 +116,7 @@ spec:
 
 This validation only applies when switching from overlay-enabled to overlay-disabled. It does not affect other configuration changes.
 
-### `kube-apiserver` `GlobalNetworkSet`
+### `gardener-kube-apiserver` `GlobalNetworkSet`
 
 The extension can maintain a Calico `GlobalNetworkSet` named `gardener-kube-apiserver` in every shoot cluster, holding the IP address(es) of the load balancer in front of the shoot's `kube-apiserver`. Shoot owners reference it from their own Calico policies in order to restrict egress traffic to the `kube-apiserver`, see the [usage documentation](../usage/usage.md#restricting-access-to-the-kube-apiserver).
 
