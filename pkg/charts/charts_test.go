@@ -800,7 +800,7 @@ var _ = Describe("Chart package test", func() {
 			})
 
 			It("should render it next to the CRD it needs", func() {
-				manifest := renderChart([]string{"34.107.12.34/32", "2001:db8::1/128"})
+				manifest := renderChart([]string{"192.0.2.34/32", "2001:db8::1/128"})
 
 				Expect(manifest).To(ContainSubstring("globalnetworksets.crd.projectcalico.org"))
 				Expect(manifest).To(ContainSubstring(`apiVersion: crd.projectcalico.org/v1
@@ -811,7 +811,7 @@ metadata:
     networking.gardener.cloud/endpoint: kube-apiserver
 spec:
   nets:
-  - 34.107.12.34/32
+  - 192.0.2.34/32
   - 2001:db8::1/128`))
 			})
 		})
