@@ -6,11 +6,9 @@ package controller
 
 import (
 	"context"
-	"errors"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
 	"github.com/go-logr/logr"
@@ -100,31 +98,10 @@ var _ = Describe("managed resource lifecycle", func() {
 	})
 })
 
-var _ = Describe("#desiredKubeAPIServerCIDRs", func() {
-	const namespace = "shoot--foo--bar"
-
+var _ = Describe("#wantsKubeAPIServerGlobalNetworkSet", func() {
 	var (
-		ctx = context.Background()
-
-		enabled = &calicov1alpha1.NetworkConfig{
-			KubeAPIServerGlobalNetworkSet: &calicov1alpha1.KubeAPIServerGlobalNetworkSet{Enabled: ptr.To(true)},
-		}
-
-		dnsRecord = &extensionsv1alpha1.DNSRecord{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "foo-internal",
-				Namespace: namespace,
-				Labels: map[string]string{
-					v1beta1constants.LabelRole:  v1beta1constants.LabelDNSRecordInternal,
-					v1beta1constants.GardenRole: v1beta1constants.GardenRoleControlPlane,
-				},
-			},
-			Spec: extensionsv1alpha1.DNSRecordSpec{
-				Name:       "api.foo.bar.example.com",
-				RecordType: extensionsv1alpha1.DNSRecordTypeA,
-				Values:     []string{"34.107.12.34"},
-			},
-		}
+		enabled  = &calicov1alpha1.NetworkConfig{KubeAPIServerGlobalNetworkSet: &calicov1alpha1.KubeAPIServerGlobalNetworkSet{Enabled: ptr.To(true)}}
+		disabled = &calicov1alpha1.NetworkConfig{KubeAPIServerGlobalNetworkSet: &calicov1alpha1.KubeAPIServerGlobalNetworkSet{Enabled: ptr.To(false)}}
 
 		newCluster = func(hibernationEnabled, isHibernated bool) *extensionscontroller.Cluster {
 			return &extensionscontroller.Cluster{Shoot: &gardencorev1beta1.Shoot{
@@ -132,105 +109,20 @@ var _ = Describe("#desiredKubeAPIServerCIDRs", func() {
 				Status: gardencorev1beta1.ShootStatus{IsHibernated: isHibernated},
 			}}
 		}
-
-		newActuator = func(c client.Reader) *actuator {
-			return &actuator{apiReader: c}
-		}
-
-		clientWithDNSRecord = func() client.WithWatch {
-			return fake.NewClientBuilder().WithScheme(testScheme).WithObjects(dnsRecord).Build()
-		}
 	)
 
-	It("should return nothing if the feature is disabled", func() {
-		// The client rejects every read, so a lookup would fail the test rather than return nothing.
-		c := interceptor.NewClient(clientWithDNSRecord(), interceptor.Funcs{
-			List: func(_ context.Context, _ client.WithWatch, _ client.ObjectList, _ ...client.ListOption) error {
-				return errors.New("the DNSRecords must not be read")
-			},
-		})
-
-		cidrs, err := newActuator(c).desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(false, false), nil)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cidrs).To(BeEmpty())
-	})
-
-	It("should return the addresses if the feature is enabled and the shoot is awake", func() {
-		cidrs, err := newActuator(clientWithDNSRecord()).desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(false, false), enabled)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cidrs).To(ConsistOf("34.107.12.34/32"))
-	})
-
-	It("should resolve a hostname with the actuator's resolver", func() {
-		cnameRecord := dnsRecord.DeepCopy()
-		cnameRecord.Spec.RecordType = extensionsv1alpha1.DNSRecordTypeCNAME
-		cnameRecord.Spec.Values = []string{"abc.elb.eu-west-1.amazonaws.com"}
-		c := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(cnameRecord).Build()
-
-		a := newActuator(c)
-		a.hostResolver = hostResolverFunc(func(_ context.Context, host string) ([]string, error) {
-			Expect(host).To(Equal("abc.elb.eu-west-1.amazonaws.com"))
-			return []string{"52.1.2.3"}, nil
-		})
-
-		cidrs, err := a.desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(false, false), enabled)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cidrs).To(ConsistOf("52.1.2.3/32"))
-	})
-
-	It("should fail if the addresses cannot be determined and the shoot is awake", func() {
-		c := fake.NewClientBuilder().WithScheme(testScheme).Build()
-
-		_, err := newActuator(c).desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(false, false), enabled)
-
-		Expect(err).To(MatchError(ContainSubstring("do not publish an address yet")))
-	})
-
-	It("should return nothing without reading the DNSRecords if the shoot is hibernated", func() {
-		// gardenlet destroyed the DNSRecords, so reading them must not even be attempted.
-		c := interceptor.NewClient(clientWithDNSRecord(), interceptor.Funcs{
-			List: func(_ context.Context, _ client.WithWatch, _ client.ObjectList, _ ...client.ListOption) error {
-				return errors.New("the DNSRecords must not be read")
-			},
-		})
-
-		cidrs, err := newActuator(c).desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(true, true), enabled)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cidrs).To(BeEmpty())
-	})
-
-	It("should still publish the addresses while the shoot is going into hibernation", func() {
+	DescribeTable("should decide from the configuration and the hibernation state",
+		func(networkConfig *calicov1alpha1.NetworkConfig, cluster *extensionscontroller.Cluster, expected bool) {
+			Expect((&actuator{}).wantsKubeAPIServerGlobalNetworkSet(cluster, networkConfig)).To(Equal(expected))
+		},
+		Entry("disabled", disabled, newCluster(false, false), false),
+		Entry("no configuration at all", nil, newCluster(false, false), false),
+		Entry("enabled, shoot awake", enabled, newCluster(false, false), true),
+		Entry("enabled, shoot without hibernation section", enabled, &extensionscontroller.Cluster{Shoot: &gardencorev1beta1.Shoot{}}, true),
+		// gardenlet destroys the DNSRecords of a hibernated shoot, so the addresses cannot be determined.
+		Entry("enabled, shoot hibernated", enabled, newCluster(true, true), false),
 		// The DNSRecords are destroyed only after the control plane was hibernated, so they are still there.
-		cidrs, err := newActuator(clientWithDNSRecord()).desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(true, false), enabled)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cidrs).To(ConsistOf("34.107.12.34/32"))
-	})
-
-	It("should publish the addresses again while the shoot is waking up", func() {
-		cidrs, err := newActuator(clientWithDNSRecord()).desiredKubeAPIServerCIDRs(ctx, namespace, newCluster(false, true), enabled)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cidrs).To(ConsistOf("34.107.12.34/32"))
-	})
-
-	It("should treat a shoot without a hibernation section as awake", func() {
-		cluster := &extensionscontroller.Cluster{Shoot: &gardencorev1beta1.Shoot{}}
-
-		cidrs, err := newActuator(clientWithDNSRecord()).desiredKubeAPIServerCIDRs(ctx, namespace, cluster, enabled)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cidrs).To(ConsistOf("34.107.12.34/32"))
-	})
+		Entry("enabled, shoot going into hibernation", enabled, newCluster(true, false), true),
+		Entry("enabled, shoot waking up", enabled, newCluster(false, true), true),
+	)
 })
-
-// hostResolverFunc adapts a function to apiserverendpoints.HostResolver.
-type hostResolverFunc func(ctx context.Context, host string) ([]string, error)
-
-func (f hostResolverFunc) LookupHost(ctx context.Context, host string) ([]string, error) {
-	return f(ctx, host)
-}

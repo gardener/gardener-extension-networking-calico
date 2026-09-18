@@ -276,12 +276,14 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 		podCIDRs = cluster.Shoot.Status.Networking.Pods
 	}
 
-	kubeAPIServerCIDRs, err := a.desiredKubeAPIServerCIDRs(ctx, network.Namespace, cluster, networkConfig)
-	if err != nil {
-		return err
-	}
+	var kubeAPIServerCIDRs []string
+	if a.wantsKubeAPIServerGlobalNetworkSet(cluster, networkConfig) {
+		// Deliberately fails the reconciliation if the addresses cannot be determined: a GlobalNetworkSet without them
+		// matches nothing, hence every policy referring to it would silently block traffic to the kube-apiserver.
+		if kubeAPIServerCIDRs, err = apiserverendpoints.DetermineCIDRs(ctx, a.apiReader, a.hostResolver, network.Namespace); err != nil {
+			return err
+		}
 
-	if len(kubeAPIServerCIDRs) > 0 {
 		log.Info("Adding the kube-apiserver GlobalNetworkSet to the calico chart", "nets", kubeAPIServerCIDRs)
 	}
 
@@ -304,7 +306,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 	}
 
 	data := map[string][]byte{chartspkg.CalicoConfigKey: calicoChart}
-	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, managedResourceOrigin, false, data); err != nil {
+	if err := managedresources.CreateForShoot(ctx, a.client, network.Namespace, CalicoConfigManagedResourceName, "extension-networking-calico", false, data); err != nil {
 		return err
 	}
 
@@ -363,18 +365,12 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 	return a.client.Patch(ctx, network, patch)
 }
 
-// desiredKubeAPIServerCIDRs returns the addresses the kube-apiserver GlobalNetworkSet shall hold, or nothing if the set
-// is not desired. It fails if they cannot be determined although the set is desired, because a set without them matches
-// nothing and every policy referring to it would silently block traffic to the kube-apiserver.
-//
-// Hibernated shoots are exempt: gardenlet destroys their DNSRecords, they run no pods which could need the set, and
-// failing would keep their reconciliation failing until they wake up.
-func (a *actuator) desiredKubeAPIServerCIDRs(ctx context.Context, namespace string, cluster *extensionscontroller.Cluster, networkConfig *calicov1alpha1.NetworkConfig) ([]string, error) {
-	if !apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) || extensionscontroller.IsHibernated(cluster) {
-		return nil, nil
-	}
-
-	return apiserverendpoints.CIDRs(ctx, a.apiReader, a.hostResolver, namespace)
+// wantsKubeAPIServerGlobalNetworkSet returns whether the kube-apiserver GlobalNetworkSet shall be deployed into the
+// shoot: it has to be enabled, and the shoot must not be hibernated. gardenlet destroys the DNSRecords of a hibernated
+// shoot, so the addresses cannot be determined, and failing would keep its reconciliation failing until it wakes up.
+// The set is not needed meanwhile either, because a hibernated cluster runs no pods.
+func (a *actuator) wantsKubeAPIServerGlobalNetworkSet(cluster *extensionscontroller.Cluster, networkConfig *calicov1alpha1.NetworkConfig) bool {
+	return apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) && !extensionscontroller.IsHibernated(cluster)
 }
 
 func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {

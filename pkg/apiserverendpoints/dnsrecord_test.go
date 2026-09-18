@@ -18,56 +18,56 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 )
 
-const namespace = "shoot--foo--bar"
-
 var _ = Describe("DNSRecord", func() {
+	const namespace = "shoot--foo--bar"
+
 	var ctx = context.Background()
 
-	DescribeTable("#fromDNSRecords",
+	DescribeTable("#readDNSRecordValues",
 		func(dnsRecords []client.Object, expected dnsRecordValues) {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecords...).Build()
 
-			values, err := fromDNSRecords(ctx, c, namespace)
+			values, err := readDNSRecordValues(ctx, c, namespace)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(expected))
 		},
 		Entry("no DNSRecord", nil, dnsRecordValues{}),
 		Entry("A record",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")},
 			dnsRecordValues{addresses: []string{"34.107.12.34"}}),
 		Entry("AAAA record",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
 			dnsRecordValues{addresses: []string{"2001:db8::1"}}),
 		Entry("multiple values",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34", "34.107.12.35")},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34", "34.107.12.35")},
 			dnsRecordValues{addresses: []string{"34.107.12.34", "34.107.12.35"}}),
 		Entry("internal and external record are both collected, CIDRs deduplicates",
 			[]client.Object{
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
-				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
 			},
 			dnsRecordValues{addresses: []string{"34.107.12.34", "34.107.12.34"}}),
 		Entry("CNAME record is reported as a hostname, not as an address",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com")},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com")},
 			dnsRecordValues{hostnames: []string{"abc.elb.eu-west-1.amazonaws.com"}}),
 		Entry("AAAA record is an address too",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1")},
 			dnsRecordValues{addresses: []string{"2001:db8::1"}}),
 		Entry("A and CNAME record are reported separately",
 			[]client.Object{
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
-				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, "abc.elb.eu-west-1.amazonaws.com"),
 			},
 			dnsRecordValues{addresses: []string{"34.107.12.34"}, hostnames: []string{"abc.elb.eu-west-1.amazonaws.com"}}),
 		Entry("ingress record of the nginx-ingress addon is ignored",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordIngress, extensionsv1alpha1.DNSRecordTypeA, "1.2.3.4")},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordIngress, extensionsv1alpha1.DNSRecordTypeA, "1.2.3.4")},
 			dnsRecordValues{}),
 		Entry("TXT record is ignored",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeTXT, "some-text")},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeTXT, "some-text")},
 			dnsRecordValues{}),
 		Entry("record without values is ignored",
-			[]client.Object{newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA)},
+			[]client.Object{newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA)},
 			dnsRecordValues{}),
 	)
 
@@ -78,29 +78,30 @@ var _ = Describe("DNSRecord", func() {
 			},
 		})
 
-		_, err := fromDNSRecords(ctx, c, namespace)
+		_, err := readDNSRecordValues(ctx, c, namespace)
 
-		Expect(err).To(MatchError("fake list error"))
+		Expect(err).To(MatchError(ContainSubstring(`could not list the kube-apiserver DNSRecords in namespace "` + namespace + `"`)))
+		Expect(err).To(MatchError(ContainSubstring("fake list error")))
 	})
 
 	It("should ignore DNSRecords in other namespaces", func() {
-		dnsRecord := newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")
+		dnsRecord := newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")
 		dnsRecord.Namespace = "shoot--other--cluster"
 		c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecord).Build()
 
-		Expect(fromDNSRecords(ctx, c, namespace)).To(Equal(dnsRecordValues{}))
+		Expect(readDNSRecordValues(ctx, c, namespace)).To(Equal(dnsRecordValues{}))
 	})
 
 	It("should ignore DNSRecords without the controlplane garden role", func() {
-		dnsRecord := newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")
+		dnsRecord := newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34")
 		delete(dnsRecord.Labels, v1beta1constants.GardenRole)
 		c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dnsRecord).Build()
 
-		Expect(fromDNSRecords(ctx, c, namespace)).To(Equal(dnsRecordValues{}))
+		Expect(readDNSRecordValues(ctx, c, namespace)).To(Equal(dnsRecordValues{}))
 	})
 })
 
-func newDNSRecord(role string, recordType extensionsv1alpha1.DNSRecordType, values ...string) *extensionsv1alpha1.DNSRecord {
+func newDNSRecord(namespace, role string, recordType extensionsv1alpha1.DNSRecordType, values ...string) *extensionsv1alpha1.DNSRecord {
 	return &extensionsv1alpha1.DNSRecord{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "foo-" + role,

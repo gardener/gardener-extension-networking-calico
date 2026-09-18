@@ -20,9 +20,6 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/pkg/apiserverendpoints"
 )
 
-// managedResourceOrigin identifies this extension as the creator of the managed resource it deploys.
-const managedResourceOrigin = "extension-networking-calico"
-
 var (
 	// StatusTypeMeta is the TypeMeta of Calico Status
 	StatusTypeMeta = metav1.TypeMeta{

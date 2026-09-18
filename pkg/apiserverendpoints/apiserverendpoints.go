@@ -27,9 +27,11 @@ type HostResolver interface {
 
 var (
 	// ResolveInterval is the interval between two attempts to resolve a hostname.
+	// Exposed for testing.
 	ResolveInterval = 2 * time.Second
 	// ResolveTimeout bounds the attempts to resolve a hostname. A hostname which cannot be resolved within it fails the
 	// reconciliation, which is retried by gardenlet.
+	// Exposed for testing.
 	ResolveTimeout = 30 * time.Second
 )
 
@@ -45,17 +47,17 @@ func Enabled(networkConfig *calicov1alpha1.NetworkConfig, operatorConfig *apisco
 	return false
 }
 
-// CIDRs returns the IP addresses of the shoot's kube-apiserver endpoint as /32 respectively /128 CIDRs, determined from
-// the DNSRecords in the given control plane namespace. The values of A and AAAA records are used as they are, the
-// hostnames of CNAME records are resolved.
+// DetermineCIDRs determines the IP addresses of the load balancer in front of the shoot's kube-apiserver from the
+// DNSRecords in the given control plane namespace and returns them as /32 respectively /128 CIDRs. The values of A and
+// AAAA records are used as they are, the hostnames of CNAME records are resolved.
 //
 // It fails rather than returning nothing, see the caller. All failures are retryable: addresses which are not
 // published yet may still appear during the shoot's creation, and a hostname which cannot be resolved may become
 // resolvable.
-func CIDRs(ctx context.Context, c client.Reader, resolver HostResolver, namespace string) ([]string, error) {
-	dnsRecords, err := fromDNSRecords(ctx, c, namespace)
+func DetermineCIDRs(ctx context.Context, c client.Reader, resolver HostResolver, namespace string) ([]string, error) {
+	dnsRecords, err := readDNSRecordValues(ctx, c, namespace)
 	if err != nil {
-		return nil, fmt.Errorf("could not read the kube-apiserver DNSRecords: %w", err)
+		return nil, err
 	}
 
 	addresses := dnsRecords.addresses
