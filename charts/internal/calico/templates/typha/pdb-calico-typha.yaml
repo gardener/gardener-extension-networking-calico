@@ -13,5 +13,5 @@ spec:
   selector:
     matchLabels:
       k8s-app: calico-typha
-  unhealthyPodEvictionPolicy: AlwaysAllow
+  unhealthyPodEvictionPolicy: IfHealthyBudget
 {{- end }}
