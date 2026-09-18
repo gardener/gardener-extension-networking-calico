@@ -193,6 +193,7 @@ func ComputeCalicoChartValues(
 	nodeCIDR *string,
 	podCIDRs []string,
 	ipFamilies []extensionsv1alpha1.IPFamily,
+	kubeAPIServerCIDRs []string,
 ) (map[string]interface{}, error) {
 	typedConfig, err := generateChartValues(network, config, kubeProxyEnabled, kubeProxyMode, nonPrivileged, ipFamilies)
 	if err != nil {
@@ -235,6 +236,10 @@ func ComputeCalicoChartValues(
 
 	if nodeCIDR != nil {
 		calicoChartValues["global"].(map[string]string)["nodeCIDR"] = *nodeCIDR
+	}
+
+	if len(kubeAPIServerCIDRs) > 0 {
+		calicoChartValues["kubeAPIServerGlobalNetworkSet"] = map[string]interface{}{"nets": kubeAPIServerCIDRs}
 	}
 
 	if config != nil && config.Overlay != nil {

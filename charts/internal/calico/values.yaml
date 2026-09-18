@@ -51,6 +51,10 @@ config:
   multus:
     enabled: false
     installCNIPlugins: false
+# Only set when the kube-apiserver GlobalNetworkSet is enabled for the shoot
+# kubeAPIServerGlobalNetworkSet:
+#   nets:
+#   - 192.0.2.34/32
 images:
   calico-node: "image-repository:image-tag"
   calico-cni: "image-repository:image-tag"
