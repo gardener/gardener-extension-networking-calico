@@ -46,7 +46,7 @@ var _ = Describe("APIServerEndpoints", func() {
 		Entry("providerConfig without enabled and no operator default", networkConfig(nil), nil, false),
 	)
 
-	Describe("#CIDRs", func() {
+	Describe("#DetermineCIDRs", func() {
 		const (
 			namespace = "shoot--foo--bar"
 			hostname  = "abc.elb.eu-west-1.amazonaws.com"
@@ -68,52 +68,52 @@ var _ = Describe("APIServerEndpoints", func() {
 
 		It("should turn the A and AAAA record values into CIDRs, sorted and deduplicated", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
-				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1", "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeAAAA, "2001:db8::1", "34.107.12.34"),
 			).Build()
 
-			Expect(CIDRs(ctx, c, noResolver, namespace)).To(Equal([]string{"2001:db8::1/128", "34.107.12.34/32"}))
+			Expect(DetermineCIDRs(ctx, c, noResolver, namespace)).To(Equal([]string{"2001:db8::1/128", "34.107.12.34/32"}))
 		})
 
 		It("should resolve the hostname of a CNAME record", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
-				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
 			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"52.1.2.3", "52.1.2.4"}}}
 
-			Expect(CIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"52.1.2.3/32", "52.1.2.4/32"}))
+			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"52.1.2.3/32", "52.1.2.4/32"}))
 			// The hostname is resolved once, although both DNSRecords carry it.
 			Expect(resolver.calls).To(Equal(1))
 		})
 
 		It("should combine the addresses of A and CNAME records", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
-				newDNSRecord(v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "34.107.12.34"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordExternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
 			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"52.1.2.3", "34.107.12.34"}}}
 
-			Expect(CIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"34.107.12.34/32", "52.1.2.3/32"}))
+			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"34.107.12.34/32", "52.1.2.3/32"}))
 		})
 
 		It("should retry resolving a hostname", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
 			resolver := &fakeResolver{addresses: map[string][]string{hostname: {"52.1.2.3"}}, failFirst: 2}
 
-			Expect(CIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"52.1.2.3/32"}))
+			Expect(DetermineCIDRs(ctx, c, resolver, namespace)).To(Equal([]string{"52.1.2.3/32"}))
 			Expect(resolver.calls).To(Equal(3), "two failed attempts and the successful one")
 		})
 
 		It("should fail retryably if a hostname cannot be resolved within the timeout", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
 			resolver := &fakeResolver{err: errors.New("no such host")}
 
-			_, err := CIDRs(ctx, c, resolver, namespace)
+			_, err := DetermineCIDRs(ctx, c, resolver, namespace)
 
 			Expect(err).To(MatchError(ContainSubstring(`could not resolve the kube-apiserver hostname "` + hostname + `"`)))
 			Expect(err).To(MatchError(ContainSubstring("no such host")))
@@ -124,18 +124,18 @@ var _ = Describe("APIServerEndpoints", func() {
 
 		It("should fail retryably if a hostname resolves to no address", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeCNAME, hostname),
 			).Build()
 			resolver := &fakeResolver{addresses: map[string][]string{hostname: {}}}
 
-			_, err := CIDRs(ctx, c, resolver, namespace)
+			_, err := DetermineCIDRs(ctx, c, resolver, namespace)
 
 			Expect(err).To(MatchError(ContainSubstring("do not publish an address yet")))
 			Expect(v1beta1helper.ExtractErrorCodes(err)).To(BeEmpty())
 		})
 
 		It("should fail retryably if no address is published yet", func() {
-			_, err := CIDRs(ctx, fake.NewClientBuilder().WithScheme(scheme).Build(), noResolver, namespace)
+			_, err := DetermineCIDRs(ctx, fake.NewClientBuilder().WithScheme(scheme).Build(), noResolver, namespace)
 
 			Expect(err).To(MatchError(ContainSubstring("do not publish an address yet")))
 			// Not a configuration problem: the addresses may still show up during the shoot's creation.
@@ -144,20 +144,20 @@ var _ = Describe("APIServerEndpoints", func() {
 
 		It("should fail if a record without values exists only", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA),
 			).Build()
 
-			_, err := CIDRs(ctx, c, noResolver, namespace)
+			_, err := DetermineCIDRs(ctx, c, noResolver, namespace)
 
 			Expect(err).To(MatchError(ContainSubstring("do not publish an address yet")))
 		})
 
 		It("should fail if an A record value is not an IP address", func() {
 			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-				newDNSRecord(v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "not-an-ip"),
+				newDNSRecord(namespace, v1beta1constants.LabelDNSRecordInternal, extensionsv1alpha1.DNSRecordTypeA, "not-an-ip"),
 			).Build()
 
-			_, err := CIDRs(ctx, c, noResolver, namespace)
+			_, err := DetermineCIDRs(ctx, c, noResolver, namespace)
 
 			Expect(err).To(MatchError(ContainSubstring(`yield "not-an-ip", which is not an IP address`)))
 		})
@@ -169,9 +169,9 @@ var _ = Describe("APIServerEndpoints", func() {
 				},
 			})
 
-			_, err := CIDRs(ctx, c, noResolver, namespace)
+			_, err := DetermineCIDRs(ctx, c, noResolver, namespace)
 
-			Expect(err).To(MatchError(ContainSubstring("could not read the kube-apiserver DNSRecords")))
+			Expect(err).To(MatchError(ContainSubstring("could not list the kube-apiserver DNSRecords in namespace")))
 		})
 	})
 })

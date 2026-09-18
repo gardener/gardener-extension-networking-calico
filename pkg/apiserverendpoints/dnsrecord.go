@@ -6,6 +6,7 @@ package apiserverendpoints
 
 import (
 	"context"
+	"fmt"
 
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -39,15 +40,15 @@ type dnsRecordValues struct {
 	hostnames []string
 }
 
-// fromDNSRecords returns the kube-apiserver addresses published by gardenlet via DNSRecord resources in the given
+// readDNSRecordValues reads the kube-apiserver addresses published by gardenlet via DNSRecord resources in the given
 // control plane namespace.
-func fromDNSRecords(ctx context.Context, c client.Reader, namespace string) (dnsRecordValues, error) {
+func readDNSRecordValues(ctx context.Context, c client.Reader, namespace string) (dnsRecordValues, error) {
 	dnsRecordList := &extensionsv1alpha1.DNSRecordList{}
 	if err := c.List(ctx, dnsRecordList,
 		client.InNamespace(namespace),
 		client.MatchingLabelsSelector{Selector: dnsRecordSelector},
 	); err != nil {
-		return dnsRecordValues{}, err
+		return dnsRecordValues{}, fmt.Errorf("could not list the kube-apiserver DNSRecords in namespace %q: %w", namespace, err)
 	}
 
 	var values dnsRecordValues
