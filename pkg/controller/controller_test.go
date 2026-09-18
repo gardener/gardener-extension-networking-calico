@@ -290,16 +290,17 @@ var _ = Describe("Restore (calico-node path)", func() {
 		Expect(err.Error()).To(ContainSubstring("failed to get shoot client for calico-node restart"))
 	})
 
-	It("returns an error when annotation is already set from a prior CPM (fresh timestamp always attempted)", func() {
-		// With no "already set" guard, every Restore call attempts the restart.
-		// A pre-existing annotation does not suppress the restart — the shoot client
-		// error confirms the restart path is always entered.
+	It("skips the restart and goes straight to Reconcile when annotation is already set (idempotency)", func() {
+		// Simulates a requeue after a prior Restore attempt already wrote the annotation but
+		// then failed in the subsequent Reconcile. The annotation should not be overwritten.
 		network := newNetworkNoTypha(map[string]string{
 			calico.AnnotationCalicoNodeRestartedAt: "2026-09-01T10:00:00Z",
 		})
 		act := newActuator(network)
 		err := act.Restore(ctx, log, network, clusterFor())
+		// Reconcile is reached (no shoot-client error), but fails on missing required spec fields.
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("failed to get shoot client for calico-node restart"))
+		Expect(err.Error()).NotTo(ContainSubstring("failed to get shoot client"))
+		Expect(network.Annotations[calico.AnnotationCalicoNodeRestartedAt]).To(Equal("2026-09-01T10:00:00Z"))
 	})
 })

@@ -44,6 +44,13 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 		restartReasonKey = calico.AnnotationTyphaRestartReason
 	}
 
+	if _, alreadyHandled := network.Annotations[restartedAtKey]; alreadyHandled {
+		// Restart was already triggered on a previous attempt; skip to avoid repeated rolling
+		// restarts when Restore is requeued for transient errors. Annotations are not carried
+		// over during CPM, so a new migration always starts without this annotation.
+		return a.Reconcile(ctx, log, network, cluster)
+	}
+
 	shootClient, err := a.getShootClient(ctx, cluster)
 	if err != nil {
 		return fmt.Errorf("failed to get shoot client for %s restart: %w", component, err)
