@@ -133,7 +133,7 @@ Shoots override this via `.spec.networking.providerConfig.kubeAPIServerGlobalNet
 
 ##### Address source
 
-The addresses are read from the `DNSRecord`s labelled `gardener.cloud/role=controlplane` and `role in (internal, external)` in the shoot's control plane namespace. gardenlet writes the address of the seed's istio ingress gateway load balancer into them, and the record type states what kind of address that is:
+The addresses are read from the `DNSRecord`s labelled `gardener.cloud/role=controlplane` and `role in (internal, external)` in the shoot's control plane namespace. `gardenlet` writes the address of the seed's istio ingress gateway load balancer into them, and the record type states what kind of address that is:
 
 - `A`/`AAAA` records: `spec.values` already are the IP addresses and are used as they are.
 - `CNAME` records: `spec.values` is the hostname of the load balancer, as used by infrastructures whose load balancers are exposed via hostnames. The extension resolves it during the reconciliation and publishes the resulting IP addresses. Resolution is retried within the reconciliation before it fails.
