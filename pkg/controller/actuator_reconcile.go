@@ -325,7 +325,7 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 
 	typhaEnabled, err := isTyphaEnabled(network)
 	if err != nil {
-		log.Error(err, "Failed to decode NetworkConfig for HA transition, skipping Typha restart")
+		return fmt.Errorf("failed to decode NetworkConfig for HA transition: %w", err)
 	}
 	needsTyphaRestart := network.Annotations[calico.AnnotationControlPlaneHA] == "false" && isHA && typhaEnabled
 	if needsTyphaRestart {
