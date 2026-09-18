@@ -780,7 +780,7 @@ var _ = Describe("Chart package test", func() {
 				return releaseutil.Manifest{Name: fmt.Sprintf("test/templates/%s", name), Content: testManifestContent}
 			}
 		})
-		Describe("kube-apiserver GlobalNetworkSet", func() {
+		Describe("gardener-kube-apiserver GlobalNetworkSet", func() {
 			renderChart := func(kubeAPIServerCIDRs []string) string {
 				renderer := chartrenderer.NewWithServerVersion(&version.Info{GitVersion: kubernetesVersion})
 
