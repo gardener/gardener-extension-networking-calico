@@ -144,7 +144,7 @@ For `A`/`AAAA` records that is sufficient, because `DNSRecord.spec.values` is wr
 
 For resolved hostnames the addresses can change without any change to the `DNSRecord`, so the set stays outdated until the next shoot reconciliation - which may be a day away, see above.
 
-> ⚠️ Should pods be unable to reach the kube-apiserver after a control plane migration, after an `ExposureClass` or high availability change, after the istio ingress gateway load balancer of a seed was recreated, or after the addresses behind its hostname changed, trigger a reconciliation of the affected shoots: `kubectl -n garden-<project> annotate shoot <name> gardener.cloud/operation=reconcile`. If the shoot's `lastOperation.state` is `Failed`, `gardener.cloud/operation=retry` is required instead - `reconcile` is ignored in that state.
+> ⚠️ Should pods be unable to reach the `kube-apiserver` after a control plane migration, after an `ExposureClass` or high availability change, after the istio ingress gateway load balancer of a seed was recreated, or after the addresses behind its hostname changed, trigger a reconciliation of the affected shoots: `kubectl -n garden-<project> annotate shoot <name> gardener.cloud/operation=reconcile`. If the shoot's `lastOperation.state` is `Failed`, `gardener.cloud/operation=retry` is required instead - `reconcile` is ignored in that state.
 
 ##### The reconciliation fails if the addresses cannot be determined
 
