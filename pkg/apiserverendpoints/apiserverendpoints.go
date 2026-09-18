@@ -87,7 +87,7 @@ func CIDRs(ctx context.Context, c client.Reader, resolver HostResolver, namespac
 	return sortAndCompact(cidrs), nil
 }
 
-// resolve resolves the given hostname, retrying until ResolveTimeout.
+// resolve determines the IP addresses for a given hostname, retrying until ResolveTimeout.
 func resolve(ctx context.Context, resolver HostResolver, hostname string) ([]string, error) {
 	var addresses []string
 
