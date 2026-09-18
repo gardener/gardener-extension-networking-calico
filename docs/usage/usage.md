@@ -162,7 +162,7 @@ metadata:
     networking.gardener.cloud/endpoint: kube-apiserver
 spec:
   nets:
-  - 34.107.12.34/32
+  - 192.0.2.34/32
 ```
 
 The name `gardener-kube-apiserver` and the label `networking.gardener.cloud/endpoint=kube-apiserver` form the contract for referencing the set. Neither is configurable, so that policies can rely on them, and the label is the only one the extension sets - the labels of a `GlobalNetworkSet` are selector input for Calico policies rather than mere bookkeeping, so any additional one would be matched by a `destination.selector` too.
