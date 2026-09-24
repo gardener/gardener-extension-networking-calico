@@ -51,6 +51,57 @@ object (keys:string, values:boolean)
 <p>FeatureGates is a map of feature names to bools that enable<br />or disable alpha/experimental features.<br />Default: nil</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>kubeAPIServerGlobalNetworkSet</code></br>
+<em>
+<a href="#kubeapiserverglobalnetworksetconfiguration">KubeAPIServerGlobalNetworkSetConfiguration</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>KubeAPIServerGlobalNetworkSet contains the operator configuration for the kube-apiserver GlobalNetworkSet which<br />is deployed into shoot clusters.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+<h3 id="kubeapiserverglobalnetworksetconfiguration">KubeAPIServerGlobalNetworkSetConfiguration
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#controllerconfiguration">ControllerConfiguration</a>)
+</p>
+
+<p>
+KubeAPIServerGlobalNetworkSetConfiguration contains the operator configuration for the kube-apiserver
+GlobalNetworkSet.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>enabled</code></br>
+<em>
+boolean
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Enabled is the default for all shoots handled by this extension deployment. It determines whether the<br />GlobalNetworkSet is deployed into their clusters and can be overridden per shoot via the Network resource's<br />providerConfig.<br />Default: false</p>
+</td>
+</tr>
 
 </tbody>
 </table>

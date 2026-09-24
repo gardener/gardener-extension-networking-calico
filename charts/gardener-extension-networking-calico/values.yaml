@@ -61,6 +61,8 @@ config:
   featureGates: {}
     # NonPrivilegedCalicoNode: false
     # SeamlessOverlaySwitch: false
+  # kubeAPIServerGlobalNetworkSet:
+  #   enabled: false
 
 gardener:
   version: ""
