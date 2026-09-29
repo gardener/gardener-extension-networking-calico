@@ -27,37 +27,22 @@
         "x": 0,
         "y": 0
       },
-      "id": 9,
+      "id": 50,
       "panels": [],
-      "title": "General",
+      "title": "Cluster Overview",
       "type": "row"
     },
     {
       "datasource": null,
+      "description": "Cluster-wide: percentage of all mesh BGP sessions established.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "from": "1",
-              "id": 1,
-              "text": "UP",
-              "to": "1",
-              "type": 2
-            },
-            {
-              "from": "0",
-              "id": 2,
-              "text": "DOWN",
-              "to": "0.99",
-              "type": 2
-            }
-          ],
           "max": 1,
           "min": 0,
-          "noValue": "Unknown",
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -66,21 +51,26 @@
                 "value": null
               },
               {
+                "color": "semi-dark-orange",
+                "value": 0.8
+              },
+              {
                 "color": "green",
                 "value": 0.99
               }
             ]
-          }
+          },
+          "unit": "percentunit"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 9,
+        "h": 4,
+        "w": 4,
         "x": 0,
         "y": 1
       },
-      "id": 5,
+      "id": 51,
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -90,24 +80,83 @@
           "values": false
         },
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": true
       },
-      "pluginVersion": "7.5.37",
+      "pluginVersion": "7.5.50",
       "targets": [
         {
-          "exemplar": true,
-          "expr": "avg(bird_protocol_up{import_filter=\"ACCEPT\",ip_version=\"4\",proto=\"BGP\",state!=\"Passive\"})",
-          "interval": "",
+          "expr": "sum(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\"} == 1) / count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\"})",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Protocol Status",
+      "title": "Mesh Health",
       "type": "gauge"
     },
     {
       "datasource": null,
+      "description": "Cluster-wide: percentage of all explicit BGP peer sessions established.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "max": 1,
+          "min": 0,
+          "noValue": "N/A",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-red",
+                "value": null
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 0.8
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "id": 52,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "sum(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\"} == 1) / count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Peer Health",
+      "type": "gauge"
+    },
+    {
+      "datasource": null,
+      "description": "Cluster-wide: mesh sessions up / total.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -127,15 +176,17 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 9,
-        "x": 9,
+        "h": 4,
+        "w": 4,
+        "x": 8,
         "y": 1
       },
-      "id": 11,
+      "id": 53,
       "options": {
-        "displayMode": "gradient",
-        "orientation": "vertical",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -143,23 +194,197 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": false,
-        "text": {}
+        "textMode": "auto"
       },
-      "pluginVersion": "7.5.37",
+      "pluginVersion": "7.5.50",
       "targets": [
         {
-          "exemplar": true,
-          "expr": "sum by (name) (bird_protocol_uptime{import_filter=\"ACCEPT\",ip_version=\"4\",proto=\"BGP\"})",
-          "interval": "",
-          "legendFormat": "{{name}}",
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\"} == 1)",
+          "legendFormat": "Up",
+          "refId": "A"
+        },
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\"})",
+          "legendFormat": "Total",
+          "refId": "B"
+        }
+      ],
+      "title": "Mesh Sessions",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Cluster-wide: explicit BGP peer sessions up / total.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "id": 54,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\"} == 1)",
+          "legendFormat": "Up",
+          "refId": "A"
+        },
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\"})",
+          "legendFormat": "Total",
+          "refId": "B"
+        }
+      ],
+      "title": "Peer Sessions",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Cluster-wide: mesh BGP sessions currently DOWN.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "id": 55,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\"} == 0) OR vector(0)",
+          "legendFormat": "Mesh Down",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Uptime (Seconds)",
-      "type": "bargauge"
+      "title": "Mesh Down",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Cluster-wide: explicit BGP peer sessions currently DOWN.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "id": 56,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\"} == 0) OR vector(0)",
+          "legendFormat": "Peers Down",
+          "refId": "A"
+        }
+      ],
+      "title": "Peers Down",
+      "type": "stat"
     },
     {
       "collapsed": false,
@@ -168,11 +393,368 @@
         "h": 1,
         "w": 24,
         "x": 0,
+        "y": 5
+      },
+      "id": 100,
+      "panels": [],
+      "title": "Node Summary ($node)",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": "Mesh BGP sessions UP on selected node.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 7,
+        "x": 0,
+        "y": 6
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"} == 1)",
+          "legendFormat": "Up",
+          "refId": "A"
+        }
+      ],
+      "title": "Mesh Sessions Up",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Explicit BGP peer sessions UP on selected node.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 7,
+        "x": 7,
+        "y": 6
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"} == 1)",
+          "legendFormat": "Up",
+          "refId": "A"
+        }
+      ],
+      "title": "Peer Sessions Up",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Percentage of mesh BGP sessions established on selected node.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "max": 1,
+          "min": 0,
+          "noValue": "N/A",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-red",
+                "value": null
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 0.8
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 14,
+        "y": 6
+      },
+      "id": 3,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "sum(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"} == 1) / count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Mesh Health",
+      "type": "gauge"
+    },
+    {
+      "datasource": null,
+      "description": "Percentage of explicit BGP peer sessions established on selected node.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "max": 1,
+          "min": 0,
+          "noValue": "N/A",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-red",
+                "value": null
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 0.8
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 19,
+        "y": 6
+      },
+      "id": 4,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "sum(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"} == 1) / count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Peer Health",
+      "type": "gauge"
+    },
+    {
+      "datasource": null,
+      "description": "Mesh BGP sessions currently DOWN on selected node.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 14,
         "y": 9
       },
-      "id": 7,
-      "panels": [],
-      "title": "Prefixes",
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"} == 0) OR vector(0)",
+          "legendFormat": "Mesh Down",
+          "refId": "A"
+        }
+      ],
+      "title": "Mesh Down",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "Explicit BGP peer sessions currently DOWN on selected node.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 19,
+        "y": 9
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.50",
+      "targets": [
+        {
+          "expr": "count(bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"} == 0) OR vector(0)",
+          "legendFormat": "Peers Down",
+          "refId": "A"
+        }
+      ],
+      "title": "Peers Down",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 110,
+      "title": "Mesh Detail (per session)",
       "type": "row"
     },
     {
@@ -181,44 +763,44 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
+      "description": "Per-session mesh BGP status over time. 1 = UP, 0 = DOWN. Drops indicate flaps.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
       },
-      "fill": 0,
+      "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 12,
-        "w": 9,
+        "h": 8,
+        "w": 24,
         "x": 0,
-        "y": 10
+        "y": 13
       },
       "hiddenSeries": false,
-      "id": 2,
+      "id": 11,
       "legend": {
         "alignAsTable": true,
         "avg": false,
         "current": true,
-        "hideEmpty": true,
-        "hideZero": true,
+        "hideEmpty": false,
+        "hideZero": false,
         "max": false,
-        "min": false,
+        "min": true,
         "rightSide": true,
         "show": true,
-        "sort": "current",
-        "sortDesc": true,
+        "sort": "min",
+        "sortDesc": false,
         "total": false,
         "values": true
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.37",
+      "pluginVersion": "7.5.50",
       "pointradius": 1,
       "points": false,
       "renderer": "flot",
@@ -228,59 +810,52 @@
       "steppedLine": true,
       "targets": [
         {
-          "dateTimeType": "DATETIME",
-          "exemplar": true,
-          "expr": "sum by (name) (bird_protocol_prefix_export_count{import_filter=\"ACCEPT\",ip_version=\"4\",proto=\"BGP\"})",
-          "format": "time_series",
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "interval": "",
-          "intervalFactor": 1,
+          "expr": "bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"}",
           "legendFormat": "{{name}}",
-          "query": "SELECT\n    $timeSeries as t,\n    count()\nFROM $table\nWHERE $timeFilter\nGROUP BY t\nORDER BY t",
-          "refId": "A",
-          "round": "0s"
+          "refId": "A"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": false,
+          "line": true,
+          "op": "lt",
+          "value": 1,
+          "yaxis": "left"
+        }
+      ],
       "timeRegions": [],
-      "timeShift": null,
-      "title": "Prefixes Exported (Count)",
+      "title": "Mesh Session Status (per session)",
       "tooltip": {
         "shared": true,
         "sort": 2,
         "value_type": "individual"
       },
-      "transparent": true,
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
+          "decimals": 0,
           "format": "short",
-          "label": "",
+          "label": "up/down",
           "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
+          "max": "1.1",
+          "min": "0",
+          "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": false
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -289,6 +864,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
+      "description": "Per-session mesh BGP uptime. Resets to 0 on flap.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -296,13 +872,320 @@
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 12,
-        "w": 9,
-        "x": 9,
-        "y": 10
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 21
       },
       "hiddenSeries": false,
-      "id": 3,
+      "id": 12,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": true,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": false,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.50",
+      "pointradius": 1,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "bird_protocol_uptime{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Mesh Uptime (per session)",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "s",
+          "label": "uptime",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 120,
+      "title": "BGP Peers Detail (per session)",
+      "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Per-session explicit BGP peer status over time. 1 = UP, 0 = DOWN.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "hiddenSeries": false,
+      "id": 13,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": true,
+        "rightSide": true,
+        "show": true,
+        "sort": "min",
+        "sortDesc": false,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.50",
+      "pointradius": 1,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "expr": "bird_protocol_up{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": false,
+          "line": true,
+          "op": "lt",
+          "value": 1,
+          "yaxis": "left"
+        }
+      ],
+      "timeRegions": [],
+      "title": "Peer Session Status (per session)",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "up/down",
+          "logBase": 1,
+          "max": "1.1",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Per-session explicit BGP peer uptime. Resets to 0 on flap.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "hiddenSeries": false,
+      "id": 14,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": true,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": false,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.50",
+      "pointradius": 1,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "bird_protocol_uptime{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Peer Uptime (per session)",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "s",
+          "label": "uptime",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      },
+      "id": 200,
+      "title": "Prefixes",
+      "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Mesh: imported prefix count per BGP session.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 47
+      },
+      "hiddenSeries": false,
+      "id": 20,
       "legend": {
         "alignAsTable": true,
         "avg": false,
@@ -320,14 +1203,13 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.37",
-      "pointradius": 5,
+      "pluginVersion": "7.5.50",
+      "pointradius": 1,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -336,24 +1218,14 @@
       "steppedLine": true,
       "targets": [
         {
-          "dateTimeType": "DATETIME",
-          "exemplar": true,
-          "expr": "sum by (name) (bird_protocol_prefix_import_count{import_filter=\"ACCEPT\",ip_version=\"4\",proto=\"BGP\"})",
-          "format": "time_series",
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "interval": "",
-          "intervalFactor": 1,
+          "expr": "bird_protocol_prefix_import_count{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"}",
           "legendFormat": "{{name}}",
-          "query": "SELECT\n    $timeSeries as t,\n    count()\nFROM $table\nWHERE $timeFilter\nGROUP BY t\nORDER BY t",
-          "refId": "A",
-          "round": "0s"
+          "refId": "A"
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
-      "title": "Prefixes Imported (Count)",
+      "title": "Mesh Prefixes Imported",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -362,33 +1234,295 @@
       "transparent": true,
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
-          "format": "none",
+          "format": "short",
           "label": "prefixes",
           "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
+          "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": false
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Mesh: exported prefix count per BGP session.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 47
+      },
+      "hiddenSeries": false,
+      "id": 21,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.50",
+      "pointradius": 1,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "expr": "bird_protocol_prefix_export_count{proto=\"BGP\", ip_version=\"4\", name=~\"Mesh_.*\", node=\"$node\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Mesh Prefixes Exported",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": true,
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "prefixes",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Explicit BGP peers: exported prefix count.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 57
+      },
+      "hiddenSeries": false,
+      "id": 22,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.50",
+      "pointradius": 1,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "expr": "bird_protocol_prefix_export_count{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Peer Prefixes Exported",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": true,
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "prefixes",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "Explicit BGP peers: imported prefix count.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 57
+      },
+      "hiddenSeries": false,
+      "id": 23,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.50",
+      "pointradius": 1,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "expr": "bird_protocol_prefix_import_count{proto=\"BGP\", ip_version=\"4\", name!~\"Mesh_.*\", node=\"$node\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Peer Prefixes Imported",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": true,
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "prefixes",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false
       }
     }
   ],
@@ -406,7 +1540,31 @@
     "policy monitoring"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allValue": "",
+        "current": {},
+        "datasource": "prometheus",
+        "definition": "label_values(bird_protocol_up{proto=\"BGP\"}, node)",
+        "description": "K8s node",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Node",
+        "multi": false,
+        "name": "node",
+        "options": [],
+        "query": "label_values(bird_protocol_up{proto=\"BGP\"}, node)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
   },
   "time": {
     "from": "now-5m",
