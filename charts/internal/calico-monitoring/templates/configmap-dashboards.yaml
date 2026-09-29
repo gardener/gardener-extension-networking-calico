@@ -12,5 +12,7 @@ data:
   calico-typha-dashboard.json: |-
   {{- .Files.Get "calico-typha-dashboard.json" | nindent 4 }}
 
+  {{- if .Values.bird.enabled }}
   calico-bird-dashboard.json: |-
   {{- .Files.Get "calico-bird-dashboard.json" | nindent 4 }}
+  {{- end }}
