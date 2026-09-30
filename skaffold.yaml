@@ -33,6 +33,7 @@ build:
             - pkg/apis/config/install
             - pkg/apis/config/loader
             - pkg/apis/config/v1alpha1
+            - pkg/apiserverendpoints
             - pkg/calico
             - pkg/charts
             - pkg/cmd
@@ -64,6 +65,8 @@ build:
             - pkg/apis/config/install
             - pkg/apis/config/loader
             - pkg/apis/config/v1alpha1
+            - pkg/apiserverendpoints
+            - pkg/calico
             - pkg/cmd
             - pkg/controller
             - pkg/features

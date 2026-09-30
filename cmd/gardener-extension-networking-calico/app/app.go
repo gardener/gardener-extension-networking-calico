@@ -135,6 +135,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 			reconcileOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			calicoCtrlOpts.Completed().Apply(&calicocontroller.DefaultAddOptions.Controller)
+			calicocontroller.DefaultAddOptions.KubeAPIServerGlobalNetworkSet = configFileOpts.Completed().Config.KubeAPIServerGlobalNetworkSet
 
 			if err := controllerSwitches.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add controllers to manager: %w", err)

@@ -9,3 +9,5 @@ clientConnection:
 # healthCheckConfig:
 #   syncPeriod: 30s
 featureGates: {}
+# kubeAPIServerGlobalNetworkSet:
+#   enabled: false

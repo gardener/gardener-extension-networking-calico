@@ -26,6 +26,14 @@ rules:
   - patch
   - update
 - apiGroups:
+  - extensions.gardener.cloud
+  resources:
+  - dnsrecords
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - coordination.k8s.io
   resources:
   - leases
