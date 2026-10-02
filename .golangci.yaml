@@ -2,20 +2,8 @@ version: "2"
 
 run:
   concurrency: 4
-  deadline: 10m
+  timeout: 10m
 
 linters:
   disable:
   - unused
-  
-issues:
-  exclude-use-default: false
-  exclude:
-  # typecheck:
-  - "undeclared name: `.*`"
-  - "\".*\" imported but not used"
-  - "could not import .*"
-  exclude-rules:
-  - linters:
-    - staticcheck
-    text: "SA1019:" # Excludes messages where deprecated variables are used

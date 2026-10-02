@@ -107,7 +107,7 @@ check-generate:
 
 .PHONY: check
 check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)
-	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/...
+	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/... ./test/...
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 	@GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) $(REPO_ROOT)/hack/check-skaffold-deps.sh
 
@@ -121,7 +121,7 @@ generate: $(CONTROLLER_GEN) $(EXTENSION_GEN) $(CRD_REF_DOCS) $(HELM) $(KUSTOMIZE
 
 .PHONY: format
 format: $(GOIMPORTS) $(GOIMPORTSREVISER)
-	@bash $(GARDENER_HACK_DIR)/format.sh ./cmd ./pkg
+	@bash $(GARDENER_HACK_DIR)/format.sh ./cmd ./pkg ./test
 
 # TODO(scheererj): Remove once https://github.com/gardener/gardener/pull/10642 is available as release.
 TOOLS_PKG_PATH := $(shell go list -tags tools -f '{{ .Dir }}' github.com/gardener/gardener/hack/tools 2>/dev/null)

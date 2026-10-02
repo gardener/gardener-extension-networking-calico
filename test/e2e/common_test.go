@@ -13,7 +13,7 @@ import (
 	"github.com/gardener/gardener/test/framework"
 	. "github.com/onsi/ginkgo/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 var (
@@ -47,8 +47,8 @@ func defaultShoot(generateName string) *gardencorev1beta1.Shoot {
 			},
 		},
 		Spec: gardencorev1beta1.ShootSpec{
-			Region:            "local",
-			SecretBindingName: pointer.String("local"),
+			Region:                 "local",
+			CredentialsBindingName: ptr.To("local"),
 			CloudProfile: &gardencorev1beta1.CloudProfileReference{
 				Name: "local",
 				Kind: "CloudProfile",
@@ -56,16 +56,16 @@ func defaultShoot(generateName string) *gardencorev1beta1.Shoot {
 			Kubernetes: gardencorev1beta1.Kubernetes{
 				Version: "1.33.0",
 				Kubelet: &gardencorev1beta1.KubeletConfig{
-					SerializeImagePulls: pointer.Bool(false),
-					RegistryPullQPS:     pointer.Int32(10),
-					RegistryBurst:       pointer.Int32(20),
+					SerializeImagePulls: ptr.To(false),
+					RegistryPullQPS:     ptr.To[int32](10),
+					RegistryBurst:       ptr.To[int32](20),
 				},
 				KubeAPIServer: &gardencorev1beta1.KubeAPIServerConfig{},
 			},
 			Networking: &gardencorev1beta1.Networking{
-				Type:       pointer.String("calico"),
+				Type:       ptr.To("calico"),
 				IPFamilies: []gardencorev1beta1.IPFamily{gardencorev1beta1.IPFamilyIPv4},
-				Nodes:      pointer.String("10.0.0.0/16"),
+				Nodes:      ptr.To("10.0.0.0/16"),
 			},
 			Provider: gardencorev1beta1.Provider{
 				Type: "local",
