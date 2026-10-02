@@ -1,0 +1,23 @@
+apiVersion: testmachinery.sapcloud.io
+kind: TestDefinition
+metadata:
+  name: seamless-overlay-switch
+spec:
+  owner: andreas.erz@sap.com
+  description: Tests SeamlessOverlaySwitch gate prevents connectivity loss during overlay→native switch.
+  activeDeadlineSeconds: 2700
+  labels: ["shoot", "networking"]
+  command: [bash, -c]
+  args:
+  - >-
+    go test -timeout=0 ./test/system/shoot_networking_switch/...
+    -v -ginkgo.v -ginkgo.no-color
+    -kubecfg=$TM_KUBECONFIG_PATH/gardener.config
+    -shoot-name=$SHOOT_NAME
+    -project-namespace=$PROJECT_NAMESPACE
+
+  # No `image:` on purpose: TestMachinery then uses its default `base-step` image, which
+  # allows Go toolchain auto-download, so the Go version tracks go.mod's `toolchain`
+  # directive automatically. Pinning `golang:<version>` here would need manual bumps —
+  # unlike gardener/gardener, this repo's renovate.json5 does not watch .test-defs/.
+  # (Plain golang images set GOTOOLCHAIN=local, disabling that auto-download.)
