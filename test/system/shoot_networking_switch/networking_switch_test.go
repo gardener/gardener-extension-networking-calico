@@ -112,8 +112,11 @@ const (
 	// routeDelayInitContainer is the name of the injected sleep init container.
 	routeDelayInitContainer = "route-creation-delay"
 
-	// routeDelayImage is the image used for the sleep init container.
-	routeDelayImage = "busybox:1.36"
+	// busyboxImage is the single busybox pin shared by the injected sleep init container
+	// (sh -c sleep) and the probe-client (sh -c wget). Pinned (not :latest) for reproducible
+	// runs and IfNotPresent pulls; the two uses are distinct but share one version to bump.
+	// renovate: datasource=docker
+	busyboxImage = "busybox:1.36"
 
 	// mapPolicyBaseName / mapBindingBaseName are the MAP object name prefixes on the seed.
 	// routeDelayMAPNames suffixes them with a per-shoot hash so concurrent runs against
@@ -205,7 +208,7 @@ func RunTest(ctx context.Context, f *framework.ShootFramework) {
 	// ── Step 3: deploy probe mesh ─────────────────────────────────────────────────
 	By("Deploy probe mesh: server daemonset (empty targets on first pass)")
 	Expect(f.RenderAndDeployTemplate(ctx, shootClient, templates.NetworkProbeMeshName,
-		struct{ Namespace, Targets string }{probeNamespace, ""}),
+		struct{ Namespace, Targets, Image string }{probeNamespace, "", busyboxImage}),
 	).To(Succeed())
 
 	By("Wait for probe-server daemonset")
@@ -230,7 +233,7 @@ func RunTest(ctx context.Context, f *framework.ShootFramework) {
 
 	By("Redeploy probe mesh with real targets")
 	Expect(f.RenderAndDeployTemplate(ctx, shootClient, templates.NetworkProbeMeshName,
-		struct{ Namespace, Targets string }{probeNamespace, strings.Join(serverIPs, " ")}),
+		struct{ Namespace, Targets, Image string }{probeNamespace, strings.Join(serverIPs, " "), busyboxImage}),
 	).To(Succeed())
 
 	By("Wait for probe-client daemonset")
@@ -248,14 +251,9 @@ func RunTest(ctx context.Context, f *framework.ShootFramework) {
 		}
 	}()
 
-	// ── Step 4: get seed client ───────────────────────────────────────────────────
-	By("Get seed and seed client")
-	Expect(f.Shoot.Spec.SeedName).NotTo(BeNil(), "shoot spec.seedName must be set")
-	var seedErr error
-	f.Seed, f.SeedClient, seedErr = f.GetSeed(ctx, *f.Shoot.Spec.SeedName)
-	Expect(seedErr).NotTo(HaveOccurred())
-
-	cpNS := f.Shoot.Status.TechnicalID // get control-plane namespace from shoot status
+	// ── Step 4: resolve control-plane namespace ───────────────────────────────────
+	// f.Seed / f.SeedClient are already initialized by the ShootFramework's BeforeEach (AddShoot).
+	cpNS := f.Shoot.Status.TechnicalID // control-plane namespace from shoot status
 	Expect(cpNS).NotTo(BeEmpty(), "shoot status.technicalID (control-plane namespace) must be set")
 
 	// Per-shoot MAP/Binding names so parallel runs against different shoots on the same seed
@@ -335,8 +333,8 @@ func RunTest(ctx context.Context, f *framework.ShootFramework) {
 								:
 								[JSONPatch{op: "add", path: "/spec/initContainers",
 									value: dyn([{"name": dyn(%q), "image": dyn(%q), "command": dyn(["sh", "-c", "sleep %d"])}])}]`,
-							routeDelayInitContainer, routeDelayImage, int(routeDelay.Seconds()),
-							routeDelayInitContainer, routeDelayImage, int(routeDelay.Seconds()),
+							routeDelayInitContainer, busyboxImage, int(routeDelay.Seconds()),
+							routeDelayInitContainer, busyboxImage, int(routeDelay.Seconds()),
 						),
 					},
 				},

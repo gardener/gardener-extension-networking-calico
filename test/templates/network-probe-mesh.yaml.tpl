@@ -67,7 +67,7 @@ spec:
       terminationGracePeriodSeconds: 1
       containers:
       - name: cli
-        image: busybox:1.36
+        image: {{ .Image }}
         env:
         - name: NODE
           valueFrom:
