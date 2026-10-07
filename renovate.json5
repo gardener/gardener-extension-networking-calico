@@ -17,6 +17,13 @@
       "fileMatch": ["^imagevector\/images.yaml$"],
       "matchStrings": ["\\s+repository:\\s+(?<depName>.*?)\\n\\s+tag:\\s+[\"]?(?<currentValue>.*?)[\"]?\\n"],
       "datasourceTemplate": "docker"
+    },
+    {
+      // busyboxImage pin in the SeamlessOverlaySwitch system test. test/** is disabled
+      // below, but this single image is intentionally tracked (re-enabled via packageRules).
+      "customType": "regex",
+      "fileMatch": ["^test/system/shoot_networking_switch/networking_switch_test\\.go$"],
+      "matchStrings": ["// renovate: datasource=(?<datasource>\\S+)\\s+busyboxImage\\s*=\\s*\"(?<depName>[^\":]+):(?<currentValue>[^\"]+)\""]
     }
   ],
   "separateMinorPatch": true,
@@ -79,6 +86,13 @@
         "test/**",
       ],
       "enabled": false
+    },
+    {
+      // Exception to the test/** disable above: track the busybox pin used by the
+      // SeamlessOverlaySwitch system test (see the renovate customManager for it).
+      "matchFileNames": ["test/system/shoot_networking_switch/networking_switch_test.go"],
+      "matchPackageNames": ["busybox"],
+      "enabled": true
     }
   ],
   // The following list of dependencies to ignore is updated by `make generate`.
