@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/test/framework"
@@ -24,9 +25,9 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/test/templates"
 )
 
-var _ = Describe("Network Extension Tests", Label("Network"), func() {
+var _ = DescribeTableSubtree("Network Extension Tests", Label("Network"), func(shootFunc func() *gardencorev1beta1.Shoot) {
 	f := defaultShootCreationFramework()
-	f.Shoot = defaultShoot("e2e-default")
+	f.Shoot = shootFunc()
 
 	It("Create Shoot, Test Network, Delete Shoot", Label("good-case"), func() {
 		By("Create Shoot")
@@ -61,7 +62,11 @@ var _ = Describe("Network Extension Tests", Label("Network"), func() {
 		By("Network Test status")
 		Expect(succeeded).To(BeTrue())
 	})
-})
+},
+
+	Entry("default", func() *gardencorev1beta1.Shoot { return defaultShoot("e2e-default") }),
+	Entry("ebpf", func() *gardencorev1beta1.Shoot { return ebpfShoot("e2e-ebpf") }),
+)
 
 func testNetwork(ctx context.Context, f *framework.ShootCreationFramework) bool {
 	By("Test Network")

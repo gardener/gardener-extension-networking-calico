@@ -12,13 +12,27 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/test/framework"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/utils/ptr"
+
+	calicoinstall "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/install"
+	calicov1alpha1 "github.com/gardener/gardener-extension-networking-calico/pkg/apis/calico/v1alpha1"
 )
 
 var (
 	parentCtx context.Context
+	encoder   runtime.Encoder
 )
+
+func init() {
+	scheme := runtime.NewScheme()
+	utilruntime.Must(calicoinstall.AddToScheme(scheme))
+	encoder = serializer.NewCodecFactory(scheme).LegacyCodec(calicov1alpha1.SchemeGroupVersion)
+}
 
 var _ = BeforeEach(func() {
 	parentCtx = context.Background()
@@ -88,4 +102,24 @@ func defaultShoot(generateName string) *gardencorev1beta1.Shoot {
 			},
 		},
 	}
+}
+
+func ebpfShoot(generateName string) *gardencorev1beta1.Shoot {
+	GinkgoHelper()
+	shoot := defaultShoot(generateName)
+	shoot.Spec.Kubernetes.KubeProxy = &gardencorev1beta1.KubeProxyConfig{
+		Enabled: new(false),
+	}
+
+	networkConfig := &calicov1alpha1.NetworkConfig{
+		EbpfDataplane: &calicov1alpha1.EbpfDataplane{
+			Enabled: true,
+		},
+	}
+	networkConfigRaw, err := runtime.Encode(encoder, networkConfig)
+	Expect(err).NotTo(HaveOccurred())
+	shoot.Spec.Networking.ProviderConfig = &runtime.RawExtension{
+		Raw: networkConfigRaw,
+	}
+	return shoot
 }
