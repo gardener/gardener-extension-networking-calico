@@ -8,13 +8,14 @@ import (
 	"context"
 	"time"
 
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Network Extension Tests", Label("Network"), func() {
+var _ = DescribeTableSubtree("Network Extension Tests", Label("Network"), func(shootFunc func() *gardencorev1beta1.Shoot) {
 	f := defaultShootCreationFramework()
-	f.Shoot = defaultShoot("e2e-force-del")
+	f.Shoot = shootFunc()
 
 	It("Create Shoot, Test Network, Force Delete Shoot", Label("force-delete"), func() {
 		By("Create Shoot")
@@ -35,4 +36,7 @@ var _ = Describe("Network Extension Tests", Label("Network"), func() {
 		By("Network Test status")
 		Expect(succeeded).To(BeTrue())
 	})
-})
+},
+	Entry("default", func() *gardencorev1beta1.Shoot { return defaultShoot("e2e-force-del") }),
+	Entry("ebpf", func() *gardencorev1beta1.Shoot { return ebpfShoot("e2e-fd-bpf") }),
+)
