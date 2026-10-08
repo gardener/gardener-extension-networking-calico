@@ -21,15 +21,15 @@ import (
 	"github.com/gardener/gardener-extension-networking-calico/pkg/calico"
 )
 
-// Restore implements Network.Actuator.
-// Before reconciling, it waits for the shoot API server watch cache to warm up and then annotates
-// the Network resource with a fresh timestamp. The chart rendering picks up this annotation and
-// includes it in the pod template of either calico-typha (when Typha is enabled) or the
-// calico-node DaemonSet (when Typha is disabled), causing a rolling restart via the ManagedResource.
-// The timestamp changes on every CPM, so the pod template annotation diff triggers the restart
-// naturally. The annotation is kept across reconciles so subsequent Reconcile calls render the same
-// value and do not trigger further restarts.
+// Restore implements Network.Actuator. It annotates the Network resource with a CPM timestamp
+// so the chart renders it into the calico-typha (or calico-node) pod template, triggering a
+// rolling restart via the ManagedResource. The annotation persists so requeues are idempotent.
+// Skipped for hibernated shoots — no pods are running, so nothing needs restarting.
 func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
+	if extensionscontroller.IsHibernated(cluster) {
+		return a.Reconcile(ctx, log, network, cluster)
+	}
+
 	typhaEnabled, err := isTyphaEnabled(network)
 	if err != nil {
 		return fmt.Errorf("failed to determine Typha state for CPM restart: %w", err)
@@ -45,9 +45,7 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 	}
 
 	if _, alreadyHandled := network.Annotations[restartedAtKey]; alreadyHandled {
-		// Restart was already triggered on a previous attempt; skip to avoid repeated rolling
-		// restarts when Restore is requeued for transient errors. Annotations are not carried
-		// over during CPM, so a new migration always starts without this annotation.
+		// Annotation not carried over during CPM, so presence means a prior attempt already set it.
 		return a.Reconcile(ctx, log, network, cluster)
 	}
 
@@ -58,8 +56,6 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 
 	log.Info("Waiting for shoot API server watch cache to be ready before restarting " + component)
 	if err := ensureAPIServerWatchCacheWarm(ctx, shootClient); err != nil {
-		// Expected during shoot API server startup after a control plane migration;
-		// the reconciler will requeue until the cache is warm.
 		return fmt.Errorf("shoot API server not yet ready after control plane migration, requeueing: %w", err)
 	}
 
@@ -78,8 +74,6 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extens
 }
 
 // isTyphaEnabled returns true unless the NetworkConfig explicitly disables Typha.
-// Returns an error if the ProviderConfig cannot be decoded, so callers can fail
-// fast rather than silently routing to the wrong restart path.
 func isTyphaEnabled(network *extensionsv1alpha1.Network) (bool, error) {
 	if network.Spec.ProviderConfig == nil || network.Spec.ProviderConfig.Raw == nil {
 		return true, nil
