@@ -73,7 +73,7 @@ func Convert_config_ControllerConfiguration_To_v1alpha1_ControllerConfiguration(
 }
 
 func autoConvert_v1alpha1_KubeAPIServerGlobalNetworkSetConfiguration_To_config_KubeAPIServerGlobalNetworkSetConfiguration(in *KubeAPIServerGlobalNetworkSetConfiguration, out *config.KubeAPIServerGlobalNetworkSetConfiguration, s conversion.Scope) error {
-	out.Enabled = (*bool)(unsafe.Pointer(in.Enabled))
+	*out = *(*config.KubeAPIServerGlobalNetworkSetConfiguration)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -83,7 +83,7 @@ func Convert_v1alpha1_KubeAPIServerGlobalNetworkSetConfiguration_To_config_KubeA
 }
 
 func autoConvert_config_KubeAPIServerGlobalNetworkSetConfiguration_To_v1alpha1_KubeAPIServerGlobalNetworkSetConfiguration(in *config.KubeAPIServerGlobalNetworkSetConfiguration, out *KubeAPIServerGlobalNetworkSetConfiguration, s conversion.Scope) error {
-	out.Enabled = (*bool)(unsafe.Pointer(in.Enabled))
+	*out = *(*KubeAPIServerGlobalNetworkSetConfiguration)(unsafe.Pointer(in))
 	return nil
 }
 
