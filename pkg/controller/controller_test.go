@@ -19,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
@@ -281,6 +282,33 @@ var _ = Describe("Restore (calico-node path)", func() {
 			Shoot:      &gardencorev1beta1.Shoot{},
 		}
 	}
+
+	hibernatedClusterFor := func() *extensionscontroller.Cluster {
+		return &extensionscontroller.Cluster{
+			ObjectMeta: metav1.ObjectMeta{Name: "shoot--project--name"},
+			Shoot: &gardencorev1beta1.Shoot{
+				Spec: gardencorev1beta1.ShootSpec{
+					Hibernation: &gardencorev1beta1.Hibernation{Enabled: ptr.To(true)},
+				},
+				Status: gardencorev1beta1.ShootStatus{
+					IsHibernated: true,
+				},
+			},
+		}
+	}
+
+	It("skips the restart entirely and delegates to Reconcile when the shoot is hibernated", func() {
+		// During CPM of a hibernated shoot, no Calico pods are running — nothing to restart.
+		// Restore must delegate directly to Reconcile without touching the shoot API server.
+		network := newNetworkNoTypha(nil)
+		act := newActuator(network)
+		err := act.Restore(ctx, log, network, hibernatedClusterFor())
+		// Reconcile is reached (all restart logic bypassed); it fails on missing spec fields,
+		// but no annotation must have been set and no shoot-client error must appear.
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).NotTo(ContainSubstring("failed to get shoot client"))
+		Expect(network.Annotations).NotTo(HaveKey(calico.AnnotationCalicoNodeRestartedAt))
+	})
 
 	It("returns an error when the shoot client cannot be obtained (cache check blocked)", func() {
 		network := newNetworkNoTypha(nil)
