@@ -325,9 +325,6 @@ func generateChartValues(network *extensionsv1alpha1.Network, config *calicov1al
 	}
 
 	if !kubeProxyEnabled {
-		if kubeProxyMode != nil {
-			return nil, fmt.Errorf("kube-proxy mode must not be set if kube-proxy is disabled")
-		}
 		c.Felix.BPFKubeProxyIptablesCleanup.Enabled = true
 	}
 
