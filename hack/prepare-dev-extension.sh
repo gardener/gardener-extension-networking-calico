@@ -41,6 +41,8 @@ spec:
         helm:
           ociRepository:
             ref: local-skaffold/gardener-extension-networking-calico/charts/calico-admission-runtime:v0.0.0
+            caBundleSecretRef:
+              name: gardener-local-registry-ca
       values:
         image:
           ref: local-skaffold/gardener-extension-admission-calico:v0.0.0
@@ -48,10 +50,14 @@ spec:
         helm:
           ociRepository:
             ref: local-skaffold/gardener-extension-networking-calico/charts/calico-admission-application:v0.0.0
+            caBundleSecretRef:
+              name: gardener-local-registry-ca
     extension:
       helm:
         ociRepository:
           ref: local-skaffold/gardener-extension-networking-calico/charts/calico-extension:v0.0.0
+          caBundleSecretRef:
+            name: gardener-local-registry-ca
       values:
         image:
           ref: local-skaffold/gardener-extension-networking-calico:v0.0.0
