@@ -168,8 +168,7 @@ func RegisterConversions(s *runtime.Scheme) error {
 }
 
 func autoConvert_v1alpha1_AutoScaling_To_calico_AutoScaling(in *AutoScaling, out *calico.AutoScaling, s conversion.Scope) error {
-	out.Mode = calico.AutoscalingMode(in.Mode)
-	out.Resources = (*calico.StaticResources)(unsafe.Pointer(in.Resources))
+	*out = *(*calico.AutoScaling)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -179,8 +178,7 @@ func Convert_v1alpha1_AutoScaling_To_calico_AutoScaling(in *AutoScaling, out *ca
 }
 
 func autoConvert_calico_AutoScaling_To_v1alpha1_AutoScaling(in *calico.AutoScaling, out *AutoScaling, s conversion.Scope) error {
-	out.Mode = AutoscalingMode(in.Mode)
-	out.Resources = (*Resources)(unsafe.Pointer(in.Resources))
+	*out = *(*AutoScaling)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -190,7 +188,7 @@ func Convert_calico_AutoScaling_To_v1alpha1_AutoScaling(in *calico.AutoScaling, 
 }
 
 func autoConvert_v1alpha1_BirdExporter_To_calico_BirdExporter(in *BirdExporter, out *calico.BirdExporter, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*calico.BirdExporter)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -200,7 +198,7 @@ func Convert_v1alpha1_BirdExporter_To_calico_BirdExporter(in *BirdExporter, out 
 }
 
 func autoConvert_calico_BirdExporter_To_v1alpha1_BirdExporter(in *calico.BirdExporter, out *BirdExporter, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*BirdExporter)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -210,7 +208,7 @@ func Convert_calico_BirdExporter_To_v1alpha1_BirdExporter(in *calico.BirdExporte
 }
 
 func autoConvert_v1alpha1_EbpfDataplane_To_calico_EbpfDataplane(in *EbpfDataplane, out *calico.EbpfDataplane, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*calico.EbpfDataplane)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -220,7 +218,7 @@ func Convert_v1alpha1_EbpfDataplane_To_calico_EbpfDataplane(in *EbpfDataplane, o
 }
 
 func autoConvert_calico_EbpfDataplane_To_v1alpha1_EbpfDataplane(in *calico.EbpfDataplane, out *EbpfDataplane, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*EbpfDataplane)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -230,8 +228,7 @@ func Convert_calico_EbpfDataplane_To_v1alpha1_EbpfDataplane(in *calico.EbpfDatap
 }
 
 func autoConvert_v1alpha1_IPAM_To_calico_IPAM(in *IPAM, out *calico.IPAM, s conversion.Scope) error {
-	out.Type = in.Type
-	out.CIDR = (*calico.CIDR)(unsafe.Pointer(in.CIDR))
+	*out = *(*calico.IPAM)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -241,8 +238,7 @@ func Convert_v1alpha1_IPAM_To_calico_IPAM(in *IPAM, out *calico.IPAM, s conversi
 }
 
 func autoConvert_calico_IPAM_To_v1alpha1_IPAM(in *calico.IPAM, out *IPAM, s conversion.Scope) error {
-	out.Type = in.Type
-	out.CIDR = (*CIDR)(unsafe.Pointer(in.CIDR))
+	*out = *(*IPAM)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -252,9 +248,7 @@ func Convert_calico_IPAM_To_v1alpha1_IPAM(in *calico.IPAM, out *IPAM, s conversi
 }
 
 func autoConvert_v1alpha1_IPv4_To_calico_IPv4(in *IPv4, out *calico.IPv4, s conversion.Scope) error {
-	out.Pool = (*calico.Pool)(unsafe.Pointer(in.Pool))
-	out.Mode = (*calico.PoolMode)(unsafe.Pointer(in.Mode))
-	out.AutoDetectionMethod = (*string)(unsafe.Pointer(in.AutoDetectionMethod))
+	*out = *(*calico.IPv4)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -264,9 +258,7 @@ func Convert_v1alpha1_IPv4_To_calico_IPv4(in *IPv4, out *calico.IPv4, s conversi
 }
 
 func autoConvert_calico_IPv4_To_v1alpha1_IPv4(in *calico.IPv4, out *IPv4, s conversion.Scope) error {
-	out.Pool = (*Pool)(unsafe.Pointer(in.Pool))
-	out.Mode = (*PoolMode)(unsafe.Pointer(in.Mode))
-	out.AutoDetectionMethod = (*string)(unsafe.Pointer(in.AutoDetectionMethod))
+	*out = *(*IPv4)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -276,10 +268,7 @@ func Convert_calico_IPv4_To_v1alpha1_IPv4(in *calico.IPv4, out *IPv4, s conversi
 }
 
 func autoConvert_v1alpha1_IPv6_To_calico_IPv6(in *IPv6, out *calico.IPv6, s conversion.Scope) error {
-	out.Pool = (*calico.Pool)(unsafe.Pointer(in.Pool))
-	out.Mode = (*calico.PoolMode)(unsafe.Pointer(in.Mode))
-	out.AutoDetectionMethod = (*string)(unsafe.Pointer(in.AutoDetectionMethod))
-	out.SourceNATEnabled = (*bool)(unsafe.Pointer(in.SourceNATEnabled))
+	*out = *(*calico.IPv6)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -289,10 +278,7 @@ func Convert_v1alpha1_IPv6_To_calico_IPv6(in *IPv6, out *calico.IPv6, s conversi
 }
 
 func autoConvert_calico_IPv6_To_v1alpha1_IPv6(in *calico.IPv6, out *IPv6, s conversion.Scope) error {
-	out.Pool = (*Pool)(unsafe.Pointer(in.Pool))
-	out.Mode = (*PoolMode)(unsafe.Pointer(in.Mode))
-	out.AutoDetectionMethod = (*string)(unsafe.Pointer(in.AutoDetectionMethod))
-	out.SourceNATEnabled = (*bool)(unsafe.Pointer(in.SourceNATEnabled))
+	*out = *(*IPv6)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -302,7 +288,7 @@ func Convert_calico_IPv6_To_v1alpha1_IPv6(in *calico.IPv6, out *IPv6, s conversi
 }
 
 func autoConvert_v1alpha1_KubeAPIServerGlobalNetworkSet_To_calico_KubeAPIServerGlobalNetworkSet(in *KubeAPIServerGlobalNetworkSet, out *calico.KubeAPIServerGlobalNetworkSet, s conversion.Scope) error {
-	out.Enabled = (*bool)(unsafe.Pointer(in.Enabled))
+	*out = *(*calico.KubeAPIServerGlobalNetworkSet)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -312,7 +298,7 @@ func Convert_v1alpha1_KubeAPIServerGlobalNetworkSet_To_calico_KubeAPIServerGloba
 }
 
 func autoConvert_calico_KubeAPIServerGlobalNetworkSet_To_v1alpha1_KubeAPIServerGlobalNetworkSet(in *calico.KubeAPIServerGlobalNetworkSet, out *KubeAPIServerGlobalNetworkSet, s conversion.Scope) error {
-	out.Enabled = (*bool)(unsafe.Pointer(in.Enabled))
+	*out = *(*KubeAPIServerGlobalNetworkSet)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -322,8 +308,7 @@ func Convert_calico_KubeAPIServerGlobalNetworkSet_To_v1alpha1_KubeAPIServerGloba
 }
 
 func autoConvert_v1alpha1_Multus_To_calico_Multus(in *Multus, out *calico.Multus, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.InstallCNIPlugins = (*bool)(unsafe.Pointer(in.InstallCNIPlugins))
+	*out = *(*calico.Multus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -333,8 +318,7 @@ func Convert_v1alpha1_Multus_To_calico_Multus(in *Multus, out *calico.Multus, s 
 }
 
 func autoConvert_calico_Multus_To_v1alpha1_Multus(in *calico.Multus, out *Multus, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.InstallCNIPlugins = (*bool)(unsafe.Pointer(in.InstallCNIPlugins))
+	*out = *(*Multus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -416,8 +400,7 @@ func Convert_calico_NetworkStatus_To_v1alpha1_NetworkStatus(in *calico.NetworkSt
 }
 
 func autoConvert_v1alpha1_Overlay_To_calico_Overlay(in *Overlay, out *calico.Overlay, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.CreatePodRoutes = (*bool)(unsafe.Pointer(in.CreatePodRoutes))
+	*out = *(*calico.Overlay)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -427,8 +410,7 @@ func Convert_v1alpha1_Overlay_To_calico_Overlay(in *Overlay, out *calico.Overlay
 }
 
 func autoConvert_calico_Overlay_To_v1alpha1_Overlay(in *calico.Overlay, out *Overlay, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.CreatePodRoutes = (*bool)(unsafe.Pointer(in.CreatePodRoutes))
+	*out = *(*Overlay)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -438,7 +420,7 @@ func Convert_calico_Overlay_To_v1alpha1_Overlay(in *calico.Overlay, out *Overlay
 }
 
 func autoConvert_v1alpha1_SnatToUpstreamDNS_To_calico_SnatToUpstreamDNS(in *SnatToUpstreamDNS, out *calico.SnatToUpstreamDNS, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*calico.SnatToUpstreamDNS)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -448,7 +430,7 @@ func Convert_v1alpha1_SnatToUpstreamDNS_To_calico_SnatToUpstreamDNS(in *SnatToUp
 }
 
 func autoConvert_calico_SnatToUpstreamDNS_To_v1alpha1_SnatToUpstreamDNS(in *calico.SnatToUpstreamDNS, out *SnatToUpstreamDNS, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*SnatToUpstreamDNS)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -458,7 +440,7 @@ func Convert_calico_SnatToUpstreamDNS_To_v1alpha1_SnatToUpstreamDNS(in *calico.S
 }
 
 func autoConvert_v1alpha1_Typha_To_calico_Typha(in *Typha, out *calico.Typha, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*calico.Typha)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -468,7 +450,7 @@ func Convert_v1alpha1_Typha_To_calico_Typha(in *Typha, out *calico.Typha, s conv
 }
 
 func autoConvert_calico_Typha_To_v1alpha1_Typha(in *calico.Typha, out *Typha, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*Typha)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -478,7 +460,7 @@ func Convert_calico_Typha_To_v1alpha1_Typha(in *calico.Typha, out *Typha, s conv
 }
 
 func autoConvert_v1alpha1_VXLAN_To_calico_VXLAN(in *VXLAN, out *calico.VXLAN, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*calico.VXLAN)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -488,7 +470,7 @@ func Convert_v1alpha1_VXLAN_To_calico_VXLAN(in *VXLAN, out *calico.VXLAN, s conv
 }
 
 func autoConvert_calico_VXLAN_To_v1alpha1_VXLAN(in *calico.VXLAN, out *VXLAN, s conversion.Scope) error {
-	out.Enabled = in.Enabled
+	*out = *(*VXLAN)(unsafe.Pointer(in))
 	return nil
 }
 
