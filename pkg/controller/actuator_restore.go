@@ -10,6 +10,7 @@ import (
 	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	v1beta1helper "github.com/gardener/gardener/pkg/api/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -24,9 +25,9 @@ import (
 // Restore implements Network.Actuator. It annotates the Network resource with a CPM timestamp
 // so the chart renders it into the calico-typha (or calico-node) pod template, triggering a
 // rolling restart via the ManagedResource. The annotation persists so requeues are idempotent.
-// Skipped for hibernated shoots — no pods are running, so nothing needs restarting.
+// Skipped for hibernated shoots (no pods to restart) and self-hosted shoots (no seed-hosted control plane to migrate).
 func (a *actuator) Restore(ctx context.Context, log logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
-	if extensionscontroller.IsHibernated(cluster) {
+	if extensionscontroller.IsHibernated(cluster) || v1beta1helper.IsShootSelfHosted(cluster.Shoot.Spec.Provider.Workers) {
 		return a.Reconcile(ctx, log, network, cluster)
 	}
 
