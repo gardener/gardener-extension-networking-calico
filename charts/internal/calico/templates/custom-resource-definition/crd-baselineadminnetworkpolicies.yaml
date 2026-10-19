@@ -4,6 +4,8 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/network-policy-api/pull/30
+    policy.networking.k8s.io/bundle-version: v0.1.1
+    policy.networking.k8s.io/channel: experimental
   creationTimestamp: null
   name: baselineadminnetworkpolicies.policy.networking.k8s.io
   labels:
@@ -219,18 +221,14 @@ spec:
                                 Support: Core
                               properties:
                                 matchExpressions:
-                                  description:
-                                    matchExpressions is a list of label selector
-                                    requirements. The requirements are ANDed.
+                                  description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                                   items:
                                     description: |-
                                       A label selector requirement is a selector that contains values, a key, and an operator that
                                       relates the key and values.
                                     properties:
                                       key:
-                                        description:
-                                          key is the label key that the selector
-                                          applies to.
+                                        description: key is the label key that the selector applies to.
                                         type: string
                                       operator:
                                         description: |-
@@ -291,10 +289,7 @@ spec:
                                 maxLength: 43
                                 type: string
                                 x-kubernetes-validations:
-                                  - message:
-                                      CIDR must be either an IPv4 or IPv6 address.
-                                      IPv4 address embedded in IPv6 addresses are not
-                                      supported
+                                  - message: CIDR must be either an IPv4 or IPv6 address. IPv4 address embedded in IPv6 addresses are not supported
                                     rule: self.contains(':') != self.contains('.')
                               maxItems: 25
                               minItems: 1
@@ -313,18 +308,14 @@ spec:
                                 <network-policy-api:experimental>
                               properties:
                                 matchExpressions:
-                                  description:
-                                    matchExpressions is a list of label selector
-                                    requirements. The requirements are ANDed.
+                                  description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                                   items:
                                     description: |-
                                       A label selector requirement is a selector that contains values, a key, and an operator that
                                       relates the key and values.
                                     properties:
                                       key:
-                                        description:
-                                          key is the label key that the selector
-                                          applies to.
+                                        description: key is the label key that the selector applies to.
                                         type: string
                                       operator:
                                         description: |-
@@ -370,19 +361,14 @@ spec:
                                     it selects all Namespaces.
                                   properties:
                                     matchExpressions:
-                                      description:
-                                        matchExpressions is a list of label
-                                        selector requirements. The requirements are
-                                        ANDed.
+                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description:
-                                              key is the label key that the
-                                              selector applies to.
+                                            description: key is the label key that the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -419,19 +405,14 @@ spec:
                                     it selects all Pods.
                                   properties:
                                     matchExpressions:
-                                      description:
-                                        matchExpressions is a list of label
-                                        selector requirements. The requirements are
-                                        ANDed.
+                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description:
-                                              key is the label key that the
-                                              selector applies to.
+                                            description: key is the label key that the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -475,12 +456,8 @@ spec:
                       - to
                     type: object
                     x-kubernetes-validations:
-                      - message:
-                          networks/nodes peer cannot be set with namedPorts since
-                          there are no namedPorts for networks/nodes
-                        rule:
-                          "!(self.to.exists(peer, has(peer.networks) || has(peer.nodes))
-                          && has(self.ports) && self.ports.exists(port, has(port.namedPort)))"
+                      - message: networks/nodes peer cannot be set with namedPorts since there are no namedPorts for networks/nodes
+                        rule: "!(self.to.exists(peer, has(peer.networks) || has(peer.nodes)) && has(self.ports) && self.ports.exists(port, has(port.namedPort)))"
                   maxItems: 100
                   type: array
                 ingress:
@@ -542,18 +519,14 @@ spec:
                                 Support: Core
                               properties:
                                 matchExpressions:
-                                  description:
-                                    matchExpressions is a list of label selector
-                                    requirements. The requirements are ANDed.
+                                  description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                                   items:
                                     description: |-
                                       A label selector requirement is a selector that contains values, a key, and an operator that
                                       relates the key and values.
                                     properties:
                                       key:
-                                        description:
-                                          key is the label key that the selector
-                                          applies to.
+                                        description: key is the label key that the selector applies to.
                                         type: string
                                       operator:
                                         description: |-
@@ -599,19 +572,14 @@ spec:
                                     it selects all Namespaces.
                                   properties:
                                     matchExpressions:
-                                      description:
-                                        matchExpressions is a list of label
-                                        selector requirements. The requirements are
-                                        ANDed.
+                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description:
-                                              key is the label key that the
-                                              selector applies to.
+                                            description: key is the label key that the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -648,19 +616,14 @@ spec:
                                     it selects all Pods.
                                   properties:
                                     matchExpressions:
-                                      description:
-                                        matchExpressions is a list of label
-                                        selector requirements. The requirements are
-                                        ANDed.
+                                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                                       items:
                                         description: |-
                                           A label selector requirement is a selector that contains values, a key, and an operator that
                                           relates the key and values.
                                         properties:
                                           key:
-                                            description:
-                                              key is the label key that the
-                                              selector applies to.
+                                            description: key is the label key that the selector applies to.
                                             type: string
                                           operator:
                                             description: |-
@@ -833,18 +796,14 @@ spec:
                       description: Namespaces is used to select pods via namespace selectors.
                       properties:
                         matchExpressions:
-                          description:
-                            matchExpressions is a list of label selector
-                            requirements. The requirements are ANDed.
+                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                           items:
                             description: |-
                               A label selector requirement is a selector that contains values, a key, and an operator that
                               relates the key and values.
                             properties:
                               key:
-                                description:
-                                  key is the label key that the selector
-                                  applies to.
+                                description: key is the label key that the selector applies to.
                                 type: string
                               operator:
                                 description: |-
@@ -876,9 +835,7 @@ spec:
                       type: object
                       x-kubernetes-map-type: atomic
                     pods:
-                      description:
-                        Pods is used to select pods via namespace AND pod
-                        selectors.
+                      description: Pods is used to select pods via namespace AND pod selectors.
                       properties:
                         namespaceSelector:
                           description: |-
@@ -886,18 +843,14 @@ spec:
                             it selects all Namespaces.
                           properties:
                             matchExpressions:
-                              description:
-                                matchExpressions is a list of label selector
-                                requirements. The requirements are ANDed.
+                              description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                               items:
                                 description: |-
                                   A label selector requirement is a selector that contains values, a key, and an operator that
                                   relates the key and values.
                                 properties:
                                   key:
-                                    description:
-                                      key is the label key that the selector
-                                      applies to.
+                                    description: key is the label key that the selector applies to.
                                     type: string
                                   operator:
                                     description: |-
@@ -934,18 +887,14 @@ spec:
                             it selects all Pods.
                           properties:
                             matchExpressions:
-                              description:
-                                matchExpressions is a list of label selector
-                                requirements. The requirements are ANDed.
+                              description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                               items:
                                 description: |-
                                   A label selector requirement is a selector that contains values, a key, and an operator that
                                   relates the key and values.
                                 properties:
                                   key:
-                                    description:
-                                      key is the label key that the selector
-                                      applies to.
+                                    description: key is the label key that the selector applies to.
                                     type: string
                                   operator:
                                     description: |-
@@ -989,17 +938,7 @@ spec:
               properties:
                 conditions:
                   items:
-                    description:
-                      "Condition contains details for one aspect of the current
-                      state of this API Resource.\n---\nThis struct is intended for
-                      direct use as an array at the field path .status.conditions.  For
-                      example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
-                      observations of a foo's current state.\n\t    // Known .status.conditions.type
-                      are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
-                      +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
-                      \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
-                      patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
-                      \   // other fields\n\t}"
+                    description: "Condition contains details for one aspect of the current state of this API Resource.\n---\nThis struct is intended for direct use as an array at the field path .status.conditions.  For example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the observations of a foo's current state.\n\t    // Known .status.conditions.type are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    // +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t    // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t    // other fields\n\t}"
                     properties:
                       lastTransitionTime:
                         description: |-
@@ -1068,9 +1007,7 @@ spec:
             - spec
           type: object
           x-kubernetes-validations:
-            - message:
-                Only one baseline admin network policy with metadata.name="default"
-                can be created in the cluster
+            - message: Only one baseline admin network policy with metadata.name="default" can be created in the cluster
               rule: self.metadata.name == 'default'
       served: true
       storage: true
