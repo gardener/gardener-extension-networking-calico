@@ -5,10 +5,9 @@
 # chart on a version bump.
 #
 # Source manifest: manifests/calico-typha.yaml — the "Kubernetes API datastore,
-# more than 50 nodes" (Typha-enabled) variant. This is the canonical reference
-# per the internal guide (github.tools.sap/kubernetes/networking-backlog,
-# docs/update-calico.md); it carries the calico-typha Deployment and the
-# calico-tier-getter ClusterRole that the plain manifests/calico.yaml omits.
+# more than 50 nodes" (Typha-enabled) variant. It carries the calico-typha
+# Deployment and the calico-tier-getter ClusterRole that the plain
+# manifests/calico.yaml omits.
 #
 # Modes:
 #
@@ -18,25 +17,23 @@
 #   --vscode   Open each relevant chart file in the VS Code diff editor for
 #   (--code)   hand-merging: LEFT = the full upstream object (raw), RIGHT = the
 #              real chart file (editable — saving merges into the repo). The 4
-#              ClusterRoles are opened only when their .rules actually differ; the
-#              3 workloads (calico-node DaemonSet, kube-controllers + typha
+#              ClusterRoles are opened only when their .rules actually differ;
+#              the 3 workloads (calico-node DaemonSet, kube-controllers + typha
 #              Deployments) and the calico-config ConfigMap are always opened as
 #              raw full-object diffs — they are heavily Helm-templated, so there
 #              is no clean semantic trigger: expect templating noise and apply
-#              judgment. CRDs are excluded (regenerate with update-calico-crds.sh),
-#              as are the Gardener-only autoscalers/VPAs.
+#              judgment. CRDs are excluded (regenerate with
+#              update-calico-crds.sh), as are the Gardener-only
+#              autoscalers/VPAs.
 #
-# Map every delta with the carry/drop filter (see calico-bump-mapping.md in the
-# workspace root). CRDs are NOT covered here — regenerate them with
-# update-calico-crds.sh.
+# CRDs are NOT covered here — regenerate them with update-calico-crds.sh.
 #
-# Usage:
-#   hack/diff-calico-upstream.sh [OLD_VERSION] [NEW_VERSION]
+# Usage: hack/diff-calico-upstream.sh [OLD_VERSION] [NEW_VERSION]
 #   hack/diff-calico-upstream.sh --vscode [NEW_VERSION]
 #
-# Version defaults (read the calico-node image tag):
-#   NEW_VERSION = tag in imagevector/images.yaml (working tree)
-#   OLD_VERSION = tag in imagevector/images.yaml at git HEAD
+# Version defaults (read the calico-node image tag): NEW_VERSION = tag in
+#   imagevector/images.yaml (working tree) OLD_VERSION = tag in
+#   imagevector/images.yaml at git HEAD
 #
 # Requires: curl, yq (mikefarah v4), git. (--vscode also needs the `code` CLI.)
 
