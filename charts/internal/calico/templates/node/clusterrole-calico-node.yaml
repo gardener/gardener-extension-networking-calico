@@ -62,11 +62,10 @@ rules:
     verbs:
       - watch
       - list
-  # Watch for changes to Kubernetes (Baseline)AdminNetworkPolicies.
+  # Watch for changes to Kubernetes ClusterNetworkPolicies.
   - apiGroups: ["policy.networking.k8s.io"]
     resources:
-      - adminnetworkpolicies
-      - baselineadminnetworkpolicies
+      - clusternetworkpolicies
     verbs:
       - watch
       - list
@@ -89,20 +88,20 @@ rules:
   - apiGroups: ["crd.projectcalico.org"]
     resources:
       - globalfelixconfigs
+      - globalbgpconfigs
       - felixconfigurations
       - bgppeers
       - bgpfilters
-      - globalbgpconfigs
       - bgpconfigurations
       - ippools
       - ipreservations
       - ipamblocks
       - globalnetworkpolicies
       - stagedglobalnetworkpolicies
-      - globalnetworksets
       - networkpolicies
       - stagednetworkpolicies
       - stagedkubernetesnetworkpolicies
+      - globalnetworksets
       - networksets
       - clusterinformations
       - hostendpoints
@@ -124,6 +123,7 @@ rules:
     resources:
       - ippools
       - felixconfigurations
+      - bgpconfigurations
       - clusterinformations
     verbs:
       - create
@@ -177,6 +177,16 @@ rules:
     resources:
       - blockaffinities
     verbs:
+      - watch
+  # For monitoring KubeVirt live migration. Felix v3.32+ unconditionally watches
+  # this resource and treats RBAC-denied as a fatal datastore error, so the grant
+  # is required even when KubeVirt is not installed in the cluster.
+  - apiGroups: ["kubevirt.io"]
+    resources:
+      - virtualmachineinstancemigrations
+    verbs:
+      - get
+      - list
       - watch
   # The Calico IPAM migration needs to get daemonsets. These permissions can be
   # removed if not upgrading from an installation using host-local IPAM.

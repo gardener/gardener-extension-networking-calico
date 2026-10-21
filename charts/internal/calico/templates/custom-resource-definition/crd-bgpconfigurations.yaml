@@ -31,6 +31,9 @@ spec:
                   format: int32
                   type: integer
                 bindMode:
+                  enum:
+                    - None
+                    - NodeIP
                   type: string
                 communities:
                   items:
@@ -41,11 +44,22 @@ spec:
                         pattern: ^(\d+):(\d+)$|^(\d+):(\d+):(\d+)$
                         type: string
                     type: object
+                    x-kubernetes-map-type: atomic
                   type: array
+                  x-kubernetes-list-type: atomic
                 ignoredInterfaces:
                   items:
                     type: string
                   type: array
+                  x-kubernetes-list-type: set
+                ipv4NormalRoutePriority:
+                  maximum: 2147483646
+                  minimum: 1
+                  type: integer
+                ipv6NormalRoutePriority:
+                  maximum: 2147483646
+                  minimum: 1
+                  type: integer
                 listenPort:
                   maximum: 65535
                   minimum: 1
@@ -55,6 +69,8 @@ spec:
                 localWorkloadPeeringIPV6:
                   type: string
                 logSeverityScreen:
+                  default: Info
+                  pattern: ^(?i)(Trace|Debug|Info|Warning|Error|Fatal)?$
                   type: string
                 nodeMeshMaxRestartTime:
                   type: string
@@ -80,27 +96,41 @@ spec:
                   items:
                     properties:
                       cidr:
+                        format: cidr
                         type: string
                       communities:
                         items:
                           type: string
                         type: array
                     type: object
+                    x-kubernetes-map-type: atomic
                   type: array
+                  x-kubernetes-list-type: atomic
+                programClusterRoutes:
+                  enum:
+                    - Enabled
+                    - Disabled
+                  type: string
                 serviceClusterIPs:
                   items:
                     properties:
                       cidr:
+                        format: cidr
                         type: string
                     type: object
+                    x-kubernetes-map-type: atomic
                   type: array
+                  x-kubernetes-list-type: atomic
                 serviceExternalIPs:
                   items:
                     properties:
                       cidr:
+                        format: cidr
                         type: string
                     type: object
+                    x-kubernetes-map-type: atomic
                   type: array
+                  x-kubernetes-list-type: atomic
                 serviceLoadBalancerAggregation:
                   default: Enabled
                   enum:
@@ -111,10 +141,20 @@ spec:
                   items:
                     properties:
                       cidr:
+                        format: cidr
                         type: string
                     type: object
+                    x-kubernetes-map-type: atomic
                   type: array
+                  x-kubernetes-list-type: atomic
               type: object
+              x-kubernetes-validations:
+                - message: nodeMeshPassword cannot be set when nodeToNodeMeshEnabled is false
+                  reason: FieldValueForbidden
+                  rule: "!has(self.nodeMeshPassword) || !has(self.nodeToNodeMeshEnabled) || self.nodeToNodeMeshEnabled == true"
+                - message: nodeMeshMaxRestartTime cannot be set when nodeToNodeMeshEnabled is false
+                  reason: FieldValueForbidden
+                  rule: "!has(self.nodeMeshMaxRestartTime) || !has(self.nodeToNodeMeshEnabled) || self.nodeToNodeMeshEnabled == true"
           type: object
       served: true
       storage: true
