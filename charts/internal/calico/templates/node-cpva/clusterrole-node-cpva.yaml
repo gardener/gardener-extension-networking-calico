@@ -8,7 +8,15 @@ rules:
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["list"]
-  - apiGroups: ["apps", "extensions"]
-    resources: ["deployments", "daemonsets"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: calico-node-cpva
+  namespace: kube-system
+rules:
+  - apiGroups: ["apps"]
+    resources: ["daemonsets"]
+    resourceNames: ["calico-node"]
     verbs: ["patch"]
 {{- end }}

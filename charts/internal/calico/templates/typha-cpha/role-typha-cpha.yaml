@@ -9,7 +9,8 @@ rules:
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["get"]
-  - apiGroups: ["apps", "extensions"]
+  - apiGroups: ["apps"]
     resources: ["deployments/scale"]
+    resourceNames: ["calico-typha-deploy"]
     verbs: ["get", "update"]
 {{- end }}
