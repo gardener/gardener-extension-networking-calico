@@ -366,11 +366,12 @@ func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, netw
 }
 
 // wantsKubeAPIServerGlobalNetworkSet returns whether the kube-apiserver GlobalNetworkSet shall be deployed into the
-// shoot: it has to be enabled, and the shoot must not be hibernated. gardenlet destroys the DNSRecords of a hibernated
-// shoot, so the addresses cannot be determined, and failing would keep its reconciliation failing until it wakes up.
-// The set is not needed meanwhile either, because a hibernated cluster runs no pods.
+// shoot: it has to be enabled, and hibernation must not be requested. gardenlet destroys the DNSRecords before the
+// status reports the hibernation as complete, so a reconcile racing into this window fails on them and keeps the
+// flow - and with it the status flip - from ever completing. The set is not needed anyway: a hibernated shoot runs
+// no pods.
 func (a *actuator) wantsKubeAPIServerGlobalNetworkSet(cluster *extensionscontroller.Cluster, networkConfig *calicov1alpha1.NetworkConfig) bool {
-	return apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) && !extensionscontroller.IsHibernated(cluster)
+	return apiserverendpoints.Enabled(networkConfig, a.kubeAPIServerGlobalNetworkSetConfig) && !extensionscontroller.IsHibernationEnabled(cluster)
 }
 
 func setPoolMode(networkConfig *calicov1alpha1.NetworkConfig, ipFamilies []extensionsv1alpha1.IPFamily, mode calicov1alpha1.PoolMode) {
