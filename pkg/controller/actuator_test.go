@@ -119,10 +119,11 @@ var _ = Describe("#wantsKubeAPIServerGlobalNetworkSet", func() {
 		Entry("no configuration at all", nil, newCluster(false, false), false),
 		Entry("enabled, shoot awake", enabled, newCluster(false, false), true),
 		Entry("enabled, shoot without hibernation section", enabled, &extensionscontroller.Cluster{Shoot: &gardencorev1beta1.Shoot{}}, true),
-		// gardenlet destroys the DNSRecords of a hibernated shoot, so the addresses cannot be determined.
+		// gardenlet destroys the DNSRecords before its status reports the hibernation as complete, so they cannot be
+		// relied on anymore once hibernation is requested.
 		Entry("enabled, shoot hibernated", enabled, newCluster(true, true), false),
-		// The DNSRecords are destroyed only after the control plane was hibernated, so they are still there.
-		Entry("enabled, shoot going into hibernation", enabled, newCluster(true, false), true),
+		Entry("enabled, shoot going into hibernation", enabled, newCluster(true, false), false),
+		// The DNSRecords are recreated before the network plugin is reconciled during the wake-up.
 		Entry("enabled, shoot waking up", enabled, newCluster(false, true), true),
 	)
 })
