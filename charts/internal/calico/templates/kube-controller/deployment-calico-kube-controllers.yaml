@@ -32,9 +32,19 @@ spec:
         gardener.cloud/role: system-component
     spec:
       tolerations:
-      # Make sure kube-controllers gets scheduled on all nodes.
-      - effect: NoSchedule
+      # Allow scheduling on fresh nodes before CNI is installed, but do not
+      # tolerate node.kubernetes.io/unschedulable so that drain/cordon works.
+      - key: CriticalAddonsOnly
         operator: Exists
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+        effect: NoSchedule
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
+        effect: NoSchedule
+      - key: node.cloudprovider.kubernetes.io/uninitialized
+        operator: Exists
+        effect: NoSchedule
       serviceAccountName: calico-kube-controllers
       priorityClassName: system-cluster-critical
       # Make sure to not use the coredns for DNS resolution.
