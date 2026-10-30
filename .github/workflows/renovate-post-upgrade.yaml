@@ -39,6 +39,7 @@ jobs:
           set -euo pipefail
           export PATH="${PATH}:$(go env GOROOT)/bin"
           make generate MODE="sequential"
+          hack/update-cni-plugins-checksums.sh
       - name: Capture changes
         id: diff
         run: |
