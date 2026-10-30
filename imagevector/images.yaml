@@ -2,7 +2,7 @@ images:
 - name: calico-node
   sourceRepository: github.com/projectcalico/calico
   repository: quay.io/calico/node
-  tag: v3.32.2
+  tag: 3.33.0
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
