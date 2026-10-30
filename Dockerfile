@@ -30,11 +30,20 @@ ENTRYPOINT ["/gardener-extension-admission-calico"]
 
 ############# cni-plugins-builder
 FROM golang:1.26.10 AS cni-plugins-builder
+ARG TARGETARCH
 ARG CNI_PLUGINS_VERSION=v1.9.1
+ARG CNI_PLUGINS_SHA256_AMD64=b98f74a0f8522f0a83867178729c1aa70f2158f90c45a2ca8fa791db1c76b303
+ARG CNI_PLUGINS_SHA256_ARM64=56171987d3947707c3563db2f4001bccaf50fd63468611b9f3cbecb1375ee7ec
 WORKDIR /
 RUN mkdir -p /usr/src/cni/bin && \
-    curl -L -O https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-amd64-${CNI_PLUGINS_VERSION}.tgz && \
-    tar -xvf cni-plugins-linux-amd64-${CNI_PLUGINS_VERSION}.tgz -C /usr/src/cni/bin/ && \
+    case "${TARGETARCH}" in \
+      amd64) CNI_PLUGINS_SHA256="${CNI_PLUGINS_SHA256_AMD64}" ;; \
+      arm64) CNI_PLUGINS_SHA256="${CNI_PLUGINS_SHA256_ARM64}" ;; \
+      *) echo "unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+    esac && \
+    curl -L -O "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${TARGETARCH}-${CNI_PLUGINS_VERSION}.tgz" && \
+    echo "${CNI_PLUGINS_SHA256}  cni-plugins-linux-${TARGETARCH}-${CNI_PLUGINS_VERSION}.tgz" | sha256sum -c && \
+    tar -xvf "cni-plugins-linux-${TARGETARCH}-${CNI_PLUGINS_VERSION}.tgz" -C /usr/src/cni/bin/ && \
     echo done
 ############# cni-plugins
 FROM alpine:3.24.3 AS cni-plugins

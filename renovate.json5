@@ -22,6 +22,16 @@
       "datasourceTemplate": "docker"
     },
     {
+      // Track the cni-plugins version pinned in the Dockerfile.
+      // The corresponding SHA256 checksums are updated by hack/update-cni-plugins-checksums.sh
+      // via the renovate-post-upgrade workflow.
+      "customType": "regex",
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": ["ARG CNI_PLUGINS_VERSION=(?<currentValue>v[\\d.]+)\\n"],
+      "depNameTemplate": "containernetworking/plugins",
+      "datasourceTemplate": "github-releases"
+    },
+    {
       // busyboxImage pin in the SeamlessOverlaySwitch system test. test/** is disabled
       // below, but this single image is intentionally tracked (re-enabled via packageRules).
       "customType": "regex",
@@ -36,6 +46,14 @@
       "groupName": "calico images",
       "matchDatasources": ["docker"],
       "matchPackagePatterns": ["quay\\.io\/calico\/.+"],
+      "automerge": false
+    },
+    {
+      // cni-plugins version bump requires manual review: the SHA256 checksums are
+      // updated automatically by the renovate-post-upgrade workflow, but the new
+      // binary should be reviewed before merging.
+      "matchPackageNames": ["containernetworking/plugins"],
+      "matchDatasources": ["github-releases"],
       "automerge": false
     },
     {
