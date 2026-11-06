@@ -57,10 +57,14 @@
       "automerge": false
     },
     {
-      // quay.io/calico/node publishes tags both with and without the "v" prefix; restrict to v-prefixed ones.
+      // Force "docker" versioning for quay.io/calico/node. The config:recommended preset assigns the
+      // Node.js ("node") versioning to packages named "node"; since this image is literally named
+      // "quay.io/calico/node", it wrongly inherits "node" versioning, which strips the "v" prefix from
+      // the written tag and produces the non-existent tag "3.32.3" instead of "v3.32.3" (breaking the
+      // image pull). The other three calico images use "docker" versioning and keep the "v" correctly.
       "matchPackageNames": ["quay.io/calico/node"],
       "matchDatasources": ["docker"],
-      "allowedVersions": "/^v/"
+      "versioning": "docker"
     },
     {
       // Group golang updates in one PR.
