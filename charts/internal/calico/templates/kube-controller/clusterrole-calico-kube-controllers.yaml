@@ -21,7 +21,7 @@ rules:
       - get
       - list
       - watch
-  # Namespaces are watched for LoadBalancer IP allocation with namespace selector support
+  # Namespaces are watched for IP pool namespace selector support
   - apiGroups: [""]
     resources:
       - namespaces
@@ -37,7 +37,6 @@ rules:
     verbs:
       - get
       - list
-      - update
       - watch
   # IPAM resources are manipulated in response to node and block updates, as well as periodic triggers.
   - apiGroups: ["crd.projectcalico.org"]

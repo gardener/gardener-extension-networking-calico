@@ -186,6 +186,10 @@ func ValidateIPAutoDetectionMethod(method string, fldPath *field.Path) field.Err
 		}
 
 		if option == "interface" || option == "skip-interface" {
+			if strings.ContainsAny(parts[1], "\"\n\r\t") || strings.ContainsRune(parts[1], ' ') {
+				allErrs = append(allErrs, field.Invalid(fldPath, method, fmt.Sprintf("parameter for %s must not contain quotes or whitespace", option)))
+				return allErrs
+			}
 			_, err := regexp.Compile(parts[1])
 			if err != nil {
 				allErrs = append(allErrs, field.Invalid(fldPath, method, fmt.Sprintf("invalid regex for option %s: %v", option, err)))

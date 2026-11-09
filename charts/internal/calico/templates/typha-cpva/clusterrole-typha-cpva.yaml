@@ -9,8 +9,16 @@ rules:
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["list"]
-  - apiGroups: ["apps", "extensions"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: typha-cpva
+  namespace: kube-system
+rules:
+  - apiGroups: ["apps"]
     resources: ["deployments"]
+    resourceNames: ["calico-typha-deploy"]
     verbs: ["patch"]
 {{- end }}
 {{- end }}

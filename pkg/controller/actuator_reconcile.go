@@ -324,6 +324,10 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, network *exte
 // the typha-migration-restart-at annotation so the next chart render triggers a rolling restart.
 // The observed HA state is always persisted so subsequent reconciles see no change.
 func (a *actuator) handleHATransition(ctx context.Context, log logr.Logger, network *extensionsv1alpha1.Network, cluster *extensionscontroller.Cluster) error {
+	if extensionscontroller.IsHibernated(cluster) {
+		return nil
+	}
+
 	isHA := cluster.Shoot.Spec.ControlPlane != nil &&
 		cluster.Shoot.Spec.ControlPlane.HighAvailability != nil
 
@@ -434,7 +438,7 @@ func (a *actuator) getShootClient(ctx context.Context, cluster *extensionscontro
 
 // ensureNodesRoutesBeforeOverlaySwitch checks if all nodes have routes created before allowing overlay to be disabled
 func (a *actuator) ensureNodesRoutesBeforeOverlaySwitch(ctx context.Context, log logr.Logger, cluster *extensionscontroller.Cluster, networkConfig *calicov1alpha1.NetworkConfig, overlaySwitch bool) error {
-	if !overlaySwitch {
+	if !overlaySwitch || extensionscontroller.IsHibernated(cluster) {
 		return nil
 	}
 
