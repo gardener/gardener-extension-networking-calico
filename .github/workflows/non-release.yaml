@@ -1,6 +1,13 @@
 name: Build
 on:
+  # Only pushes to the default branch and release branches publish credentialed
+  # snapshot artifacts (the component-descriptor job below runs with contents: write).
+  # Other branches are validated through pull_request without reaching that
+  # credentialed path.
   push:
+    branches:
+      - master
+      - release-*
   pull_request:
 
 jobs:
