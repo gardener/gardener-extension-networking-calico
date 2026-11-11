@@ -7,6 +7,9 @@
   ],
   "labels": ["kind/enhancement"],
   "postUpdateOptions": ["gomodTidy"],
+  // Pin and maintain image/action digests so build inputs cannot be swapped under a
+  // mutable tag.
+  "pinDigests": true,
   // Ignore the commits pushed by the `renovate-post-upgrade` GitHub Action (running
   // `make generate`/`make tidy`) when detecting whether a branch was manually edited.
   // Otherwise, Renovate would treat the branch as modified and stop updating the PR.
@@ -67,31 +70,37 @@
       "versioning": "docker"
     },
     {
-      // Group golang updates in one PR.
+      // Group golang updates in one PR. Only patch/digest bumps automerge;
+      // minor/major fall through to review.
       "groupName": "golang",
       "matchDatasources": ["docker", "golang-version"],
       "matchPackagePatterns": ["go", "golang"],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {
-      // Group gardener updates in one PR.
+      // Group gardener updates in one PR. Only patch/digest bumps automerge;
+      // minor/major of these deps require human review before they execute in CI.
       groupName: "gardener",
       matchManagers: ["gomod"],
       matchPackageNames: [
         '/^github\\.com/gardener/',
       ],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {
-      // Automerge patch updates for alpine base images.
+      // Automerge patch/digest updates for alpine base images.
       "matchDatasources": ["docker"],
       "matchPackagePatterns": ["alpine"],
-      "matchUpdateTypes": ["patch"],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {
+      // Only patch/digest Go module bumps automerge; minor/major of (direct) deps
+      // require human review before they execute in CI.
       "matchManagers": ["gomod"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {
