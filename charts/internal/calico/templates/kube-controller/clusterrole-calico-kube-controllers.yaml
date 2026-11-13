@@ -106,4 +106,39 @@ rules:
     verbs:
       - get
       - update
+  # Needed for the migration controller (policy_name_migrator) to wait for the
+  # calico-node and calico-typha rollout before migrating v1 policy names to v3.
+  - apiGroups: ["apps"]
+    resources:
+      - daemonsets
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+  # Needed for the migration controller (policy_name_migrator) to rewrite
+  # existing policies from their v1 names to the new v3 names in the datastore.
+  - apiGroups: ["crd.projectcalico.org"]
+    resources:
+      - networkpolicies
+      - stagednetworkpolicies
+      - globalnetworkpolicies
+      - stagedglobalnetworkpolicies
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+  # The kube-controllers DatastoreMigration controller watches CRDs, waiting
+  # for the datastoremigrations CRD to appear (it never does in this KDD-only
+  # extension). Grant the watch so it waits quietly instead of erroring.
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+      - watch
 {{- end }}
