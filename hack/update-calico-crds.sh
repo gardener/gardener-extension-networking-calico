@@ -79,9 +79,14 @@ crd_filename() {
 }
 
 count=0
+# Newline-separated list of the CRD files this release expects, used below to
+# detect obsolete files left over from a previous (larger) CRD set.
+expected_files=""
 while IFS= read -r plural; do
   [[ -n "${plural}" ]] || continue
   filename="$(crd_filename "${plural}")"
+  expected_files="${expected_files}${filename}
+"
   {
     echo "---"
     # Transform each CRD:
@@ -105,6 +110,33 @@ while IFS= read -r plural; do
 done < <(yq eval -N '.spec.names.plural' "${manifest}")
 
 echo "Done: re-synced ${count} CRD(s)."
+
+# Detect chart CRD files that no longer correspond to any CRD in the target
+# release (removed or renamed upstream, e.g. the AdminNetworkPolicy CRDs dropped
+# in v3.32). This script never deletes files, and an obsolete file is otherwise
+# invisible: it is left unchanged, so it does not show up in the diff and keeps
+# being deployed. Fail loudly instead, so the removal is handled deliberately
+# (deleting a CRD drops all of its custom resources on the next deployment and
+# must be a conscious, reviewed action).
+orphans=()
+for existing in "${crd_dir}"/crd-*.yaml; do
+  [[ -e "${existing}" ]] || continue
+  base="$(basename "${existing}")"
+  if ! grep -qxF "${base}" <<<"${expected_files}"; then
+    orphans+=("${base}")
+  fi
+done
+
+if [[ ${#orphans[@]} -gt 0 ]]; then
+  echo
+  echo "error: ${#orphans[@]} vendored CRD file(s) are not present in ${ref} and are now obsolete:" >&2
+  printf '  - %s\n' "${orphans[@]}" >&2
+  echo >&2
+  echo "They were left untouched (this script never deletes). After confirming nothing" >&2
+  echo "relies on the removed CRD(s), delete them with 'git rm' and re-run this script." >&2
+  exit 1
+fi
+
 echo
 echo "Next steps:"
 echo "  - review the diff (new CRDs, schema and RBAC-relevant resource changes)"
