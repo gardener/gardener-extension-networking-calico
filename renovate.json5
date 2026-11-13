@@ -79,14 +79,21 @@
       "automerge": true
     },
     {
-      // Group gardener updates in one PR. Only patch/digest bumps automerge;
-      // minor/major of these deps require human review before they execute in CI.
+      // Group gardener updates in one PR.
+      // major require human review before they execute in CI.
       groupName: "gardener",
       matchManagers: ["gomod"],
       matchPackageNames: [
         '/^github\\.com/gardener/',
       ],
-      "matchUpdateTypes": ["patch", "digest"],
+    },
+    {
+      // minor/patch/digest bumps automerge;
+      matchManagers: ["gomod"],
+      matchPackageNames: [
+        '/^github\\.com/gardener/',
+      ],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
       "automerge": true
     },
     {
