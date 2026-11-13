@@ -28,7 +28,9 @@ spec:
             spec:
               properties:
                 asNumber:
-                  format: int32
+                  format: int64
+                  maximum: 4294967295
+                  minimum: 0
                   type: integer
                 filters:
                   items:
@@ -39,7 +41,9 @@ spec:
                 keepaliveTime:
                   type: string
                 localASNumber:
-                  format: int32
+                  format: int64
+                  maximum: 4294967295
+                  minimum: 0
                   type: integer
                 localWorkloadSelector:
                   maxLength: 4096
