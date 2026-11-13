@@ -39,7 +39,14 @@ jobs:
           set -euo pipefail
           export PATH="${PATH}:$(go env GOROOT)/bin"
           make generate MODE="sequential"
+          # `make generate` installs the version-pinned tools (incl. yq, pinned in the
+          # vendored gardener/hack/tools.mk) under hack/tools/bin/<os>-<arch>. Expose them
+          # so the bare `yq`/tool calls in the scripts below resolve to those versions.
+          export PATH="${PWD}/hack/tools/bin/$(go env GOOS)-$(go env GOARCH):${PATH}"
           hack/update-cni-plugins-checksums.sh
+          # Keep the vendored Calico CRDs in lockstep with the image tag Renovate just
+          # bumped. Fails if the bump orphans a CRD file (must be removed manually).
+          hack/update-calico-crds.sh
       - name: Capture changes
         id: diff
         run: |
@@ -85,5 +92,5 @@ jobs:
           set -euo pipefail
           git apply --3way --whitespace=nowarn "${RUNNER_TEMP}/post-upgrade.patch"
           git add -A
-          git commit -m "Run make generate"
+          git commit -m "Run post-upgrade tasks"
           git push origin "HEAD:${HEAD_REF}"
