@@ -1,5 +1,5 @@
 ############# builder
-FROM golang:1.27.4@sha256:fe517acaa580cc7915457080f850c37e618b3c1e750f98b58fc6429b605147a1 AS builder
+FROM golang:1.27.4@sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf AS builder
 
 WORKDIR /go/src/github.com/gardener/gardener-extension-networking-calico
 
@@ -29,7 +29,7 @@ COPY --from=builder /go/bin/gardener-extension-admission-calico /gardener-extens
 ENTRYPOINT ["/gardener-extension-admission-calico"]
 
 ############# cni-plugins-builder
-FROM golang:1.27.4@sha256:fe517acaa580cc7915457080f850c37e618b3c1e750f98b58fc6429b605147a1 AS cni-plugins-builder
+FROM golang:1.27.4@sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf AS cni-plugins-builder
 ARG TARGETARCH
 ARG CNI_PLUGINS_VERSION=v1.10.0
 ARG CNI_PLUGINS_SHA256_AMD64=ce8603d6a1bd448efba5bd6dc44f38dce349f821aa57e1bb354b52628ebf1853
