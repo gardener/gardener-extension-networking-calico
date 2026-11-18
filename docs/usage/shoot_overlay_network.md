@@ -14,11 +14,11 @@ The Overlay networking permits the routing of packets between multiples pods loc
 
 This is done through the encapsulation of pod packets in the node network so that the routing can be done as usual. We use `ipip` encapsulation with calico as default in case the overlay network is enabled. This (simply put) sends an IP packet as workload in another IP packet.
 
-![](./assets/Overlay-Network.drawio.png)
+![](./assets/overlay-network.drawio.png)
 
 In order to simplify the troubleshooting of problems and reduce the latency of packets traveling between nodes, the overlay network is disabled by default as stated above for all new clusters.
 
-![](./assets/No-Overlay-Network.drawio.png)
+![](./assets/no-overlay-network.drawio.png)
 
 This means that the routing is done directly through the VPC routing table. Basically, when a new node is created, it is assigned a slice (usually a /24) of the pod network. All future pods in that node are going to be in this slice. Then, the cloud-controller-manager updates the cloud provider router to add the new route (all packets within the network slice as destination should go to that node).
 
